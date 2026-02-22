@@ -3,276 +3,795 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DocketAlly — Document Your Work. Protect Your Record.</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<title>Unfiltered Conversations — Leadership Clarity for Mid-Career Professionals</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg:#FFFFFF;--surface:#FAFAF9;--dark:#0C0C0F;
-    --s50:#FAFAF9;--s100:#F5F5F4;--s200:#E7E5E4;--s300:#D6D3D1;--s400:#A8A29E;
-    --s500:#78716C;--s600:#57534E;--s700:#44403C;--s800:#292524;--s900:#1C1917;
-    --g:#22C55E;--gl:#4ADE80;--gs:#F0FDF4;--gm:#DCFCE7;--gb:#BBF7D0;--gd:#16A34A;--gt:#15803D;
-    --serif:'Fraunces',Georgia,serif;--sans:'Manrope',-apple-system,sans-serif;--mono:'JetBrains Mono','SF Mono',monospace;
+    --indigo: #2A388F;
+    --indigo-mid: #1E2B6E;
+    --indigo-light: #3A4AA0;
+    --ice: #EBF6FB;
+    --ice-mid: #D8EEF7;
+    --warm-white: #FDFCFA;
+    --sky: #00ADEF;
+    --sky-soft: #4DC4F0;
+    --lavender: #888EB9;
+    --text-primary: #1A1A1A;
+    --text-secondary: #434343;
+    --text-muted: #6B7280;
+    --border: #D0DEE6;
+    --bg-section: #EBF6FB;
   }
-  *{margin:0;padding:0;box-sizing:border-box;}
-  body{font-family:var(--sans);color:var(--s800);background:var(--bg);-webkit-font-smoothing:antialiased;overflow-x:hidden;}
 
-  /* NAV */
-  nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 40px;height:64px;display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--s200);}
-  .nl{font-family:var(--serif);font-size:20px;font-weight:700;color:var(--s900);text-decoration:none;letter-spacing:-0.01em;}
-  .nl span{color:var(--g);}
-  .nk{display:flex;align-items:center;gap:32px;}
-  .nk a{font-size:14px;font-weight:500;color:var(--s500);text-decoration:none;transition:color 0.15s;}
-  .nk a:hover{color:var(--s800);}
-  .nc{padding:10px 24px;border-radius:8px;background:var(--g);color:#fff!important;font-weight:600!important;font-size:13.5px!important;transition:all 0.15s;box-shadow:0 1px 4px rgba(34,197,94,0.3);}
-  .nc:hover{background:var(--gd);transform:translateY(-1px);}
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
 
-  /* ============================================================
-     HERO
-     ============================================================ */
-  .hero{padding:120px 40px 0;max-width:1140px;margin:0 auto;display:grid;grid-template-columns:1fr 1.15fr;gap:48px;align-items:center;min-height:92vh;}
-  .hc{max-width:460px;}
-  .ht{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;font-weight:600;color:var(--gt);background:var(--gs);padding:6px 14px;border-radius:20px;letter-spacing:0.04em;text-transform:uppercase;margin-bottom:24px;border:1px solid var(--gb);opacity:0;animation:fu .6s ease forwards .1s;}
-  .ht::before{content:'';width:6px;height:6px;background:var(--g);border-radius:50%;animation:pulse 2s infinite;}
-  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
-  .hero h1{font-family:var(--serif);font-size:48px;font-weight:600;color:var(--s900);line-height:1.1;letter-spacing:-0.03em;margin-bottom:20px;opacity:0;animation:fu .6s ease forwards .2s;}
-  .hero h1 em{font-style:normal;color:var(--g);}
-  .hs{font-size:17px;color:var(--s500);line-height:1.65;margin-bottom:32px;opacity:0;animation:fu .6s ease forwards .3s;}
-  .hr{display:flex;gap:12px;align-items:center;flex-wrap:wrap;opacity:0;animation:fu .6s ease forwards .4s;}
-  .bp{padding:15px 32px;border-radius:10px;background:var(--g);color:#fff;font-family:var(--sans);font-size:15px;font-weight:600;border:none;cursor:pointer;transition:all .2s;box-shadow:0 2px 12px rgba(34,197,94,.3);text-decoration:none;display:inline-block;}
-  .bp:hover{background:var(--gd);transform:translateY(-2px);box-shadow:0 4px 20px rgba(34,197,94,.35);}
-  .bg{padding:15px 28px;border-radius:10px;background:none;color:var(--s600);font-family:var(--sans);font-size:15px;font-weight:600;border:1px solid var(--s200);cursor:pointer;transition:all .2s;text-decoration:none;}
-  .bg:hover{border-color:var(--s400);color:var(--s800);}
-  .htr{margin-top:20px;font-size:13px;color:var(--s400);opacity:0;animation:fu .6s ease forwards .5s;}
-  @keyframes fu{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+  body {
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text-primary);
+    background: var(--warm-white);
+    overflow-x: hidden;
+  }
 
-  /* Product Mockup */
-  .hv{opacity:0;animation:fu .8s ease forwards .35s;position:relative;}
-  .mw{background:var(--dark);border-radius:14px;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.2),0 0 0 1px rgba(255,255,255,.06);transform:perspective(1400px) rotateY(-3deg) rotateX(1.5deg);transition:transform .5s ease;}
-  .mw:hover{transform:perspective(1400px) rotateY(0) rotateX(0);}
-  .mt{height:38px;background:#18181b;display:flex;align-items:center;padding:0 14px;gap:7px;border-bottom:1px solid rgba(255,255,255,.06);}
-  .md{width:10px;height:10px;border-radius:50%;}
-  .md.r{background:#ff5f57;}.md.y{background:#febc2e;}.md.g{background:#28c840;}
-  .mt-url{margin-left:12px;background:rgba(255,255,255,.06);border-radius:4px;padding:4px 12px;font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.3);flex:1;max-width:200px;}
-  .mb{display:flex;min-height:360px;}
-  .ms{width:170px;background:var(--dark);padding:18px 12px;flex-shrink:0;border-right:1px solid rgba(255,255,255,.06);}
-  .ms .lo{font-family:var(--serif);font-size:14px;font-weight:700;color:#fff;padding:0 8px 16px;}
-  .ms .lo span{color:var(--g);}
-  /* Lifecycle bar in sidebar */
-  .lc{display:flex;gap:3px;padding:0 8px;margin-bottom:4px;}
-  .lc div{flex:1;height:3px;border-radius:2px;}
-  .lcs{font-family:var(--sans);font-size:10px;color:var(--gl);padding:0 8px 14px;font-weight:500;}
-  .mn{padding:7px 10px;border-radius:6px;margin-bottom:1px;font-family:var(--sans);font-size:12px;color:rgba(255,255,255,.3);cursor:default;transition:all .15s;}
-  .mn.a{background:rgba(255,255,255,.08);color:#fff;font-weight:600;}
-  .mm{flex:1;background:#fff;padding:24px;overflow:hidden;}
-  .mm h3{font-family:var(--serif);font-size:24px;font-weight:600;color:var(--s900);margin-bottom:4px;letter-spacing:-0.02em;}
-  .mm .sub{font-family:var(--sans);font-size:12px;color:var(--s400);margin-bottom:16px;}
+  /* ========== NAV ========== */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    padding: 20px 64px;
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(253, 252, 250, 0.92);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(42, 56, 143, 0.06);
+    transition: all 0.3s ease;
+  }
 
-  /* Record entries in mockup */
-  .me{padding:14px 16px;border-radius:10px;border:1px solid var(--s200);margin-bottom:8px;transition:all .2s;background:#fff;}
-  .me:hover{border-color:var(--gb);background:var(--gs);}
-  .me-t{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
-  .me-type{font-family:var(--sans);font-size:9px;font-weight:700;padding:2px 7px;border-radius:3px;text-transform:uppercase;letter-spacing:.04em;}
-  .me-type.pip{background:#FEF3C7;color:#92400E;}
-  .me-type.rev{background:var(--gs);color:var(--gt);}
-  .me-type.email{background:#DBEAFE;color:#1E40AF;}
-  .me-type.inc{background:#FEE2E2;color:#991B1B;}
-  .me-date{font-family:var(--mono);font-size:10px;color:var(--s400);}
-  .me-txt{font-family:var(--sans);font-size:12.5px;color:var(--s600);line-height:1.5;}
-  .me-who{display:flex;align-items:center;gap:6px;margin-top:6px;}
-  .me-av{width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:#fff;}
-  .me-name{font-family:var(--sans);font-size:10px;color:var(--s400);}
-  .me-att{display:inline-flex;align-items:center;gap:4px;margin-top:6px;padding:3px 8px;background:var(--s50);border-radius:4px;border:1px solid var(--s200);font-family:var(--mono);font-size:9px;color:var(--s500);}
+  .nav-logo {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700; font-size: 14px;
+    letter-spacing: 2.5px; text-transform: uppercase;
+    color: var(--indigo); text-decoration: none; line-height: 1.3;
+  }
+  .nav-logo span {
+    display: block; font-weight: 400;
+    letter-spacing: 3.5px; font-size: 13px;
+  }
 
-  /* Floating badges */
-  .fb{position:absolute;background:#fff;border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,.1),0 0 0 1px rgba(0,0,0,.04);padding:10px 14px;z-index:3;}
-  .fb.p{bottom:40px;left:-20px;animation:fl 4s ease-in-out infinite .5s;}
-  .fb.s{top:60px;right:-16px;animation:fl 4s ease-in-out infinite 1.5s;}
-  @keyframes fl{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
-  .fb-l{font-family:var(--mono);font-size:9px;color:var(--s400);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;}
-  .fb-v{font-family:var(--sans);font-size:13px;font-weight:700;color:var(--s800);}
-  .fb-v .gr{color:var(--g);}
+  .nav-links { display: flex; align-items: center; gap: 40px; }
+  .nav-links a {
+    font-size: 13px; font-weight: 500; color: var(--text-secondary);
+    text-decoration: none; letter-spacing: 0.5px; transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--indigo); }
 
-  /* ============================================================
-     PROOF BAR
-     ============================================================ */
-  .pb{padding:72px 40px 64px;background:var(--dark);text-align:center;}
-  .pb-l{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.3);margin-bottom:40px;font-weight:600;}
-  .ps{display:flex;justify-content:center;gap:0;max-width:820px;margin:0 auto;}
-  .psi{flex:1;padding:0 36px;text-align:center;position:relative;}
-  .psi:not(:last-child)::after{content:'';position:absolute;right:0;top:8px;bottom:8px;width:1px;background:rgba(255,255,255,.08);}
-  .psi .n{font-family:var(--serif);font-size:48px;font-weight:700;color:var(--g);letter-spacing:-.02em;line-height:1;margin-bottom:10px;}
-  .psi .l{font-family:var(--sans);font-size:13px;color:rgba(255,255,255,.45);line-height:1.5;max-width:200px;margin:0 auto;}
-  .pb-s{margin-top:36px;font-size:11px;color:rgba(255,255,255,.15);}
-  .pb-s a{color:rgba(255,255,255,.2);text-decoration:none;border-bottom:1px solid rgba(255,255,255,.08);}
+  .nav-cta {
+    background: var(--indigo) !important; color: white !important;
+    padding: 10px 24px; border-radius: 6px;
+    font-size: 13px !important; font-weight: 600 !important;
+    letter-spacing: 0.3px; transition: all 0.2s;
+  }
+  .nav-cta:hover { background: var(--indigo-light) !important; }
 
-  /* ============================================================
-     PROBLEM
-     ============================================================ */
-  .prob{padding:100px 40px;max-width:1000px;margin:0 auto;}
-  .prob h2{font-family:var(--serif);font-size:40px;font-weight:600;color:var(--s900);letter-spacing:-.02em;margin-bottom:16px;text-align:center;}
-  .prob .st{font-size:16px;color:var(--s500);text-align:center;margin-bottom:56px;max-width:520px;margin-left:auto;margin-right:auto;line-height:1.6;}
-  .sg{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
-  .sc{padding:32px 28px;border-radius:14px;border:1px solid var(--s200);background:var(--bg);transition:all .25s;position:relative;overflow:hidden;}
-  .sc:hover{border-color:var(--gb);transform:translateY(-3px);box-shadow:0 8px 32px rgba(0,0,0,.06);}
-  .sc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--s200);transition:background .25s;}
-  .sc:hover::before{background:var(--g);}
-  .si{width:48px;height:48px;border-radius:12px;margin-bottom:16px;display:flex;align-items:center;justify-content:center;}
-  .sc h3{font-family:var(--sans);font-size:16px;font-weight:700;color:var(--s800);margin-bottom:8px;}
-  .sc p{font-size:14px;color:var(--s500);line-height:1.65;}
-  .sc .ctx{margin-top:14px;padding-top:14px;border-top:1px solid var(--s100);font-family:var(--mono);font-size:10px;color:var(--s400);text-transform:uppercase;letter-spacing:.04em;}
+  /* ========== HERO ========== */
+  .hero {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    padding: 140px 64px 80px;
+    position: relative; overflow: hidden;
+    gap: 60px;
+  }
 
-  /* Quote banner between scenario rows */
-  .qb{grid-column:1/-1;border-radius:14px;overflow:hidden;position:relative;background:var(--dark);padding:44px 40px;display:flex;align-items:center;gap:32px;}
-  .qb::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--g);}
-  .qb blockquote{font-family:var(--serif);font-size:22px;font-weight:500;color:#fff;line-height:1.45;letter-spacing:-.01em;font-style:italic;flex:1;}
-  .qb blockquote em{font-style:normal;color:var(--gl);}
-  /* SVG illustration in quote */
-  .qb-ill{flex-shrink:0;width:80px;height:80px;display:flex;align-items:center;justify-content:center;}
+  .hero::before {
+    content: '';
+    position: absolute; top: -100px; right: -100px;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(0, 173, 239, 0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
 
-  /* ============================================================
-     HOW IT WORKS
-     ============================================================ */
-  .how{padding:100px 40px;background:var(--s50);border-top:1px solid var(--s200);border-bottom:1px solid var(--s200);}
-  .how-in{max-width:1000px;margin:0 auto;}
-  .how h2{font-family:var(--serif);font-size:36px;font-weight:600;color:var(--s900);letter-spacing:-.02em;margin-bottom:16px;text-align:center;}
-  .how .st{font-size:16px;color:var(--s500);text-align:center;margin-bottom:56px;}
-  .how-g{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
-  .how-s{position:relative;}
-  .how-vis{width:100%;aspect-ratio:5/4;border-radius:14px;margin-bottom:20px;overflow:hidden;position:relative;border:1px solid var(--s200);background:#fff;display:flex;align-items:center;justify-content:center;}
-  .how-num{position:absolute;top:14px;left:14px;width:32px;height:32px;border-radius:50%;background:var(--g);display:flex;align-items:center;justify-content:center;font-family:var(--sans);font-size:13px;font-weight:700;color:#fff;z-index:2;box-shadow:0 2px 8px rgba(0,0,0,.12);}
-  .how-s h3{font-family:var(--sans);font-size:18px;font-weight:700;color:var(--s900);margin-bottom:8px;}
-  .how-s p{font-size:14px;color:var(--s500);line-height:1.65;}
+  .hero::after {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(42, 56, 143, 0.1), transparent);
+  }
 
-  /* Mini UI inside how-it-works cards */
-  .mui{padding:16px;width:100%;}
-  .mui-card{border:1px solid var(--s200);border-radius:8px;padding:10px 12px;margin-bottom:6px;background:#fff;transition:all .2s;}
-  .mui-card:hover{border-color:var(--gb);}
-  .mui-row{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
-  .mui-tag{font-size:8px;font-weight:700;padding:2px 6px;border-radius:3px;text-transform:uppercase;letter-spacing:.03em;}
-  .mui-date{font-family:var(--mono);font-size:9px;color:var(--s400);}
-  .mui-text{height:4px;border-radius:2px;background:var(--s200);}
+  .hero-content {
+    max-width: 620px;
+    animation: fadeUp 0.8s ease both;
+  }
 
-  /* Timeline illustration */
-  .tl-ill{padding:14px 16px;width:100%;}
-  .tl-bar{display:flex;gap:3px;margin-bottom:6px;}
-  .tl-bar div{flex:1;height:4px;border-radius:2px;}
-  .tl-label{font-family:var(--mono);font-size:8px;color:var(--g);font-weight:600;margin-bottom:14px;}
-  .tl-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;position:relative;padding-left:14px;}
-  .tl-row::before{content:'';position:absolute;left:3px;top:0;bottom:-10px;width:2px;background:var(--s200);}
-  .tl-row:last-child::before{display:none;}
-  .tl-dot{width:8px;height:8px;border-radius:50%;position:absolute;left:0;box-shadow:0 0 0 2px #fff;}
-  .tl-content{flex:1;display:flex;align-items:center;gap:6px;}
-  .tl-line{height:4px;border-radius:2px;flex:1;}
+  .hero-label {
+    font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--sky); font-weight: 600; margin-bottom: 24px;
+  }
 
-  /* PDF illustration */
-  .pdf-ill{padding:16px;width:100%;text-align:center;}
-  .pdf-icon{width:64px;height:80px;margin:0 auto 12px;background:var(--s100);border-radius:8px;border:1px solid var(--s200);position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;}
-  .pdf-icon::after{content:'PDF';position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);background:var(--g);color:#fff;font-family:var(--mono);font-size:8px;font-weight:700;padding:2px 8px;border-radius:3px;}
-  .pdf-line{width:36px;height:3px;border-radius:2px;background:var(--s200);}
-  .pdf-line.short{width:24px;}
-  .pdf-btns{display:flex;gap:6px;margin-top:4px;}
-  .pdf-btn{flex:1;padding:6px;border-radius:5px;font-family:var(--sans);font-size:9px;font-weight:700;text-align:center;}
-  .pdf-btn.pri{background:var(--g);color:#fff;}
-  .pdf-btn.sec{background:var(--bg);color:var(--s600);border:1px solid var(--s200);}
+  .hero h1 {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 54px; font-weight: 400; line-height: 1.12;
+    color: var(--indigo); margin-bottom: 28px;
+  }
+  .hero h1 em {
+    font-style: italic; color: var(--sky);
+    position: relative; display: inline-block;
+  }
+  .hero h1 em::after {
+    content: '';
+    position: absolute; bottom: -4px; left: 0; right: 0;
+    height: 8px;
+    background: url('Underline.png') no-repeat center;
+    background-size: contain;
+    opacity: 0.7;
+  }
 
-  /* ============================================================
-     FEATURES
-     ============================================================ */
-  .feat{padding:100px 40px;max-width:1000px;margin:0 auto;}
-  .feat h2{font-family:var(--serif);font-size:36px;font-weight:600;color:var(--s900);letter-spacing:-.02em;margin-bottom:16px;text-align:center;}
-  .feat .st{font-size:16px;color:var(--s500);text-align:center;margin-bottom:48px;}
-  .fg{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
-  .fc{padding:28px;border-radius:12px;border:1px solid var(--s200);background:var(--bg);transition:all .25s;}
-  .fc:hover{border-color:var(--gb);background:var(--gs);transform:translateY(-2px);}
-  .fi{width:44px;height:44px;border-radius:10px;background:var(--gs);display:flex;align-items:center;justify-content:center;margin-bottom:16px;border:1px solid var(--gb);}
-  .fc:hover .fi{background:var(--gm);}
-  .fi svg{width:22px;height:22px;stroke:var(--gd);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
-  .fc .ftag{font-family:var(--mono);font-size:9px;font-weight:600;color:var(--gt);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;display:block;}
-  .fc h3{font-size:16px;font-weight:700;color:var(--s800);margin-bottom:6px;}
-  .fc p{font-size:13.5px;color:var(--s500);line-height:1.6;}
+  .hero-sub {
+    font-size: 18px; line-height: 1.7; color: var(--text-secondary);
+    max-width: 520px; margin-bottom: 44px; font-weight: 400;
+  }
 
-  /* ============================================================
-     QUOTE BAND
-     ============================================================ */
-  .quote{position:relative;overflow:hidden;background:var(--dark);padding:80px 40px;text-align:center;}
-  .quote::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:500px;height:500px;background:radial-gradient(circle,rgba(34,197,94,.06) 0%,transparent 70%);pointer-events:none;}
-  .quote blockquote{font-family:var(--serif);font-size:28px;font-weight:500;color:#fff;line-height:1.45;letter-spacing:-.01em;margin-bottom:16px;font-style:italic;max-width:640px;margin-left:auto;margin-right:auto;position:relative;}
-  .quote blockquote em{font-style:normal;color:var(--gl);}
-  .quote .attr{font-family:var(--sans);font-size:14px;color:rgba(255,255,255,.35);position:relative;}
+  .hero-cta-group { display: flex; gap: 16px; align-items: center; }
 
-  /* ============================================================
-     PRICING
-     ============================================================ */
-  .price-s{padding:100px 40px;background:var(--s50);border-top:1px solid var(--s200);border-bottom:1px solid var(--s200);}
-  .price-in{max-width:700px;margin:0 auto;}
-  .price-s h2{font-family:var(--serif);font-size:36px;font-weight:600;color:var(--s900);letter-spacing:-.02em;margin-bottom:16px;text-align:center;}
-  .price-s .st{font-size:16px;color:var(--s500);text-align:center;margin-bottom:48px;}
-  .pg{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
-  .pc{padding:36px;border-radius:14px;background:var(--bg);border:1px solid var(--s200);}
-  .pc.pro{border:2px solid var(--g);box-shadow:0 4px 24px rgba(34,197,94,.1);position:relative;}
-  .pc.pro .badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--g);color:#fff;padding:4px 16px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;}
-  .pc .pn{font-size:14px;font-weight:600;color:var(--s500);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;}
-  .pc .pr{font-family:var(--serif);font-size:42px;font-weight:600;color:var(--s900);margin-bottom:4px;}
-  .pc .pr span{font-family:var(--sans);font-size:16px;font-weight:400;color:var(--s400);}
-  .pc .pd{font-size:13px;color:var(--s400);margin-bottom:24px;}
-  .pc ul{list-style:none;margin-bottom:28px;}
-  .pc li{font-size:14px;color:var(--s600);padding:7px 0;display:flex;align-items:flex-start;gap:10px;line-height:1.5;}
-  .pc li::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--g);flex-shrink:0;margin-top:7px;}
-  .plb{display:block;width:100%;padding:14px;border-radius:8px;text-align:center;font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;transition:all .15s;text-decoration:none;}
-  .plb.pri{background:var(--g);color:#fff;border:none;box-shadow:0 1px 4px rgba(34,197,94,.3);}
-  .plb.pri:hover{background:var(--gd);}
-  .plb.sec{background:var(--bg);color:var(--s700);border:1px solid var(--s200);}
-  .plb.sec:hover{border-color:var(--s400);}
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: var(--indigo); color: white;
+    padding: 16px 36px; border-radius: 6px;
+    font-size: 15px; font-weight: 600; text-decoration: none;
+    letter-spacing: 0.3px; transition: all 0.25s ease;
+    border: none; cursor: pointer;
+  }
+  .btn-primary:hover {
+    background: var(--indigo-light);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(42, 56, 143, 0.2);
+  }
 
-  /* ============================================================
-     TRUST
-     ============================================================ */
-  .trust{padding:100px 40px;max-width:680px;margin:0 auto;}
-  .trust h2{font-family:var(--serif);font-size:36px;font-weight:600;color:var(--s900);letter-spacing:-.02em;margin-bottom:36px;text-align:center;}
-  .tg{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
-  .ti{padding:24px;border-radius:12px;border:1px solid var(--s200);background:var(--bg);transition:all .2s;}
-  .ti:hover{border-color:var(--gb);}
-  .ti svg{width:28px;height:28px;stroke:var(--g);fill:none;stroke-width:1.5;margin-bottom:14px;stroke-linecap:round;stroke-linejoin:round;}
-  .ti h3{font-size:14px;font-weight:700;color:var(--s800);margin-bottom:6px;}
-  .ti p{font-size:13px;color:var(--s500);line-height:1.6;}
+  .btn-secondary {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: transparent; color: var(--text-secondary);
+    padding: 16px 28px; border: 1px solid var(--border);
+    border-radius: 6px; font-size: 15px; font-weight: 500;
+    text-decoration: none; transition: all 0.25s ease; cursor: pointer;
+  }
+  .btn-secondary:hover { border-color: var(--indigo); color: var(--indigo); }
 
-  /* ============================================================
-     FINAL CTA
-     ============================================================ */
-  .cta{position:relative;overflow:hidden;text-align:center;background:var(--dark);padding:120px 40px;}
-  .cta::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(34,197,94,.08) 0%,transparent 70%);pointer-events:none;}
-  .cta h2{font-family:var(--serif);font-size:40px;font-weight:600;color:#fff;line-height:1.2;letter-spacing:-.02em;margin-bottom:16px;position:relative;}
-  .cta h2 em{font-style:normal;color:var(--gl);}
-  .cta p{font-size:16px;color:rgba(255,255,255,.4);margin-bottom:36px;line-height:1.6;position:relative;}
-  .cta .bp{display:inline-block;position:relative;font-size:16px;padding:18px 40px;}
-  .cta .trl{font-size:13px;color:rgba(255,255,255,.2);margin-top:20px;position:relative;}
+  .hero-note { margin-top: 20px; font-size: 13px; color: var(--text-muted); }
 
-  /* FOOTER */
-  .fd{max-width:1100px;margin:0 auto;padding:24px 40px;font-size:12px;color:var(--s400);line-height:1.6;border-top:1px solid var(--s200);}
-  footer{padding:24px 40px 32px;display:flex;justify-content:space-between;align-items:center;max-width:1100px;margin:0 auto;}
-  .fl{font-family:var(--serif);font-size:16px;font-weight:700;color:var(--s900);text-decoration:none;}
-  .fl span{color:var(--g);}
-  .fk{display:flex;gap:24px;}
-  .fk a{font-size:13px;color:var(--s400);text-decoration:none;}
-  .fk a:hover{color:var(--s600);}
-  .fr{font-size:12px;color:var(--s300);}
+  /* Hero image collage */
+  .hero-visual {
+    position: relative;
+    height: 520px;
+    animation: fadeUp 0.8s ease 0.2s both;
+  }
 
-  /* RESPONSIVE */
-  @media(max-width:900px){
-    nav{padding:0 20px;}.nk a:not(.nc){display:none;}
-    .hero{grid-template-columns:1fr;padding:120px 20px 40px;gap:32px;min-height:auto;}
-    .hero h1{font-size:34px;}
-    .hv{order:-1;}.fb{display:none;}
-    .ps{flex-direction:column;gap:32px;}.psi{padding:0;}.psi:not(:last-child)::after{display:none;}
-    .sg{grid-template-columns:1fr;}.qb{flex-direction:column;padding:32px 28px;}
-    .how-g{grid-template-columns:1fr;}
-    .fg{grid-template-columns:1fr;}
-    .pg{grid-template-columns:1fr;}
-    .tg{grid-template-columns:1fr;}
-    .cta h2{font-size:28px;}
-    .quote blockquote{font-size:22px;}
-    footer{flex-direction:column;gap:16px;text-align:center;}
+  .hero-frame {
+    position: absolute;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(42, 56, 143, 0.12);
+  }
+
+  .hero-frame img {
+    width: 100%; height: 100%;
+    object-fit: cover; display: block;
+  }
+
+  .hero-frame-1 {
+    width: 280px; height: 360px;
+    top: 60px; left: 20px;
+    border: 3px solid var(--indigo);
+    z-index: 2;
+  }
+
+  .hero-frame-2 {
+    width: 260px; height: 340px;
+    top: 20px; right: 0;
+    border: 3px solid rgba(42, 56, 143, 0.15);
+    z-index: 1;
+  }
+
+  .hero-star-1 {
+    position: absolute;
+    top: 10px; left: 0;
+    width: 40px; height: 40px;
+    z-index: 3;
+  }
+
+  .hero-star-2 {
+    position: absolute;
+    bottom: 60px; right: 40px;
+    width: 32px; height: 32px;
+    z-index: 3;
+  }
+
+  .hero-star-3 {
+    position: absolute;
+    bottom: 30px; left: 140px;
+    width: 24px; height: 24px;
+    z-index: 3;
+  }
+
+  /* ========== RECOGNITION ========== */
+  .recognition {
+    padding: 100px 64px;
+    background: var(--indigo);
+    color: white; position: relative;
+  }
+
+  .recognition::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(0, 173, 239, 0.3), transparent);
+  }
+
+  .recognition-header {
+    text-align: center;
+    margin-bottom: 56px;
+  }
+
+  .recognition-label {
+    font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--sky); font-weight: 600; margin-bottom: 16px;
+  }
+
+  .recognition-heading {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 40px; font-weight: 400; color: white;
+    line-height: 1.2;
+  }
+
+  .recognition-grid {
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    gap: 1px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 12px; overflow: hidden;
+  }
+
+  .rec-card {
+    background: var(--indigo);
+    padding: 36px 28px;
+    transition: background 0.3s ease;
+    cursor: default;
+    position: relative;
+  }
+  .rec-card:hover { background: var(--indigo-mid); }
+
+  .rec-glyph {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    background: rgba(0, 173, 239, 0.12);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; margin-bottom: 20px;
+    color: var(--sky);
+    border: 1px solid rgba(0, 173, 239, 0.2);
+  }
+
+  .rec-title {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 18px; font-weight: 400;
+    margin-bottom: 12px; color: white;
+  }
+
+  .rec-quote {
+    font-size: 14px; color: var(--sky-soft);
+    line-height: 1.65; font-style: italic;
+    margin-bottom: 16px;
+  }
+
+  .rec-signal {
+    font-size: 13px; color: rgba(255,255,255,0.5);
+    line-height: 1.65;
+  }
+
+  /* ========== BRIDGE ========== */
+  .bridge {
+    padding: 100px 64px;
+    max-width: 800px; margin: 0 auto; text-align: center;
+  }
+
+  .bridge h2 {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 40px; font-weight: 400; line-height: 1.25;
+    color: var(--indigo); margin-bottom: 28px;
+  }
+
+  .bridge p {
+    font-size: 17px; line-height: 1.75;
+    color: var(--text-secondary); margin-bottom: 20px;
+  }
+
+  .bridge-divider {
+    width: 48px; height: 2px;
+    background: var(--sky);
+    margin: 40px auto;
+    border-radius: 1px;
+  }
+
+  /* ========== DIAGNOSTIC ========== */
+  .diagnostic {
+    padding: 100px 64px;
+    background: var(--bg-section);
+    position: relative;
+  }
+
+  .diagnostic-inner {
+    max-width: 1040px; margin: 0 auto;
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 80px; align-items: center;
+  }
+
+  .diagnostic-text h2 {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 36px; font-weight: 400; color: var(--indigo);
+    line-height: 1.25; margin-bottom: 24px;
+  }
+
+  .diagnostic-text p {
+    font-size: 16px; line-height: 1.75;
+    color: var(--text-secondary); margin-bottom: 16px;
+  }
+
+  .diagnostic-steps {
+    margin-top: 32px; display: flex; flex-direction: column; gap: 20px;
+  }
+
+  .diag-step { display: flex; gap: 16px; align-items: flex-start; }
+
+  .diag-num {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--indigo); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 600; flex-shrink: 0;
+  }
+
+  .diag-step-text h4 {
+    font-size: 15px; font-weight: 600;
+    color: var(--indigo); margin-bottom: 4px;
+  }
+  .diag-step-text p { font-size: 14px; color: var(--text-muted); margin: 0; }
+
+  .diag-preview {
+    background: white; border-radius: 16px;
+    box-shadow: 0 4px 48px rgba(42, 56, 143, 0.08);
+    overflow: hidden;
+    border: 1px solid rgba(42, 56, 143, 0.06);
+  }
+
+  .diag-preview-header {
+    padding: 28px 32px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(135deg, rgba(42, 56, 143, 0.02), rgba(0, 173, 239, 0.02));
+  }
+
+  .diag-preview-header h3 {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 20px; font-weight: 400; color: var(--indigo);
+    margin-bottom: 6px;
+  }
+  .diag-preview-header p { font-size: 13px; color: var(--text-muted); }
+
+  .diag-preview-body { padding: 28px 32px; }
+
+  .diag-question label {
+    display: block; font-size: 14px; font-weight: 500;
+    color: var(--text-primary); margin-bottom: 12px;
+  }
+
+  .diag-options { display: flex; flex-direction: column; gap: 8px; }
+
+  .diag-option {
+    padding: 12px 16px; border: 1px solid var(--border);
+    border-radius: 8px; font-size: 13px; color: var(--text-secondary);
+    cursor: pointer; transition: all 0.2s;
+  }
+  .diag-option:hover {
+    border-color: var(--sky); color: var(--indigo);
+    background: rgba(0, 173, 239, 0.04);
+  }
+  .diag-option.selected {
+    border-color: var(--indigo);
+    background: rgba(42, 56, 143, 0.04);
+    color: var(--indigo); font-weight: 500;
+  }
+
+  .diag-progress {
+    padding: 20px 32px; border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .diag-progress-bar {
+    height: 3px; background: var(--border);
+    border-radius: 2px; flex: 1; margin-right: 20px; overflow: hidden;
+  }
+  .diag-progress-fill {
+    height: 100%; width: 20%;
+    background: var(--indigo);
+    border-radius: 2px; transition: width 0.3s;
+  }
+  .diag-progress span { font-size: 12px; color: var(--text-muted); }
+
+  /* ========== HOW IT WORKS ========== */
+  .how-it-works { padding: 100px 64px; }
+  .how-inner { max-width: 1040px; margin: 0 auto; }
+
+  .how-label {
+    font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--sky); font-weight: 600; margin-bottom: 16px;
+  }
+
+  .how-heading {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 40px; font-weight: 400; color: var(--indigo);
+    margin-bottom: 16px; line-height: 1.2;
+  }
+
+  .how-sub {
+    font-size: 17px; color: var(--text-secondary);
+    line-height: 1.7; max-width: 600px; margin-bottom: 56px;
+  }
+
+  .pathway-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+
+  .pathway-card {
+    border: 1px solid var(--border); border-radius: 14px;
+    padding: 36px 32px; position: relative;
+    transition: all 0.3s ease; background: white;
+  }
+  .pathway-card:hover {
+    border-color: var(--indigo);
+    box-shadow: 0 8px 32px rgba(42, 56, 143, 0.08);
+    transform: translateY(-2px);
+  }
+  .pathway-card.featured {
+    border-color: var(--indigo);
+    background: var(--indigo); color: white;
+  }
+
+  .pathway-tier {
+    font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--text-muted); font-weight: 600; margin-bottom: 8px;
+  }
+  .pathway-card.featured .pathway-tier { color: var(--sky-soft); }
+
+  .pathway-name {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 26px; font-weight: 400; margin-bottom: 12px;
+    color: var(--indigo);
+  }
+  .pathway-card.featured .pathway-name { color: white; }
+
+  .pathway-desc {
+    font-size: 14px; line-height: 1.7;
+    color: var(--text-secondary); margin-bottom: 24px;
+  }
+  .pathway-card.featured .pathway-desc { color: rgba(255,255,255,0.6); }
+
+  .pathway-price {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 36px; color: var(--indigo); margin-bottom: 4px;
+  }
+  .pathway-card.featured .pathway-price { color: white; }
+
+  .pathway-price-note {
+    font-size: 13px; color: var(--text-muted); margin-bottom: 28px;
+  }
+  .pathway-card.featured .pathway-price-note { color: rgba(255,255,255,0.4); }
+
+  .pathway-features {
+    list-style: none; display: flex; flex-direction: column;
+    gap: 14px; margin-bottom: 32px;
+  }
+  .pathway-features li {
+    font-size: 14px; color: var(--text-secondary);
+    display: flex; align-items: flex-start; gap: 10px; line-height: 1.5;
+  }
+  .pathway-card.featured .pathway-features li { color: rgba(255,255,255,0.7); }
+
+  .pathway-features li::before {
+    content: '→'; color: var(--sky); font-weight: 600; flex-shrink: 0;
+  }
+  .pathway-card.featured .pathway-features li::before { color: var(--sky-soft); }
+
+  .pathway-btn {
+    display: block; width: 100%; text-align: center;
+    padding: 14px; border-radius: 8px;
+    font-size: 14px; font-weight: 600;
+    text-decoration: none; transition: all 0.2s;
+    cursor: pointer; border: none;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .pathway-btn-dark { background: var(--indigo); color: white; }
+  .pathway-btn-dark:hover { background: var(--indigo-light); }
+  .pathway-btn-light { background: white; color: var(--indigo); border: 1px solid var(--border); }
+  .pathway-btn-light:hover { border-color: var(--indigo); }
+  .pathway-btn-white { background: white; color: var(--indigo); }
+  .pathway-btn-white:hover { background: var(--ice); }
+
+  /* ========== PODCAST ========== */
+  .podcast-section { padding: 100px 64px; background: var(--bg-section); }
+
+  .podcast-inner {
+    max-width: 1040px; margin: 0 auto;
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 80px; align-items: center;
+  }
+
+  .podcast-text h2 {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 36px; font-weight: 400; color: var(--indigo);
+    line-height: 1.25; margin-bottom: 20px;
+  }
+  .podcast-text h2 em { font-style: italic; color: var(--sky); }
+
+  .podcast-text p {
+    font-size: 16px; line-height: 1.75;
+    color: var(--text-secondary); margin-bottom: 28px;
+  }
+
+  .podcast-episodes { display: flex; flex-direction: column; gap: 12px; }
+
+  .podcast-ep {
+    display: flex; align-items: center; gap: 16px;
+    padding: 16px 20px; background: white;
+    border-radius: 10px; border: 1px solid rgba(42, 56, 143, 0.06);
+    transition: all 0.2s; cursor: pointer;
+  }
+  .podcast-ep:hover {
+    box-shadow: 0 4px 16px rgba(42, 56, 143, 0.08);
+    transform: translateX(4px);
+  }
+
+  .ep-play {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--indigo);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .ep-play::after {
+    content: ''; width: 0; height: 0;
+    border-left: 8px solid white;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    margin-left: 2px;
+  }
+
+  .ep-info { flex: 1; }
+  .ep-label {
+    font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--sky); font-weight: 600; margin-bottom: 3px;
+  }
+  .ep-title { font-size: 14px; font-weight: 500; color: var(--text-primary); }
+  .ep-duration { font-size: 12px; color: var(--text-muted); }
+
+  /* ========== DECISION ROOM ========== */
+  .decision-room { padding: 100px 64px; }
+  .dr-inner { max-width: 1040px; margin: 0 auto; }
+
+  .dr-header {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 80px; align-items: start; margin-bottom: 64px;
+  }
+
+  .dr-header h2 {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 40px; font-weight: 400; color: var(--indigo); line-height: 1.2;
+  }
+  .dr-header h2 em { font-style: italic; color: var(--sky); }
+
+  .dr-tagline {
+    font-size: 16px; font-style: italic; color: var(--text-muted);
+    margin-top: 8px; font-family: 'Instrument Serif', Georgia, serif;
+  }
+
+  .dr-description p {
+    font-size: 16px; line-height: 1.75;
+    color: var(--text-secondary); margin-bottom: 16px;
+  }
+
+  .dr-domains {
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    gap: 1px; background: var(--border);
+    border-radius: 12px; overflow: hidden;
+  }
+
+  .dr-domain {
+    background: white; padding: 28px 20px;
+    text-align: center; transition: all 0.3s ease;
+  }
+  .dr-domain:hover { background: var(--ice); }
+
+  .dr-domain h4 {
+    font-size: 14px; font-weight: 600;
+    color: var(--indigo); margin-bottom: 8px; line-height: 1.3;
+  }
+  .dr-domain p { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+
+  /* ========== ABOUT / CREDIBILITY ========== */
+  .about-section {
+    padding: 100px 64px;
+    background: var(--bg-section);
+    position: relative;
+  }
+
+  .about-inner {
+    max-width: 1040px; margin: 0 auto;
+    display: grid; grid-template-columns: 1fr 1.2fr;
+    gap: 80px; align-items: center;
+  }
+
+  .about-visual {
+    position: relative;
+    height: 460px;
+  }
+
+  .about-frame-group {
+    position: relative;
+    width: 100%; height: 100%;
+  }
+
+  .about-frame-group img {
+    width: 100%;
+    border-radius: 16px;
+    box-shadow: 0 12px 48px rgba(42, 56, 143, 0.1);
+  }
+
+  .about-text h2 {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 36px; font-weight: 400; color: var(--indigo);
+    line-height: 1.25; margin-bottom: 24px;
+  }
+
+  .about-text p {
+    font-size: 16px; line-height: 1.75;
+    color: var(--text-secondary); margin-bottom: 16px;
+  }
+
+  .about-stats {
+    display: flex; gap: 40px; margin-top: 32px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+  }
+
+  .about-stat h3 {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 32px; color: var(--indigo); margin-bottom: 4px;
+  }
+  .about-stat p { font-size: 13px; color: var(--text-muted); }
+
+  /* ========== EMAIL ========== */
+  .email-section {
+    padding: 100px 64px;
+    background: var(--indigo); color: white; text-align: center;
+    position: relative; overflow: hidden;
+  }
+
+  .email-section::before {
+    content: '';
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 800px; height: 800px;
+    background: radial-gradient(circle, rgba(0, 173, 239, 0.08) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .email-inner { max-width: 560px; margin: 0 auto; position: relative; }
+
+  .email-inner h2 {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 36px; font-weight: 400; margin-bottom: 16px; line-height: 1.3;
+  }
+
+  .email-inner p {
+    font-size: 16px; color: rgba(255,255,255,0.6);
+    line-height: 1.7; margin-bottom: 36px;
+  }
+
+  .email-form { display: flex; gap: 12px; }
+
+  .email-form input {
+    flex: 1; padding: 14px 20px; border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.06);
+    color: white; font-size: 14px; font-family: 'DM Sans', sans-serif;
+    outline: none; transition: border-color 0.2s;
+  }
+  .email-form input::placeholder { color: rgba(255,255,255,0.3); }
+  .email-form input:focus { border-color: var(--sky); }
+
+  .email-form button {
+    padding: 14px 32px; background: var(--sky); color: white;
+    border: none; border-radius: 8px;
+    font-size: 14px; font-weight: 600; cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s; white-space: nowrap;
+  }
+  .email-form button:hover { background: var(--sky-soft); }
+
+  .email-note {
+    margin-top: 16px; font-size: 12px; color: rgba(255,255,255,0.3);
+  }
+
+  /* ========== FOOTER ========== */
+  footer {
+    padding: 48px 64px;
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--warm-white);
+  }
+
+  .footer-logo {
+    font-weight: 700; font-size: 12px;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--indigo);
+  }
+
+  .footer-links { display: flex; gap: 32px; }
+  .footer-links a {
+    font-size: 13px; color: var(--text-muted);
+    text-decoration: none; transition: color 0.2s;
+  }
+  .footer-links a:hover { color: var(--indigo); }
+
+  /* ========== BADGES ========== */
+  .section-badge {
+    display: inline-block;
+    font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase;
+    font-weight: 600; color: var(--indigo);
+    background: rgba(42, 56, 143, 0.06);
+    padding: 6px 14px; border-radius: 20px; margin-bottom: 24px;
+  }
+
+  /* ========== STAR DECORATIONS ========== */
+  .star-decoration {
+    position: absolute;
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  /* ========== ANIMATIONS ========== */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .fade-section {
+    opacity: 0; transform: translateY(20px);
+    transition: all 0.6s ease;
+  }
+  .fade-section.visible { opacity: 1; transform: translateY(0); }
+
+  /* ========== RESPONSIVE ========== */
+  @media (max-width: 1024px) {
+    .hero { grid-template-columns: 1fr; }
+    .hero-visual { display: none; }
+    .recognition-grid { grid-template-columns: repeat(2, 1fr); }
+    .dr-domains { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  @media (max-width: 768px) {
+    nav { padding: 16px 24px; }
+    .nav-links { display: none; }
+    .hero { padding: 120px 24px 60px; }
+    .hero h1 { font-size: 36px; }
+    .recognition { padding: 60px 24px; }
+    .recognition-grid { grid-template-columns: 1fr; }
+    .bridge { padding: 60px 24px; }
+    .bridge h2 { font-size: 30px; }
+    .diagnostic { padding: 60px 24px; }
+    .diagnostic-inner { grid-template-columns: 1fr; gap: 40px; }
+    .how-it-works { padding: 60px 24px; }
+    .pathway-grid { grid-template-columns: 1fr; }
+    .podcast-section { padding: 60px 24px; }
+    .podcast-inner { grid-template-columns: 1fr; gap: 40px; }
+    .decision-room { padding: 60px 24px; }
+    .dr-header { grid-template-columns: 1fr; gap: 24px; }
+    .dr-domains { grid-template-columns: 1fr; }
+    .about-section { padding: 60px 24px; }
+    .about-inner { grid-template-columns: 1fr; gap: 40px; }
+    .about-visual { height: auto; }
+    .email-section { padding: 60px 24px; }
+    .email-form { flex-direction: column; }
+    footer { padding: 32px 24px; flex-direction: column; gap: 16px; }
   }
 </style>
 </head>
@@ -280,324 +799,424 @@
 
 <!-- NAV -->
 <nav>
-  <a href="#" class="nl">Docket<span>Ally</span></a>
-  <div class="nk">
-    <a href="#how">How It Works</a>
-    <a href="#features">Features</a>
-    <a href="#pricing">Pricing</a>
-    <a href="#" class="nc">Start Documenting</a>
+  <a href="#" class="nav-logo">
+    Unfiltered<span>Conversations</span>
+  </a>
+  <div class="nav-links">
+    <a href="#diagnostic">The Diagnostic</a>
+    <a href="#how-it-works">How It Works</a>
+    <a href="#decision-room">Decision Room</a>
+    <a href="#podcast">Podcast</a>
+    <a href="#" class="nav-cta">Find Your Archetype</a>
   </div>
 </nav>
 
 <!-- HERO -->
 <section class="hero">
-  <div class="hc">
-    <div class="ht">Built for employees. Never employers.</div>
-    <h1>Document your work.<br>Protect your <em>record</em>.</h1>
-    <p class="hs">When expectations shift, conversations disappear, and promises go unwritten, DocketAlly helps you keep a structured record of what actually happened.</p>
-    <div class="hr">
-      <a href="#" class="bp">Start Free</a>
-      <a href="#how" class="bg">See How It Works</a>
+  <div class="hero-content">
+    <div class="hero-label">For mid-career leaders navigating real decisions</div>
+    <h1>You're not stuck because<br>you lack skill.<br>You're stuck because<br>you lack <em>clarity.</em></h1>
+    <p class="hero-sub">
+      Most high-performing leaders know what to do. The hard part is knowing 
+      what to do <strong>next</strong> — when the stakes are real, the politics are complex, 
+      and the right move isn't obvious.
+    </p>
+    <div class="hero-cta-group">
+      <a href="#diagnostic" class="btn-primary">
+        Take the 90-Second Diagnostic →
+      </a>
+      <a href="#podcast" class="btn-secondary">
+        Listen to the Podcast
+      </a>
     </div>
-    <div class="htr">Free plan. No credit card. Your records are private.</div>
+    <p class="hero-note">Free. No email required. Takes 90 seconds.</p>
   </div>
 
-  <div class="hv">
-    <div class="mw">
-      <div class="mt">
-        <div class="md r"></div><div class="md y"></div><div class="md g"></div>
-        <div class="mt-url">docketally.com</div>
-      </div>
-      <div class="mb">
-        <div class="ms">
-          <div class="lo">Docket<span>Ally</span></div>
-          <div class="lc">
-            <div style="background:var(--g)"></div><div style="background:var(--g)"></div>
-            <div style="background:var(--g)"></div><div style="background:rgba(255,255,255,.1)"></div>
-          </div>
-          <div class="lcs">Case Building</div>
-          <div class="mn a">Record</div>
-          <div class="mn">Plans</div>
-          <div class="mn">Case</div>
-          <div class="mn">Comms</div>
-          <div class="mn">Exit</div>
-          <div class="mn">Vault</div>
-        </div>
-        <div class="mm">
-          <h3>Record</h3>
-          <div class="sub">9 entries across 6 weeks</div>
-          <div class="me">
-            <div class="me-t">
-              <span class="me-type rev">Performance Review</span>
-              <span class="me-date">Jan 28, 2026</span>
-            </div>
-            <div class="me-txt">Mid-cycle review signed. Rating: "Meets Expectations." No areas of concern noted.</div>
-            <div class="me-who">
-              <div class="me-av" style="background:#6366F1;">DP</div>
-              <span class="me-name">David Park, Director</span>
-            </div>
-          </div>
-          <div class="me" style="border-color:#FEF3C7;">
-            <div class="me-t">
-              <span class="me-type pip">PIP</span>
-              <span class="me-date">Feb 3, 2026</span>
-            </div>
-            <div class="me-txt">PIP delivered citing "inconsistent performance." No prior written warnings. 4 deliverables in 30 days.</div>
-            <div class="me-who">
-              <div class="me-av" style="background:#EC4899;">SC</div>
-              <span class="me-name">Sarah Chen, Manager</span>
-            </div>
-            <div class="me-att">
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--s500)" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-              PIP-Document.pdf
-            </div>
-          </div>
-          <div class="me" style="border-color:#DBEAFE;">
-            <div class="me-t">
-              <span class="me-type email">Written Communication</span>
-              <span class="me-date">Feb 18, 2026</span>
-            </div>
-            <div class="me-txt">PIP revised. Goals expanded from 4 to 6. Timeline shortened from 30 to 15 days. No written justification provided.</div>
-            <div class="me-who">
-              <div class="me-av" style="background:#EC4899;">SC</div>
-              <span class="me-name">Sarah Chen, Manager</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="fb p">
-      <div class="fb-l">Patterns</div>
-      <div class="fb-v"><span class="gr">3</span> identified across 9 records</div>
-    </div>
-    <div class="fb s">
-      <div class="fb-l">Privacy</div>
-      <div class="fb-v">Only <span class="gr">you</span> can see this</div>
+  <div class="hero-visual">
+    <img src="star_outline.png" class="hero-star-1 star-decoration" alt="">
+    <img src="star_2.png" class="hero-star-3 star-decoration" alt="">
+    <div class="hero-frame hero-frame-1">
+      <img src="Frame-2147224286-1-768x840.png" alt="Leadership professionals in conversation">
     </div>
   </div>
 </section>
 
-<!-- PROOF BAR -->
-<section class="pb">
-  <div class="pb-l">EEOC Fiscal Year 2024</div>
-  <div class="ps">
-    <div class="psi"><div class="n">88,531</div><div class="l">workplace discrimination charges filed</div></div>
-    <div class="psi"><div class="n">48%</div><div class="l">involved retaliation, the #1 charge for 17 straight years</div></div>
-    <div class="psi"><div class="n">$700M</div><div class="l">recovered for workers with documented cases</div></div>
+<!-- RECOGNITION -->
+<section class="recognition" id="archetypes">
+  <div class="recognition-header">
+    <div class="recognition-label">Do any of these sound familiar?</div>
+    <h2 class="recognition-heading">Five patterns that keep capable leaders stuck</h2>
   </div>
-  <div class="pb-s">Source: <a href="https://www.eeoc.gov/2024-annual-performance-report" target="_blank">U.S. Equal Employment Opportunity Commission</a></div>
+  <div class="recognition-grid">
+    <div class="rec-card">
+      <div class="rec-glyph">◇</div>
+      <div class="rec-title">The Over-Prepared Strategist</div>
+      <div class="rec-quote">"How visible can I be?"</div>
+      <div class="rec-signal">You see the system before it's ready. You're often more prepared than leadership — and that clarity feels dangerous to show.</div>
+    </div>
+    <div class="rec-card">
+      <div class="rec-glyph">○</div>
+      <div class="rec-title">The Over-Relied-On Stabilizer</div>
+      <div class="rec-quote">"How much can I carry?"</div>
+      <div class="rec-signal">You're the one everyone leans on. You hold things together — but reliability has quietly replaced leadership, and you're running out of capacity.</div>
+    </div>
+    <div class="rec-card">
+      <div class="rec-glyph">△</div>
+      <div class="rec-title">The System Corrector</div>
+      <div class="rec-quote">"How hard should I push?"</div>
+      <div class="rec-signal">You inherit broken systems and fix them fast. But the pace of your correction outstrips what people can absorb — and you risk becoming the villain.</div>
+    </div>
+    <div class="rec-card">
+      <div class="rec-glyph">⬡</div>
+      <div class="rec-title">The Expansive Optimizer</div>
+      <div class="rec-quote">"What should I not pursue?"</div>
+      <div class="rec-signal">You have too many good paths and no reason to prune. The abundance feels like possibility — but it's quietly becoming paralysis.</div>
+    </div>
+    <div class="rec-card">
+      <div class="rec-glyph">□</div>
+      <div class="rec-title">The Reflective Builder</div>
+      <div class="rec-quote">"Where do I start?"</div>
+      <div class="rec-signal">You think deeply and see clearly — but insight alone isn't creating momentum. You need structure, not more reflection.</div>
+    </div>
+  </div>
 </section>
 
-<!-- PROBLEM -->
-<section class="prob">
-  <h2>Sound familiar?</h2>
-  <p class="st">These are real workplace situations. In every one, the person who kept records had a better outcome.</p>
-  <div class="sg">
-    <div class="sc">
-      <div class="si" style="background:var(--gs);">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gd)" stroke-width="1.5" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/><line x1="9" y1="10" x2="15" y2="10"/></svg>
+<!-- BRIDGE -->
+<section class="bridge">
+  <h2>The pattern has a name.<br>The name changes the decision.</h2>
+  <p>
+    Every leader carries a default pattern — a way they respond to pressure, navigate power, and make decisions under uncertainty. The problem is rarely the decision itself. It's the pattern underneath it that you can't see.
+  </p>
+  <p>
+    When you name the pattern, you change how you approach the decision. That's where clarity starts.
+  </p>
+  <div class="bridge-divider"></div>
+  <a href="#diagnostic" class="btn-primary">Find your pattern →</a>
+</section>
+
+<!-- DIAGNOSTIC -->
+<section class="diagnostic" id="diagnostic">
+  <div class="diagnostic-inner">
+    <div class="diagnostic-text">
+      <span class="section-badge">The Diagnostic</span>
+      <h2>90 seconds to name what's keeping you stuck</h2>
+      <p>
+        Answer five questions about how you show up under pressure. 
+        You'll get your archetype, the tension driving your decisions, 
+        and the one shift that changes your trajectory.
+      </p>
+      <div class="diagnostic-steps">
+        <div class="diag-step">
+          <div class="diag-num">1</div>
+          <div class="diag-step-text">
+            <h4>Take the diagnostic</h4>
+            <p>5 questions. 90 seconds. No email required.</p>
+          </div>
+        </div>
+        <div class="diag-step">
+          <div class="diag-num">2</div>
+          <div class="diag-step-text">
+            <h4>Get your archetype</h4>
+            <p>Your pattern, your tension, your risk, your edge.</p>
+          </div>
+        </div>
+        <div class="diag-step">
+          <div class="diag-num">3</div>
+          <div class="diag-step-text">
+            <h4>Start your track</h4>
+            <p>Podcast episodes and content built for your specific pattern.</p>
+          </div>
+        </div>
       </div>
-      <h3>Verbal promises that vanish</h3>
-      <p>Your manager agreed to something in a meeting. A month later, the story changed. Nothing was ever in writing.</p>
-      <div class="ctx">1:1 meetings · phone calls · hallway conversations</div>
-    </div>
-    <div class="sc">
-      <div class="si" style="background:var(--s100);">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--s600)" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      </div>
-      <h3>Goals that keep moving</h3>
-      <p>You met the targets. Then they changed. Then they changed again. The originals were never documented.</p>
-      <div class="ctx">PIPs · performance reviews · quarterly goals</div>
     </div>
 
-    <div class="sc">
-      <div class="si" style="background:var(--s100);">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--s600)" stroke-width="1.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>
+    <div class="diag-preview">
+      <div class="diag-preview-header">
+        <h3>Clarity Diagnostic</h3>
+        <p>Question 1 of 5</p>
       </div>
-      <h3>A review that contradicts itself</h3>
-      <p>"Meets expectations" in January. PIP for "inconsistent performance" in February. Same manager signed both.</p>
-      <div class="ctx">annual reviews · mid-cycle feedback · PIP delivery</div>
-    </div>
-    <div class="sc">
-      <div class="si" style="background:var(--gs);">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gd)" stroke-width="1.5" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      <div class="diag-preview-body">
+        <div class="diag-question">
+          <label>When you're under pressure at work, what's your first instinct?</label>
+          <div class="diag-options">
+            <div class="diag-option">Prepare more than anyone else in the room</div>
+            <div class="diag-option selected">Absorb it so the team doesn't have to</div>
+            <div class="diag-option">Identify what's broken and start fixing</div>
+            <div class="diag-option">Generate options and explore new paths</div>
+            <div class="diag-option">Step back and think before moving</div>
+          </div>
+        </div>
       </div>
-      <h3>HR says "noted" and nothing happens</h3>
-      <p>You filed a concern. They said they'd look into it. No reference number. No follow-up. No record it happened.</p>
-      <div class="ctx">HR complaints · ethics hotlines · formal grievances</div>
+      <div class="diag-progress">
+        <div class="diag-progress-bar">
+          <div class="diag-progress-fill"></div>
+        </div>
+        <span>1 of 5</span>
+      </div>
     </div>
   </div>
 </section>
 
 <!-- HOW IT WORKS -->
-<section class="how" id="how">
-  <div class="how-in">
-    <h2>Three steps to a documented record</h2>
-    <p class="st">Start documenting in under 2 minutes. Your case builds itself over time.</p>
-    <div class="how-g">
-      <!-- Step 1: Document -->
-      <div class="how-s">
-        <div class="how-vis">
-          <div class="how-num">1</div>
-          <div class="mui">
-            <div class="mui-card">
-              <div class="mui-row">
-                <span class="mui-tag" style="background:var(--gs);color:var(--gt);">1:1 Meeting</span>
-                <span class="mui-date">Feb 3, 2:30 PM</span>
-              </div>
-              <div class="mui-text" style="width:90%;margin-bottom:3px;"></div>
-              <div class="mui-text" style="width:65%;"></div>
-            </div>
-            <div class="mui-card" style="border-color:#FEF3C7;">
-              <div class="mui-row">
-                <span class="mui-tag" style="background:#FEF3C7;color:#92400E;">PIP</span>
-                <span class="mui-date">Feb 3, 4:00 PM</span>
-              </div>
-              <div class="mui-text" style="width:85%;margin-bottom:3px;"></div>
-              <div class="mui-text" style="width:50%;"></div>
-            </div>
-            <div class="mui-card">
-              <div class="mui-row">
-                <span class="mui-tag" style="background:#DBEAFE;color:#1E40AF;">Email</span>
-                <span class="mui-date">Feb 4, 9:15 AM</span>
-              </div>
-              <div class="mui-text" style="width:75%;margin-bottom:3px;"></div>
-              <div class="mui-text" style="width:55%;"></div>
-            </div>
-          </div>
+<section class="how-it-works" id="how-it-works">
+  <div class="how-inner">
+    <div class="how-label">Three pathways</div>
+    <h2 class="how-heading">Start free. Go deeper when you need to.</h2>
+    <p class="how-sub">
+      Every pathway is built around your archetype and the decisions 
+      that matter most to your career right now.
+    </p>
+
+    <div class="pathway-grid">
+      <div class="pathway-card">
+        <div class="pathway-tier">Start here</div>
+        <div class="pathway-name">The Podcast</div>
+        <div class="pathway-desc">
+          Short episodes built around each archetype. Language for what you're 
+          experiencing and frameworks to think through it before you act.
         </div>
-        <h3>Document</h3>
-        <p>Record what happened, when, and who was involved. Write it the way a professional puts things in writing.</p>
+        <div class="pathway-price">Free</div>
+        <div class="pathway-price-note">Always</div>
+        <ul class="pathway-features">
+          <li>Episodes organized by archetype</li>
+          <li>Frameworks for real decisions</li>
+          <li>Language for what you're feeling</li>
+          <li>New episodes weekly</li>
+        </ul>
+        <button class="pathway-btn pathway-btn-light">Start Listening</button>
       </div>
-      <!-- Step 2: Organize -->
-      <div class="how-s">
-        <div class="how-vis">
-          <div class="how-num">2</div>
-          <div class="tl-ill">
-            <div class="tl-bar">
-              <div style="background:var(--g);"></div><div style="background:var(--g);"></div>
-              <div style="background:var(--g);"></div><div style="background:var(--s200);"></div>
-            </div>
-            <div class="tl-label">CASE BUILDING · 3 PATTERNS</div>
-            <div class="tl-row">
-              <div class="tl-dot" style="background:var(--s400);"></div>
-              <div class="tl-content"><span class="mui-tag" style="background:var(--gs);color:var(--gt);">Review</span><div class="tl-line" style="background:var(--gs);"></div></div>
-            </div>
-            <div class="tl-row">
-              <div class="tl-dot" style="background:#D97706;"></div>
-              <div class="tl-content"><span class="mui-tag" style="background:#FEF3C7;color:#92400E;">PIP</span><div class="tl-line" style="background:#FEF3C7;"></div></div>
-            </div>
-            <div class="tl-row">
-              <div class="tl-dot" style="background:var(--g);"></div>
-              <div class="tl-content"><span class="mui-tag" style="background:#DBEAFE;color:#1E40AF;">Email</span><div class="tl-line" style="background:#DBEAFE;"></div></div>
-            </div>
-            <div class="tl-row">
-              <div class="tl-dot" style="background:var(--g);"></div>
-              <div class="tl-content"><span class="mui-tag" style="background:#FEE2E2;color:#991B1B;">Incident</span><div class="tl-line" style="background:#FEE2E2;"></div></div>
-            </div>
-            <div class="tl-row">
-              <div class="tl-dot" style="background:#D97706;"></div>
-              <div class="tl-content"><span class="mui-tag" style="background:#FEF3C7;color:#92400E;">PIP Rev.</span><div class="tl-line" style="background:#FEF3C7;"></div></div>
-            </div>
-          </div>
+
+      <div class="pathway-card featured">
+        <div class="pathway-tier">Go deeper</div>
+        <div class="pathway-name">The Decision Room</div>
+        <div class="pathway-desc">
+          A private, 1:1 session to work a real decision through your 
+          archetype pattern. Not advice. Better judgment.
         </div>
-        <h3>Organize</h3>
-        <p>Your records form a timeline. Patterns emerge. Contradictions become visible. Documentation becomes evidence.</p>
+        <div class="pathway-price">$200</div>
+        <div class="pathway-price-note">per session</div>
+        <ul class="pathway-features">
+          <li>Private audio briefing on your pattern</li>
+          <li>60-minute decision session</li>
+          <li>30-minute follow-up</li>
+          <li>Written decision summary</li>
+        </ul>
+        <button class="pathway-btn pathway-btn-white">Start with a Decision</button>
       </div>
-      <!-- Step 3: Prepare -->
-      <div class="how-s">
-        <div class="how-vis">
-          <div class="how-num">3</div>
-          <div class="pdf-ill">
-            <div class="pdf-icon">
-              <div class="pdf-line"></div>
-              <div class="pdf-line short"></div>
-              <div class="pdf-line"></div>
-              <div class="pdf-line short"></div>
-            </div>
-            <div style="font-family:var(--sans);font-size:11px;font-weight:700;color:var(--s800);margin-bottom:2px;">CaseFile-Feb2026.pdf</div>
-            <div style="font-family:var(--mono);font-size:9px;color:var(--s400);margin-bottom:12px;">10 pages · 9 records · 5 patterns</div>
-            <div class="pdf-btns">
-              <div class="pdf-btn pri">Download</div>
-              <div class="pdf-btn sec">Share with Attorney</div>
-            </div>
-          </div>
+
+      <div class="pathway-card">
+        <div class="pathway-tier">For organizations</div>
+        <div class="pathway-name">Decision Labs</div>
+        <div class="pathway-desc">
+          A private cohort for leadership teams. Shared language for 
+          how your team makes decisions and where patterns collide.
         </div>
-        <h3>Prepare</h3>
-        <p>Generate a complete case file PDF. Timestamped, organized, with pattern analysis. Ready for an attorney.</p>
+        <div class="pathway-price">Custom</div>
+        <div class="pathway-price-note">Contact for pricing</div>
+        <ul class="pathway-features">
+          <li>Team archetype mapping</li>
+          <li>Cohort decision practice</li>
+          <li>Shared judgment language</li>
+          <li>Virtual or on-site delivery</li>
+        </ul>
+        <button class="pathway-btn pathway-btn-light">Apply for a Decision Lab</button>
       </div>
     </div>
   </div>
 </section>
 
-<!-- FEATURES -->
-<section class="feat" id="features">
-  <h2>Everything you need. Nothing you don't.</h2>
-  <p class="st">Six tools that follow the employee journey from documentation to resolution.</p>
-  <div class="fg">
-    <div class="fc"><div class="fi"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div><span class="ftag">Core</span><h3>Record</h3><p>Your documentation journal. Nine entry types. Date, time, timezone captured automatically.</p></div>
-    <div class="fc"><div class="fi"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><span class="ftag">Track</span><h3>Plans</h3><p>Track PIPs, performance plans, and formal expectations. Log every revision.</p></div>
-    <div class="fc"><div class="fi"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div><span class="ftag">Synthesize</span><h3>Case</h3><p>Records become a timeline. Patterns identified. Generate a case file PDF.</p></div>
-    <div class="fc"><div class="fi"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div><span class="ftag">Communicate</span><h3>Comms</h3><p>Professional templates for PIP responses, follow-ups, and HR escalations.</p></div>
-    <div class="fc"><div class="fi"><svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg></div><span class="ftag">Prepare</span><h3>Exit</h3><p>Readiness checklists, severance guidance, EEOC walkthrough, final checklist.</p></div>
-    <div class="fc"><div class="fi"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div><span class="ftag">Store</span><h3>Vault</h3><p>Secure storage for offer letters, reviews, agreements, and correspondence.</p></div>
-  </div>
-</section>
-
-<!-- QUOTE BAND -->
-<section class="quote">
-  <blockquote>"The process is slow, the burden is on you, and <em>documentation is everything</em>."</blockquote>
-  <div class="attr">What every employment attorney tells you first.</div>
-</section>
-
-<!-- PRICING -->
-<section class="price-s" id="pricing">
-  <div class="price-in">
-    <h2>Simple pricing</h2>
-    <p class="st">Start free. Upgrade when you need more.</p>
-    <div class="pg">
-      <div class="pc">
-        <div class="pn">Free</div><div class="pr">$0</div><div class="pd">Forever. No credit card.</div>
-        <ul><li>Unlimited records</li><li>All 9 entry types</li><li>File attachments</li><li>Date and timezone capture</li><li>Your data stays private</li></ul>
-        <a href="#" class="plb sec">Start Free</a>
+<!-- PODCAST -->
+<section class="podcast-section" id="podcast">
+  <div class="podcast-inner">
+    <div class="podcast-text">
+      <span class="section-badge">The Podcast</span>
+      <h2>Episodes built for <em>your</em> pattern</h2>
+      <p>
+        After you take the diagnostic, you'll get a curated track of episodes 
+        built for your archetype — the specific language, tension, and decisions 
+        you're navigating. Not general leadership content. Yours.
+      </p>
+      <a href="#" class="btn-primary" style="display: inline-flex;">Listen Now →</a>
+    </div>
+    <div class="podcast-episodes">
+      <div class="podcast-ep">
+        <div class="ep-play"></div>
+        <div class="ep-info">
+          <div class="ep-label">Over-Prepared Strategist</div>
+          <div class="ep-title">When You See It Before Leadership Does</div>
+        </div>
+        <div class="ep-duration">12 min</div>
       </div>
-      <div class="pc pro">
-        <div class="badge">Most Popular</div>
-        <div class="pn">Pro</div><div class="pr">$12 <span>/month</span></div><div class="pd">Or $96/year (save $48)</div>
-        <ul><li>Everything in Free</li><li>Plans, Case, Comms, Exit, Vault</li><li>Pattern identification</li><li>Case file PDF generation</li><li>Severance agreement analyzer</li><li>Professional templates</li></ul>
-        <a href="#" class="plb pri">Start Pro</a>
+      <div class="podcast-ep">
+        <div class="ep-play"></div>
+        <div class="ep-info">
+          <div class="ep-label">Over-Relied-On Stabilizer</div>
+          <div class="ep-title">Reliability Is Not Leadership</div>
+        </div>
+        <div class="ep-duration">9 min</div>
+      </div>
+      <div class="podcast-ep">
+        <div class="ep-play"></div>
+        <div class="ep-info">
+          <div class="ep-label">System Corrector</div>
+          <div class="ep-title">Why They Resist You Even When You're Right</div>
+        </div>
+        <div class="ep-duration">14 min</div>
+      </div>
+      <div class="podcast-ep">
+        <div class="ep-play"></div>
+        <div class="ep-info">
+          <div class="ep-label">Expansive Optimizer</div>
+          <div class="ep-title">The Cost of Keeping Every Door Open</div>
+        </div>
+        <div class="ep-duration">11 min</div>
+      </div>
+      <div class="podcast-ep">
+        <div class="ep-play"></div>
+        <div class="ep-info">
+          <div class="ep-label">Reflective Builder</div>
+          <div class="ep-title">Thinking Is Not Progress</div>
+        </div>
+        <div class="ep-duration">10 min</div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- TRUST -->
-<section class="trust">
-  <h2>Your records. Your control.</h2>
-  <div class="tg">
-    <div class="ti"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg><h3>Private by default</h3><p>Only visible to you. Not your employer. Not DocketAlly.</p></div>
-    <div class="ti"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="18" y1="8" x2="18" y2="14"/><line x1="21" y1="11" x2="15" y2="11"/></svg><h3>Never on the employer's side</h3><p>We don't sell to employers. We don't share with HR. Ever.</p></div>
-    <div class="ti"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><h3>Export or delete any time</h3><p>Download everything. Delete permanently. No lock-in.</p></div>
-    <div class="ti"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><h3>Not legal advice</h3><p>Documentation tools and risk awareness. Consult an attorney for legal guidance.</p></div>
+<!-- DECISION ROOM -->
+<section class="decision-room" id="decision-room">
+  <div class="dr-inner">
+    <div class="dr-header">
+      <div>
+        <span class="section-badge">The Decision Room</span>
+        <h2>Bring a real decision.<br>Work it through <em>your</em> pattern.</h2>
+        <div class="dr-tagline">Private. Focused. Judgment first.</div>
+      </div>
+      <div class="dr-description">
+        <p>
+          Many capable leaders stall not because they perform poorly, but because 
+          their judgment is misread or misunderstood. The Decision Room focuses on the 
+          decisions that most shape mid-career outcomes — using your archetype pattern 
+          as the lens.
+        </p>
+        <p>
+          You already know your pattern. Now bring the decision that's sitting 
+          on your desk and we'll work it through your specific tension, blind spot, 
+          and growth edge. One session. One decision. Real clarity.
+        </p>
+      </div>
+    </div>
+
+    <div class="dr-domains">
+      <div class="dr-domain">
+        <h4>Career Growth &<br>Readiness</h4>
+        <p>What "next" actually requires</p>
+      </div>
+      <div class="dr-domain">
+        <h4>Decision Framing &<br>Judgment</h4>
+        <p>Making sound calls with incomplete information</p>
+      </div>
+      <div class="dr-domain">
+        <h4>Negotiation &<br>Influence</h4>
+        <p>Role, scope, and expectations</p>
+      </div>
+      <div class="dr-domain">
+        <h4>Workplace<br>Conflict</h4>
+        <p>Navigating tension without damage</p>
+      </div>
+      <div class="dr-domain">
+        <h4>Exits &<br>Transitions</h4>
+        <p>When to stay, leave, or pivot</p>
+      </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 48px;">
+      <a href="#" class="btn-primary">Start with a Decision →</a>
+    </div>
   </div>
 </section>
 
-<!-- FINAL CTA -->
-<section class="cta">
-  <h2>Every undocumented conversation<br>is a conversation that <em>didn't happen</em>.</h2>
-  <p>Start documenting today. Your first record takes less than 2 minutes.</p>
-  <a href="#" class="bp">Start Free</a>
-  <div class="trl">No credit card required. Private by default.</div>
+<!-- ABOUT -->
+<section class="about-section">
+  <div class="about-inner">
+    <div class="about-visual">
+      <img src="Frame-2147224270.png" class="about-frame-group" alt="Diverse leadership professionals" style="width:100%; border-radius: 16px; box-shadow: 0 12px 48px rgba(42, 56, 143, 0.1);">
+    </div>
+    <div class="about-text">
+      <span class="section-badge">Built from real patterns</span>
+      <h2>Not theory. Not trends. What actually happens in the room.</h2>
+      <p>
+        These five archetypes weren't invented in a lab. They emerged from hundreds 
+        of coaching conversations with mid-career professionals who perform well 
+        but feel stuck — the same tension, the same patterns, showing up again and again.
+      </p>
+      <p>
+        Unfiltered Conversations exists because most leadership content tells you 
+        what to do. Almost none of it helps you see <em>why you keep getting stuck 
+        in the first place</em>.
+      </p>
+      <div class="about-stats">
+        <div class="about-stat">
+          <h3>15+</h3>
+          <p>Years in leadership development</p>
+        </div>
+        <div class="about-stat">
+          <h3>5</h3>
+          <p>Archetypes from real patterns</p>
+        </div>
+        <div class="about-stat">
+          <h3>100s</h3>
+          <p>Coaching conversations</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EMAIL -->
+<section class="email-section">
+  <div class="email-inner">
+    <h2>Clarity in your inbox.<br>Built for your pattern.</h2>
+    <p>
+      Short reflections, frameworks, and decision tools — 
+      delivered weekly, organized by archetype.
+    </p>
+    <div class="email-form">
+      <input type="email" placeholder="Your email">
+      <button>Get Clarity</button>
+    </div>
+    <p class="email-note">Unsubscribe anytime. No spam, ever.</p>
+  </div>
 </section>
 
 <!-- FOOTER -->
-<div class="fd">DocketAlly is not a law firm and does not provide legal advice. The information and tools provided are for documentation and organizational purposes only. For legal guidance, consult a licensed attorney.</div>
 <footer>
-  <a href="#" class="fl">Docket<span>Ally</span></a>
-  <div class="fk"><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Support</a><a href="#">Contact</a></div>
-  <div class="fr">&copy; 2026 DocketAlly</div>
+  <div class="footer-logo">Unfiltered Conversations®</div>
+  <div class="footer-links">
+    <a href="#">The Diagnostic</a>
+    <a href="#">Podcast</a>
+    <a href="#">Decision Room</a>
+    <a href="#">Decision Labs</a>
+    <a href="#">FAQ</a>
+    <a href="#">Privacy</a>
+  </div>
 </footer>
+
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) entry.target.classList.add('visible');
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.fade-section').forEach(el => observer.observe(el));
+
+  document.querySelectorAll('.diag-option').forEach(opt => {
+    opt.addEventListener('click', function() {
+      this.parentElement.querySelectorAll('.diag-option').forEach(o => o.classList.remove('selected'));
+      this.classList.add('selected');
+    });
+  });
+</script>
 
 </body>
 </html>
