@@ -63,4 +63,16 @@
     color: inherit;
     text-decoration: none;
   }
+
+  input:focus,
+  textarea:focus,
+  select:focus {
+    border-color: #22C55E !important;
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: #78716C;
+  }
 }

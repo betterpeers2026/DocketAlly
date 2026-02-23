@@ -105,7 +105,7 @@ const labelStyle: React.CSSProperties = {
   fontFamily: "var(--font-mono)",
   fontSize: 10,
   fontWeight: 600,
-  color: "var(--color-stone-400)",
+  color: "#44403C",
   textTransform: "uppercase",
   letterSpacing: "0.06em",
   marginBottom: 8,
@@ -115,10 +115,10 @@ const inputStyle: React.CSSProperties = {
   width: "100%",
   padding: "12px 14px",
   borderRadius: 10,
-  border: "1px solid var(--color-stone-200)",
+  border: "1px solid #D6D3D1",
   fontSize: 15,
   fontFamily: "var(--font-sans)",
-  color: "var(--color-stone-800)",
+  color: "#1C1917",
   outline: "none",
   background: "#fff",
 };
@@ -472,8 +472,8 @@ export default function RecordPage() {
               style={{
                 fontFamily: "var(--font-serif)",
                 fontSize: 22,
-                fontWeight: 600,
-                color: "var(--color-stone-900)",
+                fontWeight: 700,
+                color: "#1C1917",
               }}
             >
               {editingRecord ? "Edit Record" : "New Record"}
@@ -483,9 +483,9 @@ export default function RecordPage() {
               style={{
                 padding: "8px 16px",
                 borderRadius: 8,
-                border: "1px solid var(--color-stone-200)",
+                border: "1px solid #D6D3D1",
                 background: "#fff",
-                color: "var(--color-stone-600)",
+                color: "#44403C",
                 fontSize: 13,
                 fontWeight: 500,
                 fontFamily: "var(--font-sans)",
@@ -505,7 +505,11 @@ export default function RecordPage() {
                 setFormData((prev) => ({ ...prev, entry_type: e.target.value }))
               }
               required
-              style={{ ...inputStyle, cursor: "pointer" }}
+              style={{
+                ...inputStyle,
+                cursor: "pointer",
+                color: formData.entry_type ? "#1C1917" : "#78716C",
+              }}
             >
               <option value="" disabled>
                 Select entry type...
@@ -717,9 +721,9 @@ export default function RecordPage() {
               style={{
                 padding: "14px 24px",
                 borderRadius: 10,
-                border: "1px solid var(--color-stone-200)",
+                border: "1px solid #D6D3D1",
                 background: "#fff",
-                color: "var(--color-stone-600)",
+                color: "#44403C",
                 fontSize: 15,
                 fontWeight: 600,
                 fontFamily: "var(--font-sans)",
