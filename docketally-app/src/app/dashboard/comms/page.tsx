@@ -633,6 +633,32 @@ I want to be transparent about this so that expectations are clear and I can foc
 Thank you,
 [YOUR NAME]`,
   },
+  {
+    id: "reasonable-accommodation",
+    title: "Reasonable Accommodation Request",
+    description:
+      "Formally request a workplace accommodation under the ADA or similar laws.",
+    category: "Workplace Changes",
+    tag: "Critical",
+    body: `Dear [MANAGER NAME / HR REPRESENTATIVE NAME],
+
+I am writing to formally request a reasonable accommodation in connection with [CONDITION OR DISABILITY — you are not required to disclose a specific diagnosis, but should indicate that you have a qualifying need]. This request is being made under the Americans with Disabilities Act and any applicable state or local laws.
+
+The accommodation I am requesting is [SPECIFIC ACCOMMODATION — e.g., "a modified work schedule," "ergonomic equipment," "the ability to work remotely on certain days," "a reassignment of non-essential job functions"]. This accommodation would allow me to continue performing the essential functions of my role as [YOUR TITLE] while managing my condition.
+
+I am happy to provide supporting documentation from my healthcare provider if needed. I understand the company may want to engage in an interactive process to identify effective accommodations, and I welcome that conversation.
+
+For context, I have been in my current role since [START DATE] and have [BRIEF POSITIVE CONTEXT — e.g., "consistently met performance expectations" or "received positive feedback during my most recent review"]. My request is not related to performance concerns and should not be treated as such.
+
+I would appreciate a written acknowledgment that this request has been received, along with information about the next steps and expected timeline for a response. I am available to meet at your convenience to discuss this further.
+
+Thank you for your attention to this matter.
+
+Sincerely,
+[YOUR NAME]
+[YOUR TITLE]
+[DATE]`,
+  },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -855,6 +881,45 @@ export default function CommsPage() {
               <line x1="12" y1="8" x2="12.01" y2="8" />
             </svg>
             {placeholderCount} placeholder{placeholderCount !== 1 ? "s" : ""} to fill in — look for [BRACKETED TEXT]
+          </div>
+        )}
+
+        {/* ADA disclaimer for reasonable accommodation template */}
+        {selectedTemplate.id === "reasonable-accommodation" && (
+          <div
+            style={{
+              background: "#FFFBEB",
+              border: "1px solid #FDE68A",
+              borderRadius: 10,
+              padding: "12px 16px",
+              marginBottom: 20,
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 10,
+              fontSize: 13,
+              color: "#92400E",
+              fontFamily: "var(--font-sans)",
+              lineHeight: 1.6,
+            }}
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ flexShrink: 0, marginTop: 2 }}
+            >
+              <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+            This template helps you put your request in writing. It does not
+            constitute legal advice. If you believe your rights under the ADA or
+            similar laws are being violated, consult an employment attorney.
           </div>
         )}
 
