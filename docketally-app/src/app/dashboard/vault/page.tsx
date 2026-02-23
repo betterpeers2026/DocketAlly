@@ -177,6 +177,9 @@ export default function VaultPage() {
       .eq("user_id", userId)
       .order("created_at", { ascending: false });
 
+    if (error) {
+      console.error("Vault fetchDocuments error:", error);
+    }
     if (!error && data) {
       setDocuments(data);
     }
@@ -295,10 +298,20 @@ export default function VaultPage() {
     setUploading(true);
     setUploadError("");
 
+    // Refresh session to ensure auth token is current
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session) {
+      console.error("Vault auth session error:", sessionError || "No active session");
+      setUploadError("Authentication expired. Please refresh the page and log in again.");
+      setUploading(false);
+      return;
+    }
+
     for (const pf of pendingFiles) {
       const docId = crypto.randomUUID();
       const path = `${userId}/${pf.file.name}`;
 
+      console.log("Vault upload: storage path =", path, "| bucket = vault-files");
       const { error: storageError } = await supabase.storage
         .from("vault-files")
         .upload(path, pf.file, { upsert: true });
@@ -309,6 +322,7 @@ export default function VaultPage() {
         continue;
       }
 
+      console.log("Vault upload: inserting doc into vault_documents, id =", docId);
       const { error: insertError } = await supabase.from("vault_documents").insert({
         id: docId,
         user_id: userId,
