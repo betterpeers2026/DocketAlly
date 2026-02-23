@@ -19,7 +19,10 @@ type TemplateCategory =
   | "Responding to a PIP"
   | "Meeting Follow-Ups"
   | "Escalation & HR"
-  | "Severance & Exit";
+  | "Severance & Exit"
+  | "Feedback & Reviews"
+  | "Role & Compensation"
+  | "Workplace Changes";
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
@@ -30,6 +33,9 @@ const CATEGORIES: TemplateCategory[] = [
   "Meeting Follow-Ups",
   "Escalation & HR",
   "Severance & Exit",
+  "Feedback & Reviews",
+  "Role & Compensation",
+  "Workplace Changes",
 ];
 
 function getTagStyle(tag: string): React.CSSProperties {
@@ -416,6 +422,216 @@ Ask whether you will receive a written summary of the exit interview. Ask about 
 REMINDERS
 
 Be professional and measured throughout the conversation. Do not sign anything new without reviewing it first. Take notes during the interview, and request a copy of any documents presented.`,
+  },
+
+  /* ---- Feedback & Reviews ---- */
+  {
+    id: "request-written-feedback",
+    title: "Request for Written Feedback",
+    description:
+      "Ask your manager to put verbal feedback in writing so it's on record.",
+    category: "Feedback & Reviews",
+    tag: "Strategic",
+    body: `Hi [MANAGER NAME],
+
+Thanks for the feedback you shared during [our conversation on DATE / our recent 1:1 / the team meeting]. I found it helpful and want to make sure I'm capturing it accurately.
+
+Would you mind sending me a brief written version of what you shared? Even a few sentences would be great. I like to keep track of feedback I receive so I can reference it during review season and make sure I'm making progress in the right areas.
+
+If it's easier, I'm happy to write up my understanding and send it to you for confirmation. Just let me know what works best.
+
+Thanks,
+[YOUR NAME]`,
+  },
+  {
+    id: "performance-review-response",
+    title: "Performance Review Response",
+    description:
+      "Respond professionally to a review you disagree with, using facts.",
+    category: "Feedback & Reviews",
+    tag: "Critical",
+    body: `Hi [MANAGER NAME],
+
+Thank you for completing my performance review. I appreciate the time you put into it and want to share some additional context on a few points.
+
+Regarding [AREA OF DISAGREEMENT], I want to note that [SPECIFIC FACT OR EXAMPLE THAT CONTRADICTS THE ASSESSMENT]. For reference, [SUPPORTING DETAIL — e.g., "this was acknowledged in your email on DATE" or "the project was delivered on DATE, ahead of the original deadline"].
+
+I also want to highlight [ACCOMPLISHMENT OR CONTRIBUTION NOT MENTIONED IN THE REVIEW], which I believe is relevant to the overall assessment of my performance during this period.
+
+I'm not asking for the review to be rewritten, but I would like this response to be included alongside the original evaluation in my file. I want to make sure there's a complete picture of my work.
+
+I'm happy to discuss this further if that would be helpful.
+
+Thank you,
+[YOUR NAME]`,
+  },
+  {
+    id: "self-assessment-submission",
+    title: "Self-Assessment Submission",
+    description:
+      "Document your accomplishments before review season in your own words.",
+    category: "Feedback & Reviews",
+    tag: "Weekly",
+    body: `Hi [MANAGER NAME],
+
+Ahead of the upcoming review cycle, I wanted to share a summary of my contributions over the past [REVIEW PERIOD — e.g., "six months" or "year"].
+
+The projects I'm most proud of include [PROJECT 1], where I [SPECIFIC RESULT OR IMPACT], and [PROJECT 2], where I [SPECIFIC RESULT OR IMPACT]. I also took on [ADDITIONAL RESPONSIBILITY OR INITIATIVE] which contributed to [OUTCOME].
+
+In terms of growth, I've developed in [SKILL OR AREA] through [HOW — e.g., "leading the Q3 migration" or "completing the certification program"]. Feedback from [COLLEAGUE/STAKEHOLDER NAME] on [DATE OR CONTEXT] reflected this progress.
+
+Looking ahead, I'd like to focus on [DEVELOPMENT GOAL] and would appreciate your support in [SPECIFIC ASK — e.g., "access to the leadership training program" or "more visibility on cross-functional projects"].
+
+I hope this is useful context for our review conversation. Happy to discuss any of this in more detail.
+
+Best,
+[YOUR NAME]`,
+  },
+
+  /* ---- Role & Compensation ---- */
+  {
+    id: "role-expansion-documentation",
+    title: "Role Expansion Documentation",
+    description:
+      "Document when your responsibilities have grown beyond your current title or compensation.",
+    category: "Role & Compensation",
+    tag: "Strategic",
+    body: `Hi [MANAGER NAME],
+
+I wanted to take a moment to document some of the responsibilities I've taken on over the past [TIME PERIOD] that go beyond my current role as [CURRENT TITLE].
+
+Since [DATE OR EVENT], I've been handling [RESPONSIBILITY 1], which was previously managed by [PERSON OR ROLE]. I've also taken on [RESPONSIBILITY 2] and [RESPONSIBILITY 3], including [SPECIFIC EXAMPLE OF SCOPE INCREASE].
+
+I'm glad to contribute at this level and want to continue doing so. At the same time, I want to make sure my role and compensation reflect the work I'm actually doing. I'd appreciate the opportunity to discuss whether a title adjustment or compensation review would be appropriate given these changes.
+
+I'm not looking for an immediate answer, just a conversation. Would any time this week or next work for you?
+
+Thank you,
+[YOUR NAME]`,
+  },
+  {
+    id: "promotion-request",
+    title: "Promotion Request",
+    description:
+      "Make a structured case for why you're ready for the next level.",
+    category: "Role & Compensation",
+    tag: "Strategic",
+    body: `Hi [MANAGER NAME],
+
+I'd like to formally express my interest in being considered for a promotion to [TARGET ROLE OR LEVEL]. I've given this a lot of thought and want to share why I believe the timing is right.
+
+Over the past [TIME PERIOD], I've consistently delivered at or above the expectations for my current role. Highlights include [ACCOMPLISHMENT 1 WITH MEASURABLE IMPACT], [ACCOMPLISHMENT 2], and [ACCOMPLISHMENT 3]. I've also received positive feedback from [STAKEHOLDER OR COLLEAGUE] regarding [SPECIFIC CONTEXT].
+
+In terms of readiness for the next level, I'm already operating at that scope in several areas, including [EXAMPLE OF NEXT-LEVEL WORK]. I've also invested in [DEVELOPMENT ACTIVITY — e.g., "mentoring junior team members" or "completing the management training program"].
+
+I understand that promotions involve timing and budget considerations beyond individual performance. I'm happy to discuss what the path looks like and what, if anything, you'd want to see from me to make this move happen.
+
+Thank you for your support,
+[YOUR NAME]`,
+  },
+  {
+    id: "compensation-adjustment-request",
+    title: "Compensation Adjustment Request",
+    description:
+      "A data-driven, professional ask for a raise.",
+    category: "Role & Compensation",
+    tag: "Strategic",
+    body: `Hi [MANAGER NAME],
+
+I'd like to schedule some time to discuss my compensation. I want to approach this thoughtfully, so I'm sharing some context in advance.
+
+Since my last adjustment on [DATE], my responsibilities have expanded to include [NEW RESPONSIBILITY 1] and [NEW RESPONSIBILITY 2]. I've also delivered [KEY RESULT OR PROJECT] which contributed to [BUSINESS IMPACT].
+
+Based on my research into market rates for [ROLE TITLE] in [LOCATION OR INDUSTRY], the typical range is [SALARY RANGE]. My current compensation of [CURRENT COMP] falls [below/at the lower end of] that range given my experience and contributions.
+
+I'm requesting an adjustment to [TARGET AMOUNT OR RANGE] to reflect both the expanded scope of my work and current market benchmarks. I'm open to discussing the timing and structure of any adjustment.
+
+I value my role here and want to make sure the compensation reflects the value I'm contributing. Happy to discuss whenever works for you.
+
+Thank you,
+[YOUR NAME]`,
+  },
+  {
+    id: "title-change-request",
+    title: "Title Change Request",
+    description:
+      "Request a title update when your work has outgrown your current title.",
+    category: "Role & Compensation",
+    tag: "Strategic",
+    body: `Hi [MANAGER NAME],
+
+I'd like to discuss updating my title to better reflect the work I'm currently doing. My current title of [CURRENT TITLE] was accurate when I started in this role on [DATE], but my responsibilities have since evolved significantly.
+
+Today, I'm regularly [DESCRIPTION OF CURRENT SCOPE — e.g., "leading cross-functional initiatives", "managing vendor relationships", "owning the full project lifecycle for CLIENT"]. This work aligns more closely with a [PROPOSED TITLE] role than my current designation.
+
+A title update matters to me for a few reasons. It ensures my contributions are accurately represented internally, it aligns my role with how I'm already introduced to external stakeholders, and it supports my long-term career development.
+
+I'm happy to discuss this at your convenience and provide any additional context that would be helpful.
+
+Thank you,
+[YOUR NAME]`,
+  },
+
+  /* ---- Workplace Changes ---- */
+  {
+    id: "transfer-request",
+    title: "Transfer Request",
+    description:
+      "Request a team or department transfer professionally.",
+    category: "Workplace Changes",
+    tag: "Strategic",
+    body: `Hi [MANAGER NAME / HR REPRESENTATIVE NAME],
+
+I'd like to discuss the possibility of transferring to [TARGET TEAM OR DEPARTMENT]. I've thought about this carefully and want to share my reasoning.
+
+I've valued my time on [CURRENT TEAM] and am proud of the work I've done here, particularly [SPECIFIC CONTRIBUTION]. At the same time, I believe my skills in [RELEVANT SKILL] and my interest in [AREA] would allow me to make a stronger impact on [TARGET TEAM], especially given [SPECIFIC OPPORTUNITY OR NEED ON THAT TEAM].
+
+I've spoken informally with [CONTACT ON TARGET TEAM, if applicable] and understand there may be [OPPORTUNITY OR OPENING]. I want to make sure I'm pursuing this through the right channels and with your awareness.
+
+I'm committed to ensuring a smooth transition for my current responsibilities and am happy to work with you on a timeline that works for the team.
+
+Thank you for considering this,
+[YOUR NAME]`,
+  },
+  {
+    id: "remote-hybrid-accommodation",
+    title: "Remote/Hybrid Accommodation Request",
+    description:
+      "Request flexible work arrangements with a professional, documented ask.",
+    category: "Workplace Changes",
+    tag: "Strategic",
+    body: `Hi [MANAGER NAME],
+
+I'd like to request a [remote / hybrid / adjusted schedule] arrangement and wanted to put this in writing so we can discuss it properly.
+
+The reason for this request is [REASON — e.g., "a medical need that I'm happy to discuss privately", "a caregiving responsibility", "a commute that significantly impacts my productivity", "a personal circumstance"]. I've found that I'm able to deliver my best work when [DESCRIPTION OF PREFERRED ARRANGEMENT].
+
+To address any concerns, I want to note that during [PREVIOUS REMOTE/FLEXIBLE PERIOD OR EXAMPLE], I successfully [SPECIFIC DELIVERABLE OR RESULT]. I'm committed to maintaining full availability during core hours, attending all required meetings, and meeting every deadline.
+
+If there's a formal process for requesting this accommodation, I'm happy to follow it. I'd also welcome a trial period if that would be helpful in evaluating the arrangement.
+
+Thank you for considering this,
+[YOUR NAME]`,
+  },
+  {
+    id: "workload-concern-documentation",
+    title: "Workload Concern Documentation",
+    description:
+      "Document when your workload is unrealistic or being used to set you up to fail.",
+    category: "Workplace Changes",
+    tag: "Critical",
+    body: `Hi [MANAGER NAME],
+
+I want to flag a concern about my current workload and make sure it's documented. I take my responsibilities seriously and want to deliver quality work, which is why I'm raising this now rather than waiting until something falls through the cracks.
+
+Over the past [TIME PERIOD], my assignments have included [LIST KEY ASSIGNMENTS]. Several of these have overlapping deadlines, specifically [DEADLINE CONFLICT DETAILS]. Given the scope of each project, I don't believe it's realistic to complete all of them to the standard expected within the current timeline.
+
+I'd like to discuss how to prioritize these assignments. Specifically, I'd appreciate your guidance on which deliverables take priority, whether any deadlines can be adjusted, and whether any tasks can be reassigned or supported by additional resources.
+
+I want to be transparent about this so that expectations are clear and I can focus my energy where it matters most. I'm happy to discuss this in our next meeting or sooner if needed.
+
+Thank you,
+[YOUR NAME]`,
   },
 ];
 
