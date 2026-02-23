@@ -153,3 +153,59 @@ CREATE TRIGGER set_updated_at_records
 --      auth.uid()::text = (storage.foldername(name))[1]
 --
 -- File path format: {user_id}/{record_id}/{filename}
+
+-- ============================================================
+-- Phase 2: Vault — Secure Document Storage
+-- Run this SQL in the Supabase Dashboard SQL Editor
+-- ============================================================
+
+CREATE TABLE vault_documents (
+  id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id           UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  file_name         TEXT NOT NULL,
+  file_url          TEXT NOT NULL,
+  file_type         TEXT,
+  file_size         BIGINT,
+  category          TEXT DEFAULT 'General',
+  notes             TEXT,
+  linked_record_id  UUID REFERENCES records(id) ON DELETE SET NULL,
+  created_at        TIMESTAMPTZ DEFAULT NOW(),
+  updated_at        TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE vault_documents ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own vault docs"
+  ON vault_documents FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own vault docs"
+  ON vault_documents FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own vault docs"
+  ON vault_documents FOR UPDATE
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own vault docs"
+  ON vault_documents FOR DELETE
+  USING (auth.uid() = user_id);
+
+CREATE TRIGGER set_updated_at_vault_documents
+  BEFORE UPDATE ON vault_documents
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
+
+-- ============================================================
+-- Vault Storage Bucket (manual setup required)
+-- ============================================================
+-- In Supabase Dashboard > Storage:
+--
+-- 1. Create a new bucket named "vault-files" (Private, not public)
+--
+-- 2. Add these Storage policies:
+--
+--    SELECT policy:  auth.uid()::text = (storage.foldername(name))[1]
+--    INSERT policy:  auth.uid()::text = (storage.foldername(name))[1]
+--    DELETE policy:  auth.uid()::text = (storage.foldername(name))[1]
+--
+-- File path format: {user_id}/{doc_id}/{filename}
