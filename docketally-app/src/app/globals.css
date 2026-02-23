@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+@theme {
+  /* Sidebar */
+  --color-sidebar: #0C0C0F;
+  --color-sidebar-surface: #131316;
+  --color-sidebar-hover: #1A1A1E;
+  --color-sidebar-active: #1F1F24;
+  --color-sidebar-border: #27272C;
+  --color-sidebar-text: #6B6B76;
+  --color-sidebar-text-hover: #9D9DAA;
+  --color-sidebar-text-active: #FFFFFF;
+
+  /* App surface */
+  --color-background: #FFFFFF;
+  --color-surface: #FAFAF9;
+
+  /* Stone scale */
+  --color-stone-50: #FAFAF9;
+  --color-stone-100: #F5F5F4;
+  --color-stone-200: #E7E5E4;
+  --color-stone-300: #D6D3D1;
+  --color-stone-400: #A8A29E;
+  --color-stone-500: #78716C;
+  --color-stone-600: #57534E;
+  --color-stone-700: #44403C;
+  --color-stone-800: #292524;
+  --color-stone-900: #1C1917;
+
+  /* Green scale */
+  --color-green: #22C55E;
+  --color-green-light: #4ADE80;
+  --color-green-soft: #F0FDF4;
+  --color-green-mid: #DCFCE7;
+  --color-green-border: #BBF7D0;
+  --color-green-dark: #16A34A;
+  --color-green-text: #15803D;
+
+  /* Fonts */
+  --font-serif: 'Fraunces', Georgia, serif;
+  --font-sans: 'Manrope', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    color: var(--color-stone-800);
+    background: var(--color-background);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+}
