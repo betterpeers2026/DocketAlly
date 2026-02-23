@@ -41,7 +41,7 @@ const navItems: NavItem[] = [
   {
     label: "Case",
     href: "/dashboard/case",
-    pro: true,
+    pro: false,
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
