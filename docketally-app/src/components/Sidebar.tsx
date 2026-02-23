@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
@@ -100,8 +101,14 @@ export default function Sidebar({ user }: { user: User }) {
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const currentStage = 0; // Default: Employed
+
+  // Close sidebar on navigation
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [pathname]);
 
   async function handleSignOut() {
     await supabase.auth.signOut();
@@ -111,17 +118,60 @@ export default function Sidebar({ user }: { user: User }) {
   const initial = (user.email?.[0] || "?").toUpperCase();
 
   return (
-    <aside
-      style={{
-        width: 220,
-        height: "100vh",
-        background: "var(--color-sidebar)",
-        borderRight: "1px solid var(--color-sidebar-border)",
-        display: "flex",
-        flexDirection: "column",
-        flexShrink: 0,
-      }}
-    >
+    <>
+      {/* Mobile hamburger button */}
+      <button
+        className="da-hamburger"
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        style={{
+          display: "none",
+          position: "fixed",
+          top: 12,
+          left: 12,
+          zIndex: 200,
+          width: 36,
+          height: 36,
+          alignItems: "center",
+          justifyContent: "center",
+          borderRadius: 8,
+          border: "none",
+          background: sidebarOpen ? "transparent" : "var(--color-stone-100)",
+          cursor: "pointer",
+          padding: 0,
+        }}
+      >
+        {sidebarOpen ? (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={sidebarOpen ? "#fff" : "var(--color-stone-600)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        ) : (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-stone-600)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        )}
+      </button>
+
+      {/* Mobile backdrop */}
+      <div
+        className={`da-sidebar-backdrop${sidebarOpen ? " da-sidebar-open" : ""}`}
+        onClick={() => setSidebarOpen(false)}
+      />
+
+      <aside
+        className={`da-sidebar${sidebarOpen ? " da-sidebar-open" : ""}`}
+        style={{
+          width: 220,
+          height: "100vh",
+          background: "var(--color-sidebar)",
+          borderRight: "1px solid var(--color-sidebar-border)",
+          display: "flex",
+          flexDirection: "column",
+          flexShrink: 0,
+        }}
+      >
       {/* Logo */}
       <div
         style={{
@@ -187,6 +237,7 @@ export default function Sidebar({ user }: { user: User }) {
               onClick={() => {
                 if (!item.pro) {
                   router.push(item.href);
+                  setSidebarOpen(false);
                 }
               }}
               style={{
@@ -320,5 +371,6 @@ export default function Sidebar({ user }: { user: User }) {
         </button>
       </div>
     </aside>
+    </>
   );
 }

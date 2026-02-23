@@ -448,10 +448,11 @@ export default function RecordPage() {
     formData.entry_type && formData.title.trim() && formData.narrative.trim();
 
   return (
-    <div style={{ padding: 32, maxWidth: 960, margin: "0 auto" }}>
+    <div className="da-page-wrapper" style={{ padding: 32, maxWidth: 960, margin: "0 auto" }}>
       {/* ---- FORM VIEW ---- */}
       {showForm ? (
         <div
+          className="da-form-card"
           style={{
             background: "#fff",
             borderRadius: 16,
@@ -461,6 +462,7 @@ export default function RecordPage() {
         >
           {/* Form header */}
           <div
+            className="da-form-header"
             style={{
               display: "flex",
               alignItems: "center",
@@ -479,6 +481,7 @@ export default function RecordPage() {
               {editingRecord ? "Edit Record" : "New Record"}
             </h2>
             <button
+              className="da-form-header-cancel"
               onClick={resetForm}
               style={{
                 padding: "8px 16px",
@@ -538,7 +541,7 @@ export default function RecordPage() {
           </div>
 
           {/* Date & Time row */}
-          <div style={{ display: "flex", gap: 16, marginBottom: 20 }}>
+          <div className="da-date-time-row" style={{ display: "flex", gap: 16, marginBottom: 20 }}>
             <div style={{ flex: 1 }}>
               <label style={labelStyle}>Date *</label>
               <input
@@ -710,6 +713,7 @@ export default function RecordPage() {
 
           {/* Submit */}
           <div
+            className="da-form-buttons"
             style={{
               display: "flex",
               gap: 12,
@@ -864,6 +868,7 @@ export default function RecordPage() {
         <>
           {/* Header */}
           <div
+            className="da-list-header"
             style={{
               display: "flex",
               alignItems: "center",
@@ -886,6 +891,7 @@ export default function RecordPage() {
             </h1>
 
             <div
+              className="da-list-controls"
               style={{
                 display: "flex",
                 gap: 10,

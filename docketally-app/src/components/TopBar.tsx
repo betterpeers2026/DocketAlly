@@ -18,6 +18,7 @@ export default function TopBar() {
 
   return (
     <div
+      className="da-topbar"
       style={{
         height: 52,
         borderBottom: "1px solid var(--color-stone-200)",
