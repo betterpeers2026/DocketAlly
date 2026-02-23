@@ -48,21 +48,37 @@ interface FormData {
 /*  Constants                                                          */
 /* ------------------------------------------------------------------ */
 
-const ENTRY_TYPES: { label: string; color: string }[] = [
-  { label: "1:1 Meeting", color: "#3B82F6" },
-  { label: "Written Communication", color: "#6366F1" },
-  { label: "PIP Conversation", color: "#EF4444" },
-  { label: "Feedback Received", color: "#F59E0B" },
-  { label: "Role/Responsibility Change", color: "#F97316" },
-  { label: "HR Interaction", color: "#8B5CF6" },
-  { label: "Incident", color: "#EF4444" },
-  { label: "Positive Evidence", color: "#22C55E" },
-  { label: "Self-Documentation", color: "#64748B" },
-  { label: "Other", color: "#9CA3AF" },
+const ENTRY_TYPES = [
+  "1:1 Meeting",
+  "Written Communication",
+  "PIP Conversation",
+  "Feedback Received",
+  "Role/Responsibility Change",
+  "HR Interaction",
+  "Incident",
+  "Positive Evidence",
+  "Self-Documentation",
+  "Other",
 ];
 
-function getEntryColor(entryType: string): string {
-  return ENTRY_TYPES.find((e) => e.label === entryType)?.color || "#9CA3AF";
+const WARNING_TYPES = new Set(["PIP Conversation", "HR Interaction", "Incident"]);
+
+function getBadgeStyle(entryType: string): React.CSSProperties {
+  const isWarning = WARNING_TYPES.has(entryType);
+  return {
+    display: "inline-block",
+    padding: "3px 10px",
+    borderRadius: 20,
+    fontSize: 10,
+    fontWeight: 600,
+    fontFamily: "var(--font-mono)",
+    letterSpacing: "0.02em",
+    whiteSpace: "nowrap",
+    textTransform: "uppercase",
+    color: isWarning ? "#991B1B" : "#57534E",
+    background: isWarning ? "#FEF2F2" : "#F5F5F4",
+    border: isWarning ? "1px solid #FECACA" : "1px solid #E7E5E4",
+  };
 }
 
 function todayStr(): string {
@@ -495,8 +511,8 @@ export default function RecordPage() {
                 Select entry type...
               </option>
               {ENTRY_TYPES.map((et) => (
-                <option key={et.label} value={et.label}>
-                  {et.label}
+                <option key={et} value={et}>
+                  {et}
                 </option>
               ))}
             </select>
@@ -910,8 +926,8 @@ export default function RecordPage() {
               >
                 <option value="">All Types</option>
                 {ENTRY_TYPES.map((et) => (
-                  <option key={et.label} value={et.label}>
-                    {et.label}
+                  <option key={et} value={et}>
+                    {et}
                   </option>
                 ))}
               </select>
@@ -955,7 +971,6 @@ export default function RecordPage() {
             >
               {filteredRecords.map((record) => {
                 const isExpanded = expandedRecord === record.id;
-                const color = getEntryColor(record.entry_type);
                 const recordAtts = attachments[record.id] || [];
 
                 return (
@@ -1007,21 +1022,7 @@ export default function RecordPage() {
                           }}
                         >
                           {/* Entry type badge */}
-                          <span
-                            style={{
-                              display: "inline-block",
-                              padding: "3px 10px",
-                              borderRadius: 20,
-                              fontSize: 10,
-                              fontWeight: 600,
-                              fontFamily: "var(--font-mono)",
-                              color: color,
-                              background: color + "15",
-                              letterSpacing: "0.02em",
-                              whiteSpace: "nowrap",
-                              textTransform: "uppercase",
-                            }}
-                          >
+                          <span style={getBadgeStyle(record.entry_type)}>
                             {record.entry_type}
                           </span>
                           {/* Date */}
