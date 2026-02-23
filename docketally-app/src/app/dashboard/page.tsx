@@ -247,21 +247,28 @@ export default function RecordPage() {
 
   async function uploadFiles(recordId: string, uid: string) {
     for (const file of files) {
-      const path = `${uid}/${recordId}/${file.name}`;
+      const path = `${uid}/${file.name}`;
 
-      const { error: uploadError } = await supabase.storage
+      const { error: storageError } = await supabase.storage
         .from("record-files")
-        .upload(path, file);
+        .upload(path, file, { upsert: true });
 
-      if (!uploadError) {
-        await supabase.from("record_attachments").insert({
-          record_id: recordId,
-          user_id: uid,
-          file_name: file.name,
-          file_url: path,
-          file_type: file.type,
-          file_size: file.size,
-        });
+      if (storageError) {
+        console.error("Record storage upload error:", storageError);
+        continue;
+      }
+
+      const { error: insertError } = await supabase.from("record_attachments").insert({
+        record_id: recordId,
+        user_id: uid,
+        file_name: file.name,
+        file_url: path,
+        file_type: file.type,
+        file_size: file.size,
+      });
+
+      if (insertError) {
+        console.error("Record attachment insert error:", insertError);
       }
     }
   }
@@ -271,7 +278,11 @@ export default function RecordPage() {
       .from("record-files")
       .createSignedUrl(att.file_url, 3600);
 
-    if (!error && data?.signedUrl) {
+    if (error) {
+      console.error("Record download error:", error);
+      return;
+    }
+    if (data?.signedUrl) {
       window.open(data.signedUrl, "_blank");
     }
   }

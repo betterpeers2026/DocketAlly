@@ -297,18 +297,19 @@ export default function VaultPage() {
 
     for (const pf of pendingFiles) {
       const docId = crypto.randomUUID();
-      const path = `${userId}/${docId}/${pf.file.name}`;
+      const path = `${userId}/${pf.file.name}`;
 
-      const { error: uploadError } = await supabase.storage
+      const { error: storageError } = await supabase.storage
         .from("vault-files")
-        .upload(path, pf.file);
+        .upload(path, pf.file, { upsert: true });
 
-      if (uploadError) {
-        setUploadError(`Failed to upload "${pf.file.name}": ${uploadError.message}`);
+      if (storageError) {
+        console.error("Vault storage upload error:", storageError);
+        setUploadError(`Failed to upload "${pf.file.name}": ${storageError.message}`);
         continue;
       }
 
-      await supabase.from("vault_documents").insert({
+      const { error: insertError } = await supabase.from("vault_documents").insert({
         id: docId,
         user_id: userId,
         file_name: pf.file.name,
@@ -319,6 +320,11 @@ export default function VaultPage() {
         notes: pf.notes.trim() || null,
         linked_record_id: pf.linkedRecordId || null,
       });
+
+      if (insertError) {
+        console.error("Vault document insert error:", insertError);
+        setUploadError(`Failed to save "${pf.file.name}": ${insertError.message}`);
+      }
     }
 
     await fetchDocuments();
@@ -331,7 +337,11 @@ export default function VaultPage() {
       .from("vault-files")
       .createSignedUrl(doc.file_url, 3600);
 
-    if (!error && data?.signedUrl) {
+    if (error) {
+      console.error("Vault download error:", error);
+      return;
+    }
+    if (data?.signedUrl) {
       window.open(data.signedUrl, "_blank");
     }
   }
@@ -360,14 +370,19 @@ export default function VaultPage() {
     const doc = documents.find((d) => d.id === docId);
     if (!doc) return;
 
-    await supabase.storage.from("vault-files").remove([doc.file_url]);
+    const { error: storageError } = await supabase.storage.from("vault-files").remove([doc.file_url]);
+    if (storageError) {
+      console.error("Vault storage delete error:", storageError);
+    }
 
     const { error } = await supabase
       .from("vault_documents")
       .delete()
       .eq("id", docId);
 
-    if (!error) {
+    if (error) {
+      console.error("Vault document delete error:", error);
+    } else {
       setDocuments((prev) => prev.filter((d) => d.id !== docId));
       setExpandedDoc(null);
       setDeleteConfirm(null);
