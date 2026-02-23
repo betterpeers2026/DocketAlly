@@ -47,12 +47,33 @@ interface DetectedPattern {
   detail: string;
 }
 
+interface Contradiction {
+  type: "performance" | "shifting" | "exclusion";
+  detail: string;
+}
+
+type DateRangeOption = "all" | "7" | "30" | "90" | "custom";
+
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
 /* ------------------------------------------------------------------ */
 
+const ENTRY_TYPES = [
+  "1:1 Meeting",
+  "Written Communication",
+  "PIP Conversation",
+  "Feedback Received",
+  "Role/Responsibility Change",
+  "HR Interaction",
+  "Incident",
+  "Positive Evidence",
+  "Self-Documentation",
+  "Other",
+];
+
 const WARNING_TYPES = new Set(["PIP Conversation", "HR Interaction", "Incident"]);
 const CASE_INFO_KEY = "docketally_case_info";
+const STARRED_KEY = "docketally_starred_records";
 
 const EMPTY_CASE_INFO: CaseInfo = {
   fullName: "",
@@ -64,6 +85,33 @@ const EMPTY_CASE_INFO: CaseInfo = {
   keyPeople: "",
   briefSummary: "",
 };
+
+const POSITIVE_KEYWORDS = [
+  "meets expectations", "exceeds", "good performance", "positive review",
+  "strong work", "on track", "excellent", "great job", "well done",
+  "above average", "commended", "praised", "successful",
+];
+
+const PIP_KEYWORDS = [
+  "performance improvement plan", "pip", "underperforming",
+  "below expectations", "not meeting", "failing to meet",
+];
+
+const SHIFTING_KEYWORDS = [
+  "goals changed", "new expectations", "moved the target",
+  "different criteria", "revised objectives", "unclear expectations",
+  "changed requirements", "new goals", "revised goals",
+];
+
+const COMPLAINT_KEYWORDS = [
+  "complaint", "reported", "escalated", "filed", "grievance", "raised concerns",
+];
+
+const EXCLUSION_KEYWORDS = [
+  "excluded", "removed from", "not invited", "reassigned",
+  "schedule changed", "left out", "sidelined", "demoted",
+  "taken off", "stripped of",
+];
 
 function getBadgeStyle(entryType: string): React.CSSProperties {
   const isWarning = WARNING_TYPES.has(entryType);
@@ -92,6 +140,18 @@ function formatDate(dateStr: string): string {
   });
 }
 
+function textContainsAny(text: string, keywords: string[]): boolean {
+  const lower = text.toLowerCase();
+  return keywords.some((kw) => lower.includes(kw.toLowerCase()));
+}
+
+function getWeekStart(date: Date): string {
+  const d = new Date(date);
+  const day = d.getDay();
+  d.setDate(d.getDate() - day);
+  return d.toISOString().split("T")[0];
+}
+
 /* ------------------------------------------------------------------ */
 /*  Shared Styles                                                      */
 /* ------------------------------------------------------------------ */
@@ -113,6 +173,17 @@ const inputStyle: React.CSSProperties = {
   borderRadius: 10,
   border: "1px solid #D6D3D1",
   fontSize: 15,
+  fontFamily: "var(--font-sans)",
+  color: "#1C1917",
+  outline: "none",
+  background: "#fff",
+};
+
+const filterInputStyle: React.CSSProperties = {
+  padding: "8px 12px",
+  borderRadius: 8,
+  border: "1px solid #D6D3D1",
+  fontSize: 13,
   fontFamily: "var(--font-sans)",
   color: "#1C1917",
   outline: "none",
@@ -202,6 +273,90 @@ function detectPatterns(records: DocketRecord[]): DetectedPattern[] {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Contradiction Detection                                            */
+/* ------------------------------------------------------------------ */
+
+function detectContradictions(records: DocketRecord[]): Contradiction[] {
+  if (records.length < 2) return [];
+  const contradictions: Contradiction[] = [];
+  const sorted = [...records].sort(
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+  );
+
+  // Pattern A — Performance Contradiction
+  const positiveRecords = sorted.filter(
+    (r) => textContainsAny(r.narrative + " " + (r.title || "") + " " + (r.facts || ""), POSITIVE_KEYWORDS)
+  );
+  const pipRecords = sorted.filter(
+    (r) =>
+      r.entry_type === "PIP Conversation" ||
+      textContainsAny(r.narrative + " " + (r.title || "") + " " + (r.facts || ""), PIP_KEYWORDS)
+  );
+
+  for (const pos of positiveRecords) {
+    for (const pip of pipRecords) {
+      const posDate = new Date(pos.date + "T00:00:00");
+      const pipDate = new Date(pip.date + "T00:00:00");
+      const daysDiff = Math.abs(pipDate.getTime() - posDate.getTime()) / 86400000;
+      if (daysDiff <= 90 && daysDiff > 0) {
+        const earlier = posDate < pipDate ? pos : pip;
+        const later = posDate < pipDate ? pip : pos;
+        const isPositiveFirst = posDate < pipDate;
+        contradictions.push({
+          type: "performance",
+          detail: isPositiveFirst
+            ? `Positive performance noted on ${formatDate(earlier.date)} followed by PIP on ${formatDate(later.date)} (${Math.round(daysDiff)} days apart)`
+            : `PIP on ${formatDate(earlier.date)} followed by positive performance noted on ${formatDate(later.date)} (${Math.round(daysDiff)} days apart)`,
+        });
+      }
+    }
+  }
+
+  // Pattern B — Shifting Expectations
+  const shiftingRecords = sorted.filter(
+    (r) => textContainsAny(r.narrative + " " + (r.title || "") + " " + (r.facts || ""), SHIFTING_KEYWORDS)
+  );
+  if (shiftingRecords.length >= 2) {
+    contradictions.push({
+      type: "shifting",
+      detail: `Goals or criteria appear to have changed across ${shiftingRecords.length} records`,
+    });
+  }
+
+  // Pattern C — Exclusion After Complaint
+  const complaintRecords = sorted.filter(
+    (r) =>
+      r.entry_type === "HR Interaction" ||
+      textContainsAny(r.narrative + " " + (r.title || "") + " " + (r.facts || ""), COMPLAINT_KEYWORDS)
+  );
+  const exclusionRecords = sorted.filter(
+    (r) => textContainsAny(r.narrative + " " + (r.title || "") + " " + (r.facts || ""), EXCLUSION_KEYWORDS)
+  );
+
+  for (const complaint of complaintRecords) {
+    const complaintDate = new Date(complaint.date + "T00:00:00");
+    for (const exclusion of exclusionRecords) {
+      const exclusionDate = new Date(exclusion.date + "T00:00:00");
+      const daysDiff = (exclusionDate.getTime() - complaintDate.getTime()) / 86400000;
+      if (daysDiff > 0 && daysDiff <= 30) {
+        contradictions.push({
+          type: "exclusion",
+          detail: `Treatment appears to have changed within ${Math.round(daysDiff)} days of HR interaction on ${formatDate(complaint.date)}`,
+        });
+      }
+    }
+  }
+
+  // Deduplicate by detail
+  const seen = new Set<string>();
+  return contradictions.filter((c) => {
+    if (seen.has(c.detail)) return false;
+    seen.add(c.detail);
+    return true;
+  });
+}
+
+/* ------------------------------------------------------------------ */
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
 
@@ -226,6 +381,19 @@ export default function CasePage() {
   const [caseInfo, setCaseInfo] = useState<CaseInfo>(EMPTY_CASE_INFO);
   const [editCaseInfo, setEditCaseInfo] = useState<CaseInfo>(EMPTY_CASE_INFO);
   const [showCaseInfoForm, setShowCaseInfoForm] = useState(false);
+
+  // Filters
+  const [filterType, setFilterType] = useState("All");
+  const [filterPeople, setFilterPeople] = useState("");
+  const [filterDateRange, setFilterDateRange] = useState<DateRangeOption>("all");
+  const [customDateFrom, setCustomDateFrom] = useState("");
+  const [customDateTo, setCustomDateTo] = useState("");
+
+  // Starred records
+  const [starredIds, setStarredIds] = useState<Set<string>>(new Set());
+
+  // Density tooltip
+  const [densityTooltip, setDensityTooltip] = useState<{ text: string; x: number; y: number } | null>(null);
 
   /* ---------------------------------------------------------------- */
   /*  Data fetching                                                    */
@@ -290,11 +458,41 @@ export default function CasePage() {
     }
   }, []);
 
+  // Load starred records from localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STARRED_KEY);
+      if (saved) {
+        setStarredIds(new Set(JSON.parse(saved)));
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  /* ---------------------------------------------------------------- */
+  /*  Star handlers                                                    */
+  /* ---------------------------------------------------------------- */
+
+  function toggleStar(recordId: string) {
+    setStarredIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(recordId)) {
+        next.delete(recordId);
+      } else {
+        next.add(recordId);
+      }
+      localStorage.setItem(STARRED_KEY, JSON.stringify([...next]));
+      return next;
+    });
+  }
+
   /* ---------------------------------------------------------------- */
   /*  Computed data                                                    */
   /* ---------------------------------------------------------------- */
 
   const patterns = useMemo(() => detectPatterns(records), [records]);
+  const contradictions = useMemo(() => detectContradictions(records), [records]);
 
   const linkedDocsMap = useMemo(() => {
     const map: Record<string, VaultDocument[]> = {};
@@ -332,6 +530,102 @@ export default function CasePage() {
     });
     return Object.entries(people).sort((a, b) => b[1] - a[1]);
   }, [records]);
+
+  // Filtered records for timeline
+  const filteredRecords = useMemo(() => {
+    const now = new Date();
+    return records.filter((r) => {
+      // Entry type filter
+      if (filterType !== "All" && r.entry_type !== filterType) return false;
+
+      // People filter
+      if (filterPeople.trim()) {
+        const q = filterPeople.trim().toLowerCase();
+        const hasPeople = r.people && r.people.toLowerCase().includes(q);
+        if (!hasPeople) return false;
+      }
+
+      // Date range filter
+      if (filterDateRange !== "all") {
+        const recordDate = new Date(r.date + "T00:00:00");
+        if (filterDateRange === "custom") {
+          if (customDateFrom) {
+            const from = new Date(customDateFrom + "T00:00:00");
+            if (recordDate < from) return false;
+          }
+          if (customDateTo) {
+            const to = new Date(customDateTo + "T23:59:59");
+            if (recordDate > to) return false;
+          }
+        } else {
+          const days = parseInt(filterDateRange);
+          const cutoff = new Date(now.getTime() - days * 86400000);
+          if (recordDate < cutoff) return false;
+        }
+      }
+
+      return true;
+    });
+  }, [records, filterType, filterPeople, filterDateRange, customDateFrom, customDateTo]);
+
+  // Active filter count
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (filterType !== "All") count++;
+    if (filterPeople.trim()) count++;
+    if (filterDateRange !== "all") count++;
+    return count;
+  }, [filterType, filterPeople, filterDateRange]);
+
+  // Starred count
+  const starredCount = useMemo(() => {
+    return records.filter((r) => starredIds.has(r.id)).length;
+  }, [records, starredIds]);
+
+  // Starred records for PDF
+  const starredRecords = useMemo(() => {
+    return records.filter((r) => starredIds.has(r.id));
+  }, [records, starredIds]);
+
+  // Density chart data
+  const densityWeeks = useMemo(() => {
+    if (records.length === 0) return [];
+
+    const firstDate = new Date(records[0].date + "T00:00:00");
+    const lastDate = new Date(records[records.length - 1].date + "T00:00:00");
+
+    // Build week buckets
+    const weekCounts: Record<string, number> = {};
+    records.forEach((r) => {
+      const ws = getWeekStart(new Date(r.date + "T00:00:00"));
+      weekCounts[ws] = (weekCounts[ws] || 0) + 1;
+    });
+
+    // Generate all weeks from first to last
+    const weeks: { weekStart: string; count: number }[] = [];
+    const current = new Date(getWeekStart(firstDate) + "T00:00:00");
+    const end = new Date(getWeekStart(lastDate) + "T00:00:00");
+
+    while (current <= end) {
+      const ws = current.toISOString().split("T")[0];
+      weeks.push({ weekStart: ws, count: weekCounts[ws] || 0 });
+      current.setDate(current.getDate() + 7);
+    }
+
+    return weeks;
+  }, [records]);
+
+  /* ---------------------------------------------------------------- */
+  /*  Filter handlers                                                  */
+  /* ---------------------------------------------------------------- */
+
+  function clearAllFilters() {
+    setFilterType("All");
+    setFilterPeople("");
+    setFilterDateRange("all");
+    setCustomDateFrom("");
+    setCustomDateTo("");
+  }
 
   /* ---------------------------------------------------------------- */
   /*  Case info handlers                                               */
@@ -401,6 +695,16 @@ export default function CasePage() {
       default:
         return "";
     }
+  }
+
+  /* ---------------------------------------------------------------- */
+  /*  Density color helper                                             */
+  /* ---------------------------------------------------------------- */
+
+  function densityColor(count: number): string {
+    if (count === 0) return "#E7E5E4"; // stone-200
+    if (count <= 2) return "#86EFAC"; // green-300
+    return "#22C55E"; // green-500
   }
 
   /* ---------------------------------------------------------------- */
@@ -731,6 +1035,248 @@ export default function CasePage() {
             </div>
           )}
 
+          {/* ===== FILTER BAR ===== */}
+          {records.length > 0 && (
+            <div
+              className="da-case-filters"
+              style={{
+                background: "#fff",
+                borderRadius: 12,
+                border: "1px solid var(--color-stone-200)",
+                padding: "16px 20px",
+                marginBottom: 20,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  flexWrap: "wrap",
+                }}
+              >
+                {/* Entry Type */}
+                <select
+                  value={filterType}
+                  onChange={(e) => setFilterType(e.target.value)}
+                  style={{
+                    ...filterInputStyle,
+                    minWidth: 140,
+                    cursor: "pointer",
+                  }}
+                  onFocus={(e) => { e.currentTarget.style.borderColor = "var(--color-green)"; }}
+                  onBlur={(e) => { e.currentTarget.style.borderColor = "#D6D3D1"; }}
+                >
+                  <option value="All">All Types</option>
+                  {ENTRY_TYPES.map((et) => (
+                    <option key={et} value={et}>{et}</option>
+                  ))}
+                </select>
+
+                {/* People filter */}
+                <input
+                  type="text"
+                  value={filterPeople}
+                  onChange={(e) => setFilterPeople(e.target.value)}
+                  placeholder="Filter by person..."
+                  style={{ ...filterInputStyle, minWidth: 150, flex: 1, maxWidth: 220 }}
+                  onFocus={(e) => { e.currentTarget.style.borderColor = "var(--color-green)"; }}
+                  onBlur={(e) => { e.currentTarget.style.borderColor = "#D6D3D1"; }}
+                />
+
+                {/* Date range */}
+                <select
+                  value={filterDateRange}
+                  onChange={(e) => setFilterDateRange(e.target.value as DateRangeOption)}
+                  style={{
+                    ...filterInputStyle,
+                    minWidth: 130,
+                    cursor: "pointer",
+                  }}
+                  onFocus={(e) => { e.currentTarget.style.borderColor = "var(--color-green)"; }}
+                  onBlur={(e) => { e.currentTarget.style.borderColor = "#D6D3D1"; }}
+                >
+                  <option value="all">All Time</option>
+                  <option value="7">Last 7 days</option>
+                  <option value="30">Last 30 days</option>
+                  <option value="90">Last 90 days</option>
+                  <option value="custom">Custom range</option>
+                </select>
+
+                {/* Filter count + clear */}
+                {activeFilterCount > 0 && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span
+                      style={{
+                        display: "inline-block",
+                        padding: "4px 10px",
+                        borderRadius: 20,
+                        fontSize: 11,
+                        fontWeight: 600,
+                        fontFamily: "var(--font-mono)",
+                        color: "#1E40AF",
+                        background: "#EFF6FF",
+                        border: "1px solid #BFDBFE",
+                      }}
+                    >
+                      {activeFilterCount} filter{activeFilterCount !== 1 ? "s" : ""} active
+                    </span>
+                    <button
+                      onClick={clearAllFilters}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        fontSize: 12,
+                        fontWeight: 500,
+                        fontFamily: "var(--font-sans)",
+                        color: "var(--color-stone-500)",
+                        textDecoration: "underline",
+                        padding: 0,
+                      }}
+                    >
+                      Clear all
+                    </button>
+                  </div>
+                )}
+
+                {/* Starred count */}
+                {starredCount > 0 && (
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 4,
+                      padding: "4px 10px",
+                      borderRadius: 20,
+                      fontSize: 11,
+                      fontWeight: 600,
+                      fontFamily: "var(--font-mono)",
+                      color: "#166534",
+                      background: "#F0FDF4",
+                      border: "1px solid #BBF7D0",
+                      marginLeft: "auto",
+                    }}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="#22C55E" stroke="#22C55E" strokeWidth="1.5">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                    </svg>
+                    {starredCount} key event{starredCount !== 1 ? "s" : ""}
+                  </span>
+                )}
+              </div>
+
+              {/* Custom date range inputs */}
+              {filterDateRange === "custom" && (
+                <div style={{ display: "flex", gap: 10, marginTop: 12, alignItems: "center" }}>
+                  <label style={{ fontSize: 12, color: "var(--color-stone-500)", fontFamily: "var(--font-mono)" }}>From</label>
+                  <input
+                    type="date"
+                    value={customDateFrom}
+                    onChange={(e) => setCustomDateFrom(e.target.value)}
+                    style={{ ...filterInputStyle, width: 150 }}
+                  />
+                  <label style={{ fontSize: 12, color: "var(--color-stone-500)", fontFamily: "var(--font-mono)" }}>To</label>
+                  <input
+                    type="date"
+                    value={customDateTo}
+                    onChange={(e) => setCustomDateTo(e.target.value)}
+                    style={{ ...filterInputStyle, width: 150 }}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ===== RECORD DENSITY CHART ===== */}
+          {densityWeeks.length > 0 && (
+            <div
+              style={{
+                marginBottom: 20,
+                position: "relative",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                <label style={{ ...labelStyle, marginBottom: 0 }}>Record Density</label>
+                <div style={{ display: "flex", alignItems: "center", gap: 4, marginLeft: "auto" }}>
+                  <span style={{ fontSize: 10, color: "var(--color-stone-400)", fontFamily: "var(--font-mono)" }}>Less</span>
+                  {[0, 1, 3].map((c) => (
+                    <div
+                      key={c}
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: 2,
+                        background: densityColor(c),
+                      }}
+                    />
+                  ))}
+                  <span style={{ fontSize: 10, color: "var(--color-stone-400)", fontFamily: "var(--font-mono)" }}>More</span>
+                </div>
+              </div>
+              <div
+                style={{
+                  overflowX: "auto",
+                  paddingBottom: 4,
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 2,
+                    height: 8,
+                    minWidth: "fit-content",
+                  }}
+                >
+                  {densityWeeks.map((week) => (
+                    <div
+                      key={week.weekStart}
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: 2,
+                        background: densityColor(week.count),
+                        cursor: "default",
+                        flexShrink: 0,
+                      }}
+                      onMouseEnter={(e) => {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        setDensityTooltip({
+                          text: `Week of ${formatDate(week.weekStart)}: ${week.count} record${week.count !== 1 ? "s" : ""}`,
+                          x: rect.left + rect.width / 2,
+                          y: rect.top - 8,
+                        });
+                      }}
+                      onMouseLeave={() => setDensityTooltip(null)}
+                    />
+                  ))}
+                </div>
+              </div>
+              {/* Tooltip */}
+              {densityTooltip && (
+                <div
+                  style={{
+                    position: "fixed",
+                    left: densityTooltip.x,
+                    top: densityTooltip.y,
+                    transform: "translate(-50%, -100%)",
+                    background: "#1C1917",
+                    color: "#fff",
+                    padding: "5px 10px",
+                    borderRadius: 6,
+                    fontSize: 11,
+                    fontFamily: "var(--font-mono)",
+                    whiteSpace: "nowrap",
+                    pointerEvents: "none",
+                    zIndex: 50,
+                  }}
+                >
+                  {densityTooltip.text}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Timeline */}
           {records.length === 0 ? (
             <div
@@ -799,6 +1345,35 @@ export default function CasePage() {
                 </p>
               </div>
             </div>
+          ) : filteredRecords.length === 0 ? (
+            <div
+              style={{
+                textAlign: "center",
+                padding: "56px 40px",
+                background: "#fff",
+                borderRadius: 16,
+                border: "1px solid var(--color-stone-200)",
+              }}
+            >
+              <p style={{ fontSize: 14, color: "var(--color-stone-500)", fontFamily: "var(--font-sans)" }}>
+                No records match your filters.
+              </p>
+              <button
+                onClick={clearAllFilters}
+                style={{
+                  marginTop: 12,
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  fontFamily: "var(--font-sans)",
+                  color: "var(--color-green)",
+                }}
+              >
+                Clear all filters
+              </button>
+            </div>
           ) : (
             <div style={{ position: "relative", paddingLeft: 44 }}>
               {/* Timeline line */}
@@ -814,10 +1389,11 @@ export default function CasePage() {
                 }}
               />
 
-              {records.map((record) => {
+              {filteredRecords.map((record) => {
                 const isWarning = WARNING_TYPES.has(record.entry_type);
                 const isExpanded = expandedRecord === record.id;
                 const linkedDocs = linkedDocsMap[record.id] || [];
+                const isStarred = starredIds.has(record.id);
 
                 return (
                   <div
@@ -847,6 +1423,9 @@ export default function CasePage() {
                         background: "#fff",
                         borderRadius: 14,
                         border: "1px solid var(--color-stone-200)",
+                        borderLeft: isStarred
+                          ? "3px solid #22C55E"
+                          : "1px solid var(--color-stone-200)",
                         overflow: "hidden",
                         cursor: "pointer",
                         transition: "border-color 0.15s",
@@ -863,10 +1442,12 @@ export default function CasePage() {
                         if (!isExpanded)
                           e.currentTarget.style.borderColor =
                             "var(--color-stone-200)";
+                        if (isStarred)
+                          e.currentTarget.style.borderLeftColor = "#22C55E";
                       }}
                     >
                       <div style={{ padding: "18px 24px" }}>
-                        {/* Top row: date + badge */}
+                        {/* Top row: date + badge + star */}
                         <div
                           style={{
                             display: "flex",
@@ -888,6 +1469,37 @@ export default function CasePage() {
                           <span style={getBadgeStyle(record.entry_type)}>
                             {record.entry_type}
                           </span>
+                          {/* Star toggle */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleStar(record.id);
+                            }}
+                            title={isStarred ? "Unmark as key event" : "Mark as key event"}
+                            style={{
+                              marginLeft: "auto",
+                              background: "none",
+                              border: "none",
+                              cursor: "pointer",
+                              padding: 4,
+                              display: "flex",
+                              alignItems: "center",
+                              flexShrink: 0,
+                            }}
+                          >
+                            <svg
+                              width="18"
+                              height="18"
+                              viewBox="0 0 24 24"
+                              fill={isStarred ? "#22C55E" : "none"}
+                              stroke={isStarred ? "#22C55E" : "var(--color-stone-300)"}
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                            </svg>
+                          </button>
                         </div>
 
                         {/* Title */}
@@ -1077,7 +1689,7 @@ export default function CasePage() {
           )}
 
           {/* Patterns Section */}
-          {patterns.length > 0 && (
+          {(patterns.length > 0 || contradictions.length > 0) && (
             <div style={{ marginTop: 40 }}>
               <h3
                 style={{
@@ -1166,6 +1778,108 @@ export default function CasePage() {
                     </p>
                   </div>
                 ))}
+              </div>
+
+              {/* Contradictions Card */}
+              <div
+                style={{
+                  marginTop: 16,
+                  background: contradictions.length > 0 ? "#FEF2F2" : "var(--color-stone-50)",
+                  border: contradictions.length > 0 ? "1px solid #FECACA" : "1px solid var(--color-stone-200)",
+                  borderRadius: 12,
+                  padding: 20,
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    marginBottom: 8,
+                  }}
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke={contradictions.length > 0 ? "#991B1B" : "var(--color-stone-500)"}
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                  </svg>
+                  <span
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: contradictions.length > 0 ? "#991B1B" : "#1C1917",
+                      fontFamily: "var(--font-sans)",
+                    }}
+                  >
+                    Potential Contradictions
+                  </span>
+                </div>
+
+                {contradictions.length > 0 ? (
+                  <>
+                    <p
+                      style={{
+                        fontSize: 12,
+                        color: "#991B1B",
+                        fontFamily: "var(--font-sans)",
+                        fontStyle: "italic",
+                        marginBottom: 12,
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      These patterns may indicate inconsistency in your employer&apos;s actions.
+                    </p>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      {contradictions.map((c, idx) => (
+                        <div
+                          key={idx}
+                          style={{
+                            fontSize: 13,
+                            color: "#991B1B",
+                            lineHeight: 1.6,
+                            fontFamily: "var(--font-sans)",
+                            paddingLeft: 12,
+                            borderLeft: "2px solid #FECACA",
+                          }}
+                        >
+                          {c.detail}
+                        </div>
+                      ))}
+                    </div>
+                    <p
+                      style={{
+                        fontSize: 11,
+                        color: "#B91C1C",
+                        fontFamily: "var(--font-sans)",
+                        fontStyle: "italic",
+                        marginTop: 12,
+                        opacity: 0.8,
+                      }}
+                    >
+                      These are automated observations, not legal conclusions.
+                    </p>
+                  </>
+                ) : (
+                  <p
+                    style={{
+                      fontSize: 13,
+                      color: "var(--color-stone-500)",
+                      lineHeight: 1.6,
+                      fontFamily: "var(--font-sans)",
+                    }}
+                  >
+                    No contradictions detected yet. Keep documenting — patterns become clearer over time.
+                  </p>
+                )}
               </div>
             </div>
           )}
@@ -1308,6 +2022,60 @@ export default function CasePage() {
               </div>
             )}
 
+            {/* b2. Key Events (starred) */}
+            {starredRecords.length > 0 && (
+              <div style={{ marginBottom: 36 }}>
+                <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 18, fontWeight: 600, color: "#1C1917", marginBottom: 8, paddingBottom: 8, borderBottom: "1px solid var(--color-stone-200)" }}>
+                  Key Events
+                </h2>
+                <p style={{ fontSize: 12, color: "var(--color-stone-400)", fontStyle: "italic", marginBottom: 16 }}>
+                  Flagged by user as significant to the case.
+                </p>
+                {starredRecords.map((record, idx) => (
+                  <div
+                    key={record.id}
+                    style={{
+                      paddingBottom: 24,
+                      marginBottom: 24,
+                      borderBottom: idx < starredRecords.length - 1 ? "1px solid var(--color-stone-100)" : "none",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+                      <span style={{ fontSize: 14, color: "#22C55E" }}>&#9733;</span>
+                      <span style={{ fontSize: 12, color: "var(--color-stone-500)", fontFamily: "var(--font-mono)" }}>
+                        {formatDate(record.date)}
+                        {record.time && ` at ${record.time}`}
+                      </span>
+                      <span style={getBadgeStyle(record.entry_type)}>
+                        {record.entry_type}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: "#1C1917", marginBottom: 8 }}>
+                      {record.title}
+                    </div>
+                    <div style={{ fontSize: 13, color: "var(--color-stone-700)", lineHeight: 1.7, whiteSpace: "pre-wrap", marginBottom: 8 }}>
+                      {record.narrative}
+                    </div>
+                    {record.people && (
+                      <div style={{ fontSize: 13, color: "var(--color-stone-600)", marginBottom: 4 }}>
+                        <strong>People:</strong> {record.people}
+                      </div>
+                    )}
+                    {record.facts && (
+                      <div style={{ fontSize: 13, color: "var(--color-stone-600)", lineHeight: 1.6, marginBottom: 4, whiteSpace: "pre-wrap" }}>
+                        <strong>Key Facts:</strong> {record.facts}
+                      </div>
+                    )}
+                    {record.follow_up && (
+                      <div style={{ fontSize: 13, color: "var(--color-stone-600)", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
+                        <strong>Follow-Up:</strong> {record.follow_up}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
             {/* c. Summary Statistics */}
             {records.length > 0 && (
               <div style={{ marginBottom: 36 }}>
@@ -1367,6 +2135,9 @@ export default function CasePage() {
                     }}
                   >
                     <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+                      {starredIds.has(record.id) && (
+                        <span style={{ fontSize: 14, color: "#22C55E" }}>&#9733;</span>
+                      )}
                       <span style={{ fontSize: 12, color: "var(--color-stone-500)", fontFamily: "var(--font-mono)" }}>
                         {formatDate(record.date)}
                         {record.time && ` at ${record.time}`}
@@ -1401,8 +2172,8 @@ export default function CasePage() {
               </div>
             )}
 
-            {/* e. Patterns */}
-            {patterns.length > 0 && (
+            {/* e. Patterns + Contradictions */}
+            {(patterns.length > 0 || contradictions.length > 0) && (
               <div style={{ marginBottom: 36 }}>
                 <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 18, fontWeight: 600, color: "#1C1917", marginBottom: 16, paddingBottom: 8, borderBottom: "1px solid var(--color-stone-200)" }}>
                   Detected Patterns
@@ -1420,6 +2191,36 @@ export default function CasePage() {
                     </div>
                   </div>
                 ))}
+
+                {/* Contradictions in PDF */}
+                {contradictions.length > 0 && (
+                  <div style={{ marginTop: 16, padding: 16, background: "#FEF2F2", borderRadius: 10, border: "1px solid #FECACA" }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "#991B1B", marginBottom: 8 }}>
+                      Potential Contradictions
+                    </div>
+                    <p style={{ fontSize: 12, color: "#991B1B", fontStyle: "italic", marginBottom: 10, lineHeight: 1.5 }}>
+                      These patterns may indicate inconsistency in your employer&apos;s actions.
+                    </p>
+                    {contradictions.map((c, idx) => (
+                      <div
+                        key={idx}
+                        style={{
+                          fontSize: 13,
+                          color: "#991B1B",
+                          lineHeight: 1.6,
+                          marginBottom: 6,
+                          paddingLeft: 12,
+                          borderLeft: "2px solid #FECACA",
+                        }}
+                      >
+                        {c.detail}
+                      </div>
+                    ))}
+                    <p style={{ fontSize: 11, color: "#B91C1C", fontStyle: "italic", marginTop: 10, opacity: 0.8 }}>
+                      These are automated observations, not legal conclusions.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 

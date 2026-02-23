@@ -177,4 +177,17 @@
     box-sizing: border-box;
     max-width: 100%;
   }
+
+  /* Case filters: stack vertically */
+  .da-case-filters > div {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .da-case-filters select,
+  .da-case-filters input[type="text"],
+  .da-case-filters input[type="date"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
 }
