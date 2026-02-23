@@ -206,7 +206,7 @@ export default function LoginPage() {
                 lineHeight: 1.5,
               }}
             >
-              We sent a 6-digit code to{" "}
+              We sent an 8-digit code to{" "}
               <strong style={{ color: "var(--color-stone-700)" }}>
                 {email}
               </strong>
@@ -232,10 +232,10 @@ export default function LoginPage() {
                 id="otp"
                 type="text"
                 inputMode="numeric"
-                maxLength={6}
+                maxLength={8}
                 value={otp}
                 onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                placeholder="000000"
+                placeholder="00000000"
                 required
                 autoFocus
                 style={{
