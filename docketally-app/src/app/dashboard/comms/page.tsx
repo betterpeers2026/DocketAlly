@@ -95,15 +95,11 @@ const TEMPLATES: Template[] = [
 
 I am writing to acknowledge receipt of the Performance Improvement Plan dated [PIP DATE]. I have reviewed the document and understand that the company has outlined concerns regarding [AREA OF CONCERN].
 
-I want to confirm that I am committed to meeting the expectations outlined, and I take this matter seriously. However, I would like to request clarification on the following points to ensure I can meet the stated objectives:
+I want to confirm that I am committed to meeting the expectations outlined, and I take this matter seriously. However, I would like to request clarification on a few points to ensure I can meet the stated objectives.
 
-1. For [GOAL 1]: What specific, measurable benchmarks will be used to evaluate success?
-2. For [GOAL 2]: Can you confirm the resources and support that will be made available during this period?
-3. For [GOAL 3]: What is the timeline for each milestone, and how will progress be measured?
+For [GOAL 1], I would appreciate knowing what specific, measurable benchmarks will be used to evaluate success. For [GOAL 2], can you confirm the resources and support that will be made available during this period? And for [GOAL 3], what is the timeline for each milestone, and how will progress be measured?
 
-I also want to note the following for the record:
-- [CONTEXT OR DISAGREEMENT — e.g., "I was not previously informed that X was considered below expectations."]
-- [ADDITIONAL CONTEXT — e.g., "I received a positive performance review on DATE."]
+I also want to note the following for the record. [CONTEXT OR DISAGREEMENT — e.g., "I was not previously informed that X was considered below expectations."] Additionally, [ADDITIONAL CONTEXT — e.g., "I received a positive performance review on DATE."]
 
 I would appreciate a meeting to discuss these points at your earliest convenience. Please confirm whether [HR REPRESENTATIVE NAME] will be involved in future check-ins.
 
@@ -125,24 +121,15 @@ Sincerely,
 
 Thank you for the meeting on [MEETING DATE] regarding the Performance Improvement Plan. I want to ensure I fully understand the expectations so I can work toward meeting them effectively.
 
-I am writing to request clarification on the following areas:
+I am writing to request clarification on several areas.
 
-METRICS AND MEASUREMENT
-- The PIP states I need to "improve" in [AREA]. Could you provide the specific metric or KPI that defines success?
-- What baseline measurement is being used to evaluate my current performance?
-- How frequently will progress be measured, and who will conduct the evaluation?
+Regarding metrics and measurement, the PIP states I need to "improve" in [AREA]. Could you provide the specific metric or KPI that defines success? I would also like to know what baseline measurement is being used to evaluate my current performance, how frequently progress will be measured, and who will conduct the evaluation.
 
-TIMELINE AND MILESTONES
-- The PIP lists a [DURATION]-day timeline. Are there interim milestones or checkpoints?
-- What happens if I meet some but not all of the stated goals by the deadline?
+Regarding the timeline, the PIP lists a [DURATION]-day timeline. I would appreciate knowing whether there are interim milestones or checkpoints, and what happens if I meet some but not all of the stated goals by the deadline.
 
-RESOURCES AND SUPPORT
-- Will I have access to [TRAINING/MENTORING/TOOLS] as mentioned in our discussion?
-- Who is my designated point of contact for questions during this period?
+On the topic of resources and support, will I have access to [TRAINING/MENTORING/TOOLS] as mentioned in our discussion? I would also like to confirm who my designated point of contact is for questions during this period.
 
-DOCUMENTATION
-- Will I receive written feedback at each checkpoint?
-- How should I document my own progress — is there a preferred format?
+Finally, regarding documentation, will I receive written feedback at each checkpoint? And how should I document my own progress — is there a preferred format?
 
 I am committed to this process and want to ensure transparency on both sides. I would appreciate written responses to the above so we have a shared understanding of the expectations.
 
@@ -164,24 +151,13 @@ Best regards,
 
 I am writing to formally respond to the Performance Improvement Plan issued on [PIP DATE]. While I acknowledge receipt of this document, I respectfully disagree with several of the characterizations and assessments contained within it.
 
-FACTUAL CORRECTIONS
-- The PIP states [SPECIFIC CLAIM FROM PIP]. However, [YOUR EVIDENCE TO THE CONTRARY — e.g., "my quarterly metrics from Q1-Q3 show I exceeded the team average by X%."]
-- The PIP references [ANOTHER CLAIM]. For the record, [YOUR DOCUMENTED RESPONSE — e.g., "I raised this issue with management on DATE and received no response."]
+I would like to address some factual corrections. The PIP states [SPECIFIC CLAIM FROM PIP]. However, [YOUR EVIDENCE TO THE CONTRARY — e.g., "my quarterly metrics from Q1-Q3 show I exceeded the team average by X%."]. The PIP also references [ANOTHER CLAIM]. For the record, [YOUR DOCUMENTED RESPONSE — e.g., "I raised this issue with management on DATE and received no response."]
 
-TIMELINE CONCERNS
-- On [DATE], I received a performance review rating of [RATING], with no mention of the concerns now cited.
-- The issues described in the PIP were first raised on [DATE], giving me [NUMBER] days before the PIP was issued.
-- [ANY OTHER RELEVANT TIMELINE ITEMS]
+I also have concerns about the timeline. On [DATE], I received a performance review rating of [RATING], with no mention of the concerns now cited. The issues described in the PIP were first raised on [DATE], giving me only [NUMBER] days before the PIP was issued. [ANY OTHER RELEVANT TIMELINE ITEMS]
 
-CONTEXT
-- [RELEVANT CONTEXT — e.g., "During this period, my team was reduced by 40% while my workload remained the same."]
-- [ADDITIONAL CONTEXT — e.g., "I requested additional support on DATE and was told none was available."]
+For additional context, [RELEVANT CONTEXT — e.g., "during this period, my team was reduced by 40% while my workload remained the same."]. [ADDITIONAL CONTEXT — e.g., "I requested additional support on DATE and was told none was available."]
 
-REQUEST
-I am requesting the following:
-1. A written response to the factual corrections above
-2. A meeting with [HR / SKIP-LEVEL MANAGER] to discuss this matter
-3. Clarification on whether an alternative to the PIP has been considered
+I am requesting a written response to the factual corrections above, a meeting with [HR / SKIP-LEVEL MANAGER] to discuss this matter, and clarification on whether an alternative to the PIP has been considered.
 
 I remain committed to performing my role to the best of my ability. I am documenting this response for my personal records.
 
@@ -203,25 +179,13 @@ Sincerely,
 
 Thank you for meeting with me on [MEETING DATE]. I wanted to follow up with a written summary of what we discussed to make sure we are aligned.
 
-MEETING DETAILS
-- Date: [MEETING DATE]
-- Time: [MEETING TIME]
-- Location: [LOCATION / VIRTUAL PLATFORM]
-- Attendees: [LIST OF ATTENDEES]
+The meeting took place on [MEETING DATE] at [MEETING TIME], held at [LOCATION / VIRTUAL PLATFORM]. The attendees were [LIST OF ATTENDEES].
 
-KEY DISCUSSION POINTS
-1. [TOPIC 1]: [BRIEF SUMMARY OF WHAT WAS DISCUSSED]
-2. [TOPIC 2]: [BRIEF SUMMARY OF WHAT WAS DISCUSSED]
-3. [TOPIC 3]: [BRIEF SUMMARY OF WHAT WAS DISCUSSED]
+We covered several key discussion points. First, we discussed [TOPIC 1], specifically [BRIEF SUMMARY OF WHAT WAS DISCUSSED]. We also talked about [TOPIC 2], where [BRIEF SUMMARY OF WHAT WAS DISCUSSED]. Finally, we addressed [TOPIC 3], and [BRIEF SUMMARY OF WHAT WAS DISCUSSED].
 
-ACTION ITEMS
-- [YOUR NAME] will [ACTION ITEM] by [DATE]
-- [OTHER PERSON] will [ACTION ITEM] by [DATE]
-- [ADDITIONAL ACTION ITEMS]
+In terms of action items, [YOUR NAME] will [ACTION ITEM] by [DATE]. [OTHER PERSON] will [ACTION ITEM] by [DATE]. [ADDITIONAL ACTION ITEMS]
 
-AGREEMENTS
-- We agreed that [AGREEMENT 1]
-- We agreed that [AGREEMENT 2]
+We also reached some agreements. We agreed that [AGREEMENT 1], and we agreed that [AGREEMENT 2].
 
 Please let me know if I have mischaracterized anything or if you have additions. If I don't hear back, I will consider this an accurate record of our discussion.
 
@@ -237,20 +201,13 @@ Best regards,
     tag: "Weekly",
     body: `Hi [MANAGER NAME],
 
-Thanks for the 1:1 today. I want to make sure I captured the key points correctly:
+Thanks for the 1:1 today. I want to make sure I captured the key points correctly.
 
-FEEDBACK RECEIVED
-- [FEEDBACK ITEM 1 — e.g., "You mentioned I should prioritize X project over Y."]
-- [FEEDBACK ITEM 2 — e.g., "You noted my presentation last week went well."]
-- [FEEDBACK ITEM 3]
+On the feedback side, [FEEDBACK ITEM 1 — e.g., "you mentioned I should prioritize X project over Y."]. You also noted [FEEDBACK ITEM 2 — e.g., "that my presentation last week went well."]. [FEEDBACK ITEM 3]
 
-MY UPDATES
-- I shared that [YOUR UPDATE — e.g., "the Q2 report is on track for Friday delivery."]
-- I raised [CONCERN/QUESTION — e.g., "the timeline for the product launch may need adjustment."]
+From my end, I shared that [YOUR UPDATE — e.g., "the Q2 report is on track for Friday delivery."]. I also raised [CONCERN/QUESTION — e.g., "the timeline for the product launch may need adjustment."]
 
-NEXT STEPS
-- I will [ACTION ITEM] by [DATE]
-- You will [ACTION ITEM — e.g., "follow up with the team about resource allocation."]
+For next steps, I will [ACTION ITEM] by [DATE]. You mentioned you would [ACTION ITEM — e.g., "follow up with the team about resource allocation."]
 
 Please let me know if I missed anything. Looking forward to our next check-in on [NEXT MEETING DATE].
 
@@ -268,19 +225,11 @@ Best,
 
 I am following up on our conversation on [DATE] at [TIME] regarding [TOPIC OF WARNING]. I want to ensure I have an accurate understanding of what was communicated.
 
-MY UNDERSTANDING
-- You stated that [SUMMARY OF WARNING — e.g., "my recent project delivery was below expectations."]
-- You indicated that [CONSEQUENCE OR NEXT STEP — e.g., "if this continues, it may result in a formal PIP."]
-- You suggested I [RECOMMENDED ACTION — e.g., "work more closely with the team lead on project planning."]
+Based on our discussion, you stated that [SUMMARY OF WARNING — e.g., "my recent project delivery was below expectations."]. You indicated that [CONSEQUENCE OR NEXT STEP — e.g., "if this continues, it may result in a formal PIP."]. You also suggested I [RECOMMENDED ACTION — e.g., "work more closely with the team lead on project planning."]
 
-FOR THE RECORD
-- [CONTEXT — e.g., "This is the first time this concern has been raised with me."]
-- [ADDITIONAL CONTEXT — e.g., "I was not provided with written documentation of this warning."]
-- [YOUR RESPONSE — e.g., "I explained that the delay was due to a dependency on another team."]
+I want to note for the record that [CONTEXT — e.g., "this is the first time this concern has been raised with me."]. I should also mention that [ADDITIONAL CONTEXT — e.g., "I was not provided with written documentation of this warning."]. During our conversation, [YOUR RESPONSE — e.g., "I explained that the delay was due to a dependency on another team."]
 
-NEXT STEPS
-- I will [YOUR PLANNED ACTION] to address the concern raised.
-- I would appreciate [YOUR REQUEST — e.g., "written feedback going forward so I can track expectations clearly."]
+Going forward, I will [YOUR PLANNED ACTION] to address the concern raised. I would appreciate [YOUR REQUEST — e.g., "written feedback going forward so I can track expectations clearly."]
 
 Please confirm whether this accurately reflects our discussion. I am keeping a copy of this email for my personal records.
 
@@ -302,29 +251,15 @@ Regards,
 
 I am writing to file a formal complaint regarding [NATURE OF COMPLAINT — e.g., "workplace treatment," "harassment," "discrimination," "retaliation"]. I have attempted to resolve this matter informally but believe it requires formal attention.
 
-SUMMARY
 [1-2 SENTENCE OVERVIEW — e.g., "Over the past X months, I have experienced repeated instances of Y from Z, which I believe constitutes a violation of company policy."]
 
-DETAILED ACCOUNT
-1. On [DATE]: [SPECIFIC INCIDENT — include who was present, what was said/done, and the impact]
-2. On [DATE]: [SPECIFIC INCIDENT]
-3. On [DATE]: [SPECIFIC INCIDENT]
+I would like to provide a detailed account of the relevant incidents. On [DATE], [SPECIFIC INCIDENT — include who was present, what was said/done, and the impact]. On [DATE], [SPECIFIC INCIDENT]. On [DATE], [SPECIFIC INCIDENT].
 
-PRIOR ATTEMPTS TO RESOLVE
-- On [DATE], I raised this issue with [PERSON] and was told [RESPONSE].
-- On [DATE], I [ACTION TAKEN — e.g., "sent an email requesting a meeting to discuss my concerns."]
+I have made prior attempts to resolve this. On [DATE], I raised this issue with [PERSON] and was told [RESPONSE]. On [DATE], I [ACTION TAKEN — e.g., "sent an email requesting a meeting to discuss my concerns."]
 
-SUPPORTING EVIDENCE
-- [EMAIL/DOCUMENT REFERENCE — e.g., "Email from DATE regarding X"]
-- [WITNESS — e.g., "NAME was present during the incident on DATE"]
-- [OTHER EVIDENCE — e.g., "Performance review from DATE showing positive feedback"]
+I have supporting evidence available, including [EMAIL/DOCUMENT REFERENCE — e.g., "an email from DATE regarding X"]. [WITNESS — e.g., "NAME was present during the incident on DATE."] I also have [OTHER EVIDENCE — e.g., "a performance review from DATE showing positive feedback."]
 
-REQUEST
-I am requesting the following:
-1. A formal investigation into this matter
-2. Written confirmation that this complaint has been received and logged
-3. Information about the company's investigation process and expected timeline
-4. Assurance that I will be protected from retaliation for filing this complaint
+I am requesting a formal investigation into this matter, written confirmation that this complaint has been received and logged, information about the company's investigation process and expected timeline, and assurance that I will be protected from retaliation for filing this complaint.
 
 I am available to meet at your earliest convenience to discuss further.
 
@@ -345,20 +280,13 @@ Sincerely,
 
 I hope this message finds you well. I am reaching out directly because I have been unable to resolve a matter through the usual channels, and I believe it warrants your attention.
 
-BACKGROUND
 I have been in the [ROLE] position on the [TEAM NAME] team for [DURATION]. During this time, [BRIEF POSITIVE CONTEXT — e.g., "I have consistently met or exceeded performance targets."]
 
-THE CONCERN
-[CLEAR SUMMARY — e.g., "I have raised concerns about X with my direct manager on multiple occasions, but the issue remains unaddressed."]
+The core concern is as follows. [CLEAR SUMMARY — e.g., "I have raised concerns about X with my direct manager on multiple occasions, but the issue remains unaddressed."]
 
-TIMELINE
-- [DATE]: [FIRST ATTEMPT TO RESOLVE — e.g., "I raised this with NAME during our 1:1."]
-- [DATE]: [SECOND ATTEMPT — e.g., "I followed up via email (attached)."]
-- [DATE]: [MOST RECENT ATTEMPT — e.g., "I requested a meeting and did not receive a response."]
+To give you a sense of the timeline, I first raised this on [DATE] when [FIRST ATTEMPT TO RESOLVE — e.g., "I brought it up with NAME during our 1:1."]. I followed up on [DATE] by [SECOND ATTEMPT — e.g., "sending an email (attached)."]. Most recently, on [DATE], [MOST RECENT ATTEMPT — e.g., "I requested a meeting and did not receive a response."]
 
-WHAT I AM ASKING FOR
-- [SPECIFIC REQUEST — e.g., "An opportunity to discuss this matter with you directly."]
-- [ADDITIONAL REQUEST — e.g., "A fair review of my performance concerns."]
+I am asking for [SPECIFIC REQUEST — e.g., "an opportunity to discuss this matter with you directly."]. I would also welcome [ADDITIONAL REQUEST — e.g., "a fair review of my performance concerns."]
 
 I want to emphasize that I am raising this matter in good faith and with the goal of finding a constructive resolution. I have documentation available to support the points above.
 
@@ -380,31 +308,13 @@ Respectfully,
 
 I am writing to formally document what I believe to be retaliatory actions taken against me following [PROTECTED ACTIVITY — e.g., "my formal complaint filed on DATE," "my request for accommodation on DATE," "my report of policy violations on DATE"].
 
-TIMELINE OF EVENTS
-1. [DATE]: I [PROTECTED ACTIVITY — e.g., "filed a formal complaint about X."]
-2. [DATE]: [FIRST RETALIATORY ACTION — e.g., "I was removed from the Y project without explanation."]
-3. [DATE]: [SECOND ACTION — e.g., "My 1:1 meetings with my manager were cancelled for three consecutive weeks."]
-4. [DATE]: [ADDITIONAL ACTION — e.g., "I was excluded from a team meeting that all other team members attended."]
+Here is the timeline of events. On [DATE], I [PROTECTED ACTIVITY — e.g., "filed a formal complaint about X."]. Then on [DATE], [FIRST RETALIATORY ACTION — e.g., "I was removed from the Y project without explanation."]. On [DATE], [SECOND ACTION — e.g., "my 1:1 meetings with my manager were cancelled for three consecutive weeks."]. On [DATE], [ADDITIONAL ACTION — e.g., "I was excluded from a team meeting that all other team members attended."]
 
-CHANGE IN TREATMENT
-Before [PROTECTED ACTIVITY DATE]:
-- [POSITIVE TREATMENT — e.g., "I was included in all team decisions and received positive feedback."]
+The change in treatment has been noticeable. Before [PROTECTED ACTIVITY DATE], [POSITIVE TREATMENT — e.g., "I was included in all team decisions and received positive feedback."]. After [PROTECTED ACTIVITY DATE], [CHANGED TREATMENT — e.g., "I have been excluded from meetings, reassigned from key projects, and received my first negative feedback."]
 
-After [PROTECTED ACTIVITY DATE]:
-- [CHANGED TREATMENT — e.g., "I have been excluded from meetings, reassigned from key projects, and received my first negative feedback."]
+I have supporting documentation available. This includes [DOCUMENT 1 — e.g., "an email from DATE showing my inclusion on the project"], [DOCUMENT 2 — e.g., "calendar screenshots showing cancelled meetings"], and [DOCUMENT 3 — e.g., "a performance review from DATE showing strong ratings."]
 
-DOCUMENTATION
-I have the following supporting documentation:
-- [DOCUMENT 1 — e.g., "Email from DATE showing my inclusion on the project"]
-- [DOCUMENT 2 — e.g., "Calendar screenshots showing cancelled meetings"]
-- [DOCUMENT 3 — e.g., "Performance review from DATE showing strong ratings"]
-
-REQUEST
-I am requesting:
-1. An immediate investigation into the pattern described above
-2. Written confirmation that this letter has been received and logged
-3. Protection from further retaliatory actions
-4. A meeting with [HR/LEGAL] to discuss next steps
+I am requesting an immediate investigation into the pattern described above, written confirmation that this letter has been received and logged, protection from further retaliatory actions, and a meeting with [HR/LEGAL] to discuss next steps.
 
 I am documenting this matter for my personal records as well.
 
@@ -426,28 +336,21 @@ Sincerely,
 
 Thank you for presenting the severance agreement dated [DATE]. I have carefully reviewed the terms and would like to propose the following modifications before signing.
 
-CURRENT OFFER SUMMARY
-- Severance pay: [AMOUNT / WEEKS]
-- Benefits continuation: [DURATION]
-- Other terms: [SUMMARY OF KEY TERMS]
+As I understand it, the current offer includes [AMOUNT / WEEKS] in severance pay, [DURATION] of benefits continuation, and [SUMMARY OF KEY TERMS].
 
-PROPOSED COUNTEROFFER
-I respectfully request the following adjustments:
+I respectfully request the following adjustments.
 
-1. SEVERANCE PAY: [YOUR REQUESTED AMOUNT — e.g., "X weeks of base salary, increased from the offered Y weeks, reflecting my Z years of tenure."]
+Regarding severance pay, [YOUR REQUESTED AMOUNT — e.g., "I am requesting X weeks of base salary, increased from the offered Y weeks, reflecting my Z years of tenure."]
 
-2. BENEFITS: [YOUR REQUEST — e.g., "COBRA coverage paid by the company for X months instead of Y months."]
+Regarding benefits, [YOUR REQUEST — e.g., "I am requesting COBRA coverage paid by the company for X months instead of Y months."]
 
-3. REFERENCES: [YOUR REQUEST — e.g., "A neutral or positive reference letter, and agreement that the company will not contest unemployment benefits."]
+Regarding references, [YOUR REQUEST — e.g., "I am requesting a neutral or positive reference letter, and agreement that the company will not contest unemployment benefits."]
 
-4. NON-DISPARAGEMENT: [YOUR REQUEST — e.g., "Mutual non-disparagement clause, applying to both parties equally."]
+Regarding non-disparagement, [YOUR REQUEST — e.g., "I am requesting a mutual non-disparagement clause, applying to both parties equally."]
 
-5. TRANSITION TIMELINE: [YOUR REQUEST — e.g., "X additional days to review and sign the agreement."]
+Regarding the transition timeline, [YOUR REQUEST — e.g., "I am requesting X additional days to review and sign the agreement."]
 
-RATIONALE
-- I have been with the company for [DURATION] and have [RELEVANT CONTRIBUTIONS].
-- [ADDITIONAL CONTEXT — e.g., "The circumstances of my departure were not performance-related."]
-- [MARKET CONTEXT — e.g., "Industry standard for my role and tenure is X weeks."]
+My rationale is as follows. I have been with the company for [DURATION] and have [RELEVANT CONTRIBUTIONS]. [ADDITIONAL CONTEXT — e.g., "The circumstances of my departure were not performance-related."]. [MARKET CONTEXT — e.g., "Industry standard for my role and tenure is X weeks."]
 
 I am open to discussing these points further. Please let me know a convenient time to meet. I may also seek independent legal review of the agreement, as is my right under [RELEVANT LAW — e.g., "the Older Workers Benefit Protection Act" or "state law"].
 
@@ -468,18 +371,11 @@ I am writing to formally notify you of my resignation from my position as [YOUR 
 
 I have valued my time with the company and the opportunities for professional growth. I am committed to ensuring a smooth transition during my remaining time.
 
-TRANSITION PLAN
-- I will complete [CURRENT PROJECT/TASK] by [DATE]
-- I am available to train my replacement or hand off responsibilities
-- I will document [KEY PROCESSES/KNOWLEDGE] before my departure
+For the transition, I plan to complete [CURRENT PROJECT/TASK] by [DATE]. I am available to train my replacement or hand off responsibilities, and I will document [KEY PROCESSES/KNOWLEDGE] before my departure.
 
-ADMINISTRATIVE REQUESTS
-- Please confirm the process for final pay, including any accrued PTO
-- Please provide information about COBRA enrollment and benefits termination dates
-- Please confirm the return process for company equipment
+On the administrative side, please confirm the process for final pay, including any accrued PTO. I would also appreciate information about COBRA enrollment and benefits termination dates, as well as the return process for company equipment.
 
-FOR THE RECORD
-I want to note that [OPTIONAL — e.g., "my resignation is voluntary" or "I have documented my workplace concerns separately" or "this resignation follows the events I have previously reported to HR"]. I am retaining copies of my personal performance records and correspondence for my files.
+I want to note for the record that [OPTIONAL — e.g., "my resignation is voluntary" or "I have documented my workplace concerns separately" or "this resignation follows the events I have previously reported to HR"]. I am retaining copies of my personal performance records and correspondence for my files.
 
 Please send written confirmation of receipt of this resignation and my official last day.
 
@@ -501,38 +397,25 @@ Sincerely,
 Date: [EXIT INTERVIEW DATE]
 Interviewer: [NAME AND TITLE]
 
-— THINGS TO SAY —
+THINGS TO SAY
 
-POSITIVE CONTRIBUTIONS
-- [ACHIEVEMENT 1 — e.g., "I led the X initiative which resulted in Y."]
-- [ACHIEVEMENT 2]
-- [ACHIEVEMENT 3]
+When discussing positive contributions, mention [ACHIEVEMENT 1 — e.g., "leading the X initiative which resulted in Y."] Also highlight [ACHIEVEMENT 2] and [ACHIEVEMENT 3].
 
-CONSTRUCTIVE FEEDBACK (SAFE TO SHARE)
-- [FEEDBACK 1 — e.g., "The onboarding process could benefit from better documentation."]
-- [FEEDBACK 2 — e.g., "Cross-team communication was sometimes challenging."]
+For constructive feedback that is safe to share, consider mentioning [FEEDBACK 1 — e.g., "that the onboarding process could benefit from better documentation."] You could also note [FEEDBACK 2 — e.g., "that cross-team communication was sometimes challenging."]
 
-REASON FOR DEPARTURE (APPROVED LANGUAGE)
-- [PREPARED STATEMENT — e.g., "I am pursuing a new opportunity that aligns with my career goals."]
+When asked about your reason for departure, use this prepared statement: [PREPARED STATEMENT — e.g., "I am pursuing a new opportunity that aligns with my career goals."]
 
-— THINGS TO DOCUMENT BUT NOT SAY —
+THINGS TO DOCUMENT BUT NOT SAY
 
-Keep these in your personal records but do not volunteer in the exit interview:
-- [SENSITIVE ITEM 1 — e.g., "The specific incidents I reported to HR on DATE."]
-- [SENSITIVE ITEM 2 — e.g., "My concerns about retaliation following my complaint."]
-- [SENSITIVE ITEM 3 — e.g., "Details of the severance negotiation."]
+Keep these in your personal records but do not volunteer them in the exit interview. This includes [SENSITIVE ITEM 1 — e.g., "the specific incidents I reported to HR on DATE"], [SENSITIVE ITEM 2 — e.g., "my concerns about retaliation following my complaint"], and [SENSITIVE ITEM 3 — e.g., "details of the severance negotiation."]
 
-— QUESTIONS TO ASK —
-1. Will I receive a written summary of this exit interview?
-2. What is the reference policy — who can I list, and what will be disclosed?
-3. When will I receive my final paycheck and any owed PTO?
-4. What is the timeline for COBRA enrollment paperwork?
+QUESTIONS TO ASK
 
-— REMINDERS —
-- Be professional and measured
-- Do not sign anything new without reviewing it first
-- Take notes during the interview
-- Request a copy of any documents presented`,
+Ask whether you will receive a written summary of the exit interview. Ask about the reference policy, specifically who you can list and what will be disclosed. Confirm when you will receive your final paycheck and any owed PTO. Also ask about the timeline for COBRA enrollment paperwork.
+
+REMINDERS
+
+Be professional and measured throughout the conversation. Do not sign anything new without reviewing it first. Take notes during the interview, and request a copy of any documents presented.`,
   },
 ];
 
