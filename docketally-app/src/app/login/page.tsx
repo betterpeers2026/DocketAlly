@@ -232,6 +232,8 @@ export default function LoginPage() {
                 id="otp"
                 type="text"
                 inputMode="numeric"
+                autoComplete="one-time-code"
+                pattern="[0-9]*"
                 maxLength={8}
                 value={otp}
                 onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
