@@ -752,6 +752,44 @@ export default function PlansPage() {
         </p>
       </div>
 
+      {/* Auto-generated attorney summary */}
+      {(() => {
+        const start = new Date(plan.start_date + "T00:00:00");
+        const end = new Date(plan.end_date + "T00:00:00");
+        const durationDays = Math.round((end.getTime() - start.getTime()) / 86400000);
+        const startStr = start.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+        const endStr = end.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+        const goalCount = goals.length;
+        const revisionCount = revisions.length;
+        const checkinCount = checkins.length;
+        const displayStatus = planStatus.charAt(0).toUpperCase() + planStatus.slice(1);
+
+        return (
+          <div
+            style={{
+              background: "var(--color-stone-50)",
+              border: "1px solid var(--color-stone-200)",
+              borderRadius: 10,
+              padding: "12px 18px",
+              marginBottom: 20,
+            }}
+          >
+            <p
+              style={{
+                fontSize: 13,
+                fontWeight: 700,
+                color: "#1C1917",
+                fontFamily: "var(--font-sans)",
+                lineHeight: 1.6,
+                margin: 0,
+              }}
+            >
+              {durationDays}-day PIP ({startStr} – {endStr}) · {goalCount} goal{goalCount !== 1 ? "s" : ""} · {revisionCount} revision{revisionCount !== 1 ? "s" : ""} · {checkinCount} check-in{checkinCount !== 1 ? "s" : ""} · Status: {displayStatus}
+            </p>
+          </div>
+        );
+      })()}
+
       {/* ============================================================ */}
       {/*  PLAN HEADER CARD                                             */}
       {/* ============================================================ */}
