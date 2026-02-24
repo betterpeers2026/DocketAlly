@@ -190,4 +190,9 @@
     max-width: 100% !important;
     min-width: 0 !important;
   }
+
+  /* Integrity stats grid: 2 columns on mobile */
+  .da-integrity-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
 }
