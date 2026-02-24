@@ -10,6 +10,7 @@ interface NavItem {
   href: string;
   pro: boolean;
   icon: React.ReactNode;
+  divider?: boolean;
 }
 
 const navItems: NavItem[] = [
@@ -90,6 +91,19 @@ const navItems: NavItem[] = [
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+      </svg>
+    ),
+  },
+  {
+    label: "Support",
+    href: "/dashboard/support",
+    pro: false,
+    divider: true,
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" />
+        <line x1="12" y1="17" x2="12.01" y2="17" />
       </svg>
     ),
   },
@@ -232,8 +246,11 @@ export default function Sidebar({ user }: { user: User }) {
               : pathname.startsWith(item.href);
 
           return (
+            <div key={item.href}>
+            {item.divider && (
+              <div style={{ height: 1, background: "var(--color-sidebar-border)", margin: "8px 10px" }} />
+            )}
             <button
-              key={item.href}
               onClick={() => {
                 if (!item.pro) {
                   router.push(item.href);
@@ -296,6 +313,7 @@ export default function Sidebar({ user }: { user: User }) {
                 </span>
               )}
             </button>
+            </div>
           );
         })}
       </nav>
