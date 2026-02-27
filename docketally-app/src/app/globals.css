@@ -1,0 +1,635 @@
+@import "tailwindcss";
+
+@theme {
+  /* Sidebar */
+  --color-sidebar: #0C0C0F;
+  --color-sidebar-surface: #131316;
+  --color-sidebar-hover: #1A1A1E;
+  --color-sidebar-active: #1F1F24;
+  --color-sidebar-border: #27272C;
+  --color-sidebar-text: #6B6B76;
+  --color-sidebar-text-hover: #9D9DAA;
+  --color-sidebar-text-active: #FFFFFF;
+
+  /* App surface */
+  --color-background: #FFFFFF;
+  --color-surface: #FAFAF9;
+
+  /* Stone scale */
+  --color-stone-50: #FAFAF9;
+  --color-stone-100: #F5F5F4;
+  --color-stone-200: #D6D3D1;
+  --color-stone-300: #D6D3D1;
+  --color-stone-400: #78716C;
+  --color-stone-500: #57534E;
+  --color-stone-600: #44403C;
+  --color-stone-700: #292524;
+  --color-stone-800: #292524;
+  --color-stone-900: #1C1917;
+
+  /* Green scale */
+  --color-green: #22C55E;
+  --color-green-light: #4ADE80;
+  --color-green-soft: #F0FDF4;
+  --color-green-mid: #DCFCE7;
+  --color-green-border: #BBF7D0;
+  --color-green-dark: #16A34A;
+  --color-green-text: #15803D;
+
+  /* Fonts */
+  --font-serif: 'Source Serif 4', Georgia, serif;
+  --font-sans: 'Manrope', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+
+  /* Shadows — depth hierarchy */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
+  --shadow-lg: 0 4px 12px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.03);
+  --shadow-green: 0 2px 10px rgba(34,197,94,0.3);
+
+  /* Spacing scale */
+  --sp-4: 4px;
+  --sp-8: 8px;
+  --sp-12: 12px;
+  --sp-16: 16px;
+  --sp-20: 20px;
+  --sp-24: 24px;
+  --sp-32: 32px;
+  --sp-48: 48px;
+
+  /* Radius scale */
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+
+  /* Transitions */
+  --ease: 0.15s ease;
+}
+
+/* ============================================================ */
+/*  BASE LAYER                                                    */
+/* ============================================================ */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    color: var(--color-stone-800);
+    background: var(--color-background);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Serif heading letter-spacing (Source Serif 4) */
+  h1, h2, h3, h4 {
+    letter-spacing: -0.02em;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* ---- Input / Select / Textarea base ---- */
+  input[type="text"],
+  input[type="search"],
+  input[type="email"],
+  input[type="password"],
+  input[type="date"],
+  input[type="time"],
+  select,
+  textarea {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    color: #292524;
+    background: #FFFFFF;
+    border: 1px solid #D6D3D1;
+    border-radius: var(--r-md);
+    outline: none;
+    transition: border-color var(--ease), box-shadow var(--ease);
+  }
+
+  input[type="text"],
+  input[type="search"],
+  input[type="email"],
+  input[type="password"],
+  input[type="date"],
+  input[type="time"],
+  select {
+    height: 42px;
+    padding: 0 14px;
+  }
+
+  textarea {
+    min-height: 100px;
+    padding: 12px 14px;
+    line-height: 1.6;
+  }
+
+  select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5L6 7.5L9 4.5' stroke='%2378716C' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+    cursor: pointer;
+  }
+
+  input:focus,
+  textarea:focus,
+  select:focus {
+    border-color: #22C55E !important;
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.12) !important;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: #78716C;
+  }
+}
+
+/* ============================================================ */
+/*  GLOBAL ENHANCEMENTS                                           */
+/*  (outside @layer so they have higher specificity)              */
+/* ============================================================ */
+
+/* ---- Content area max-width ---- */
+main {
+  max-width: 960px;
+}
+
+/* ---- Main content subtle warmth ---- */
+.da-main-content {
+  background: var(--color-surface);
+  background-image: radial-gradient(ellipse at 0% 0%, rgba(34,197,94,0.015) 0%, transparent 40%);
+}
+
+/* ---- Card shadow + transition (additive — doesn't conflict with inline border/radius) ---- */
+.da-record-card,
+.da-form-card,
+.da-case-timeline-card,
+.da-exit-checklist-item,
+.da-exit-action {
+  box-shadow: var(--shadow-md);
+  transition: box-shadow var(--ease), border-color var(--ease);
+}
+
+/* Interactive card hover — lift effect */
+.da-record-card:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+/* Case list cards */
+.da-case-card {
+  box-shadow: var(--shadow-md);
+  transition: box-shadow var(--ease), border-color var(--ease), transform var(--ease);
+}
+.da-case-card:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+/* ---- Mobile hamburger (hidden on desktop) ---- */
+.da-hamburger {
+  display: none !important;
+}
+
+/* ---- Bottom nav + More drawer (hidden on desktop) ---- */
+.da-bottom-nav { display: none !important; }
+.da-more-backdrop { display: none; }
+.da-more-drawer { display: none; }
+
+/* ---- Prevent horizontal overflow globally ---- */
+.da-page-wrapper {
+  overflow-x: hidden;
+}
+
+/* ============================================================ */
+/*  TABLET  (max-width: 768px)                                  */
+/* ============================================================ */
+@media (max-width: 768px) {
+
+  /* ---- Sidebar ---- */
+  .da-sidebar {
+    position: fixed !important;
+    z-index: 100;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+  }
+  .da-sidebar.da-sidebar-open {
+    transform: translateX(0);
+  }
+  .da-sidebar-backdrop {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 99;
+  }
+  .da-sidebar-backdrop.da-sidebar-open {
+    display: block;
+  }
+  .da-hamburger {
+    display: none !important;
+  }
+
+  /* ---- Bottom Nav ---- */
+  .da-bottom-nav {
+    display: flex !important;
+  }
+  .da-more-backdrop.da-more-open {
+    display: block !important;
+  }
+  .da-more-drawer.da-more-open {
+    display: flex !important;
+  }
+  .da-main-content {
+    padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  /* Hide desktop "New Record" button in list header */
+  .da-record-new-btn {
+    display: none !important;
+  }
+
+  /* ---- TopBar / Breadcrumb ---- */
+  .da-topbar-crumb {
+    display: none !important;
+  }
+  .da-topbar {
+    padding: 0 16px !important;
+    height: 44px !important;
+  }
+  .da-topbar span {
+    font-size: 12px !important;
+  }
+
+  /* ---- Page wrapper ---- */
+  .da-page-wrapper {
+    padding: 20px !important;
+  }
+
+  /* ---- All inputs/selects/textareas full-width ---- */
+  .da-page-wrapper input,
+  .da-page-wrapper select,
+  .da-page-wrapper textarea {
+    box-sizing: border-box;
+    max-width: 100%;
+  }
+
+  /* ---- Forms ---- */
+  .da-form-card {
+    padding: 24px 16px !important;
+  }
+  .da-form-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+  .da-form-header-cancel {
+    align-self: flex-end !important;
+  }
+  .da-date-time-row {
+    flex-direction: column !important;
+  }
+  .da-form-buttons {
+    flex-direction: column-reverse !important;
+    justify-content: stretch !important;
+  }
+  .da-form-buttons button {
+    width: 100% !important;
+    min-height: 44px;
+  }
+
+  /* ---- List header + controls ---- */
+  .da-list-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .da-list-controls {
+    flex-direction: column !important;
+  }
+  .da-list-controls input,
+  .da-list-controls select,
+  .da-list-controls button {
+    width: 100% !important;
+    min-height: 44px;
+  }
+
+  /* ---- Generic 2-column grid → 1 column ---- */
+  .da-grid-2col {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ---- Horizontal scroll pills (tabs / categories) ---- */
+  .da-pills-scroll {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+  }
+  .da-pills-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* ---- Record page ---- */
+  .da-record-card {
+    padding: 20px 16px !important;
+  }
+  .da-record-badge-row {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+
+  /* ---- Home page ---- */
+  .da-home-stats {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  /* ---- Landing page ---- */
+  .da-landing-features {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ---- Plans page ---- */
+  .da-plan-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+  .da-goal-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+  .da-goal-header > div:last-child {
+    align-self: flex-start;
+  }
+  .da-goal-actions {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+  .da-plan-desc {
+    -webkit-line-clamp: 2 !important;
+  }
+  .da-plan-type-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .da-revision-timeline {
+    padding-left: 24px !important;
+  }
+
+  /* ---- Case list page ---- */
+  .da-case-card {
+    padding: 20px 16px !important;
+  }
+  .da-case-list-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .da-case-list-controls {
+    flex-direction: column !important;
+  }
+  .da-case-list-controls input,
+  .da-case-list-controls button {
+    width: 100% !important;
+    min-height: 44px;
+  }
+
+  /* ---- Case page ---- */
+  .da-case-filters > div {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .da-case-filters select,
+  .da-case-filters input[type="text"],
+  .da-case-filters input[type="date"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+  .da-case-timeline {
+    padding-left: 36px !important;
+  }
+  .da-case-timeline-card {
+    padding: 18px 14px !important;
+  }
+  .da-pattern-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .da-case-info-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .da-case-star {
+    min-width: 44px;
+    min-height: 44px;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+  .da-case-stat-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  .da-cf-action-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+  .da-cf-action-buttons {
+    align-self: stretch !important;
+  }
+  .da-cf-action-buttons button {
+    flex: 1 !important;
+    min-height: 44px;
+  }
+  .da-doc-preview {
+    border-radius: 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+  }
+  .da-doc-preview > div > div {
+    padding-left: 28px !important;
+    padding-right: 28px !important;
+  }
+  .da-doc-summary-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .da-doc-attach-row {
+    grid-template-columns: 1fr !important;
+    gap: 2px !important;
+  }
+
+  /* ---- Comms page ---- */
+  .da-comms-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .da-comms-editor-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+
+  /* ---- Exit page ---- */
+  .da-exit-checklist-item {
+    padding: 12px 16px !important;
+  }
+  .da-exit-action {
+    padding: 12px 16px !important;
+  }
+
+  /* ---- Vault page ---- */
+  .da-vault-fields-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .da-vault-toolbar {
+    flex-direction: column;
+    align-items: stretch !important;
+  }
+  .da-vault-toolbar > div { display: none; } /* hide spacer */
+  .da-vault-dropzone {
+    padding: 28px 16px !important;
+  }
+  .da-vault-file-icon {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 8px !important;
+  }
+  .da-vault-card-actions {
+    flex-direction: column;
+  }
+
+  /* ---- Integrity page ---- */
+  .da-integrity-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* ---- Support page ---- */
+  .da-article-body {
+    font-size: 15px !important;
+    padding: 0 4px !important;
+  }
+  .da-support-tabs {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .da-support-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* ---- Admin page ---- */
+  .da-admin-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  .da-admin-table-header {
+    display: none !important;
+  }
+  .da-admin-table-row {
+    grid-template-columns: 1fr !important;
+    gap: 4px !important;
+    padding: 14px 16px !important;
+  }
+  .da-admin-ticket-detail {
+    grid-template-columns: 1fr !important;
+  }
+  .da-admin-user-details {
+    grid-template-columns: 1fr !important;
+  }
+  .da-admin-filters {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .da-admin-filters select {
+    width: 100% !important;
+    min-height: 44px;
+  }
+  .da-admin-tabs {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .da-admin-tabs::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ============================================================ */
+/*  PHONE  (max-width: 480px)                                   */
+/* ============================================================ */
+@media (max-width: 480px) {
+
+  .da-page-wrapper {
+    padding: 16px !important;
+  }
+
+  /* Home stats: single column on phone */
+  .da-home-stats {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Integrity: single column */
+  .da-integrity-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Admin metrics: single column */
+  .da-admin-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Case stat grid: single column */
+  .da-case-stat-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Document preview: tighter padding */
+  .da-doc-preview > div > div {
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+  }
+
+  /* Case timeline: tighter */
+  .da-case-timeline {
+    padding-left: 30px !important;
+  }
+  .da-case-timeline-card {
+    padding: 14px 12px !important;
+  }
+
+  /* Record cards: tighter padding */
+  .da-record-card {
+    padding: 16px 12px !important;
+  }
+
+  /* Plan revision timeline: tighter */
+  .da-revision-timeline {
+    padding-left: 20px !important;
+  }
+
+  /* Vault: tighter drop zone */
+  .da-vault-dropzone {
+    padding: 24px 16px !important;
+  }
+}
+
+/* ---- Page-load fade-up animation ---- */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.da-record-card:hover .da-chevron {
+  opacity: 1 !important;
+}
+
+.da-search-input:focus {
+  border-color: #D6D3D1 !important;
+  box-shadow: 0 0 0 3px rgba(34,197,94,0.06) !important;
+}
