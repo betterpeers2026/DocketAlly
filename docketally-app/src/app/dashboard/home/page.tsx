@@ -28,10 +28,16 @@ interface CaseRow {
   case_type: string;
   case_types?: string[];
   status: string;
+  case_status: string | null;
   employer: string | null;
   role: string | null;
   description: string | null;
   created_at: string;
+}
+
+interface CaseRecordLink {
+  case_id: string;
+  record_id: string;
 }
 
 interface ActivityItem {
@@ -105,6 +111,7 @@ export default function HomePage() {
   const [records, setRecords] = useState<RecordRow[]>([]);
   const [vaultDocs, setVaultDocs] = useState<VaultRow[]>([]);
   const [cases, setCases] = useState<CaseRow[]>([]);
+  const [caseRecordLinks, setCaseRecordLinks] = useState<CaseRecordLink[]>([]);
   const [hasActivePlan, setHasActivePlan] = useState(false);
 
   /* ----- Fetch ----- */
@@ -114,18 +121,20 @@ export default function HomePage() {
       if (!user) { setLoading(false); return; }
       const uid = user.id;
 
-      const [profileRes, recordsRes, vaultRes, casesRes, plansRes] = await Promise.all([
+      const [profileRes, recordsRes, vaultRes, casesRes, plansRes, caseRecordsRes] = await Promise.all([
         supabase.from("profiles").select("full_name").eq("id", uid).single(),
         supabase.from("records").select("id, title, date, entry_type, created_at").eq("user_id", uid).order("date", { ascending: true }),
         supabase.from("vault_documents").select("id, file_name, created_at").eq("user_id", uid).order("created_at", { ascending: false }),
-        supabase.from("cases").select("id, name, case_type, case_types, status, employer, role, description, created_at").eq("user_id", uid),
+        supabase.from("cases").select("id, name, case_type, case_types, status, case_status, employer, role, description, created_at").eq("user_id", uid),
         supabase.from("plans").select("id").eq("user_id", uid).eq("status", "active").limit(1),
+        supabase.from("case_records").select("case_id, record_id").eq("user_id", uid),
       ]);
 
       if (profileRes.data?.full_name) setFullName(profileRes.data.full_name);
       setRecords(recordsRes.data ?? []);
       setVaultDocs(vaultRes.data ?? []);
       setCases(casesRes.data ?? []);
+      setCaseRecordLinks(caseRecordsRes.data ?? []);
       setHasActivePlan((plansRes.data ?? []).length > 0);
       setLoading(false);
     }
@@ -217,6 +226,31 @@ export default function HomePage() {
   /* ----- Computed: Quick Stats ----- */
   const activeCaseCount = cases.filter((c) => c.status.toLowerCase() === "active").length;
   const uniqueDays = new Set(records.map((r) => r.date)).size;
+
+  /* ----- Computed: Active Cases sidebar data ----- */
+  const activeCases = useMemo(() => {
+    // Build record count per case and last activity date
+    const countMap: Record<string, number> = {};
+    const lastDateMap: Record<string, string> = {};
+    for (const link of caseRecordLinks) {
+      countMap[link.case_id] = (countMap[link.case_id] || 0) + 1;
+      const rec = records.find((r) => r.id === link.record_id);
+      if (rec) {
+        const prev = lastDateMap[link.case_id];
+        if (!prev || rec.date > prev) lastDateMap[link.case_id] = rec.date;
+      }
+    }
+    return cases
+      .filter((c) => c.status.toLowerCase() === "active")
+      .map((c) => ({
+        id: c.id,
+        name: c.name,
+        caseStatus: c.case_status || "Active documentation",
+        recordCount: countMap[c.id] || 0,
+        lastActivity: lastDateMap[c.id] || c.created_at.split("T")[0],
+      }))
+      .sort((a, b) => b.lastActivity.localeCompare(a.lastActivity));
+  }, [cases, caseRecordLinks, records]);
 
   /* ----- Computed: Recent Activity ----- */
   const recentActivity = useMemo((): ActivityItem[] => {
@@ -459,163 +493,239 @@ export default function HomePage() {
   /*  Normal dashboard render                                          */
   /* ---------------------------------------------------------------- */
 
-  return (
-    <div className="da-page-wrapper" style={{ padding: 32, maxWidth: 960, margin: "0 auto" }}>
-      {/* Section 1: Welcome */}
-      <div style={{ marginBottom: 28 }}>
-        <h1 style={{ fontFamily: "var(--font-serif)", fontSize: 26, fontWeight: 700, color: "#292524", marginBottom: 6 }}>
-          {greeting}
-        </h1>
-        <p style={{ fontSize: 15, color: "#57534E", fontFamily: "var(--font-sans)", lineHeight: 1.5 }}>
-          Here&apos;s where your documentation stands.
-        </p>
-        <p style={{ fontSize: 11, color: "#78716C", fontFamily: "var(--font-mono)", marginTop: 4 }}>
-          {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
-        </p>
-      </div>
+  /* Status chip color mapping for Active Cases sidebar */
+  const sidebarStatusStyle = (s: string): { bg: string; text: string; border: string } => {
+    switch (s) {
+      case "Active documentation": return { bg: "#F0FDF4", text: "#15803D", border: "#BBF7D0" };
+      case "Preparing for counsel": return { bg: "#FFFBEB", text: "#D97706", border: "#FCD34D" };
+      case "Filed with EEOC": return { bg: "#EFF6FF", text: "#1D4ED8", border: "#BFDBFE" };
+      case "Referred to attorney": return { bg: "#FAF5FF", text: "#7E22CE", border: "#D8B4FE" };
+      case "Resolved": return { bg: "#F5F5F4", text: "#57534E", border: "#D6D3D1" };
+      default: return { bg: "#F0FDF4", text: "#15803D", border: "#BBF7D0" };
+    }
+  };
 
-      {/* Section 2: Documentation Strength */}
-      <div style={{ ...cardStyle, padding: 32, marginBottom: 24, borderRadius: 16, borderTop: "3px solid #22C55E", boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)" }}>
-        <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 22, fontWeight: 600, color: "#292524", marginBottom: 24 }}>
-          Documentation Strength
-        </h2>
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          {pillars.map((p) => (
-            <div key={p.key} style={{ display: "flex", alignItems: "center", gap: 14 }}>
-              <div style={{ width: 32, height: 32, borderRadius: 8, background: statusBg(p.status), border: `1px solid ${statusBorder(p.status)}`, display: "flex", alignItems: "center", justifyContent: "center", color: statusColor(p.status), flexShrink: 0 }}>
-                {pillarIcons[p.key]}
-              </div>
-              <span style={{ flex: 1, fontSize: 14, color: "#292524", fontFamily: "var(--font-sans)", fontWeight: 500 }}>
-                {p.label}
-              </span>
-              <span style={{
-                display: "inline-block",
-                padding: "4px 12px",
-                borderRadius: 6,
-                fontSize: 11,
-                fontWeight: 600,
-                fontFamily: "var(--font-mono)",
-                color: statusColor(p.status),
-                background: statusBg(p.status),
-                border: `1px solid ${statusBorder(p.status)}`,
-                whiteSpace: "nowrap",
-              }}>
-                {statusText(p.status)}
+  return (
+    <div className="da-page-wrapper" style={{ padding: 32, maxWidth: 1280, margin: "0 auto" }}>
+      <div style={{ display: "flex", gap: 28, alignItems: "flex-start" }}>
+        {/* ---- Main content ---- */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {/* Section 1: Welcome */}
+          <div style={{ marginBottom: 28 }}>
+            <h1 style={{ fontFamily: "var(--font-serif)", fontSize: 26, fontWeight: 700, color: "#292524", marginBottom: 6 }}>
+              {greeting}
+            </h1>
+            <p style={{ fontSize: 15, color: "#57534E", fontFamily: "var(--font-sans)", lineHeight: 1.5 }}>
+              Here&apos;s where your documentation stands.
+            </p>
+            <p style={{ fontSize: 11, color: "#78716C", fontFamily: "var(--font-mono)", marginTop: 4 }}>
+              {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
+            </p>
+          </div>
+
+          {/* Section 2: Documentation Strength */}
+          <div style={{ ...cardStyle, padding: 32, marginBottom: 24, borderRadius: 16, borderTop: "3px solid #22C55E", boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)" }}>
+            <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 22, fontWeight: 600, color: "#292524", marginBottom: 24 }}>
+              Documentation Strength
+            </h2>
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              {pillars.map((p) => (
+                <div key={p.key} style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                  <div style={{ width: 32, height: 32, borderRadius: 8, background: statusBg(p.status), border: `1px solid ${statusBorder(p.status)}`, display: "flex", alignItems: "center", justifyContent: "center", color: statusColor(p.status), flexShrink: 0 }}>
+                    {pillarIcons[p.key]}
+                  </div>
+                  <span style={{ flex: 1, fontSize: 14, color: "#292524", fontFamily: "var(--font-sans)", fontWeight: 500 }}>
+                    {p.label}
+                  </span>
+                  <span style={{
+                    display: "inline-block",
+                    padding: "4px 12px",
+                    borderRadius: 6,
+                    fontSize: 11,
+                    fontWeight: 600,
+                    fontFamily: "var(--font-mono)",
+                    color: statusColor(p.status),
+                    background: statusBg(p.status),
+                    border: `1px solid ${statusBorder(p.status)}`,
+                    whiteSpace: "nowrap",
+                  }}>
+                    {statusText(p.status)}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div style={{ marginTop: 20, paddingTop: 16, borderTop: "1px solid #F5F5F4" }}>
+              <span style={{ fontSize: 14, fontWeight: 600, fontFamily: "var(--font-sans)", color: "#292524" }}>
+                {strongCount} of 4 areas strong
               </span>
             </div>
-          ))}
-        </div>
-        <div style={{ marginTop: 20, paddingTop: 16, borderTop: "1px solid #F5F5F4" }}>
-          <span style={{ fontSize: 14, fontWeight: 600, fontFamily: "var(--font-sans)", color: "#292524" }}>
-            {strongCount} of 4 areas strong
-          </span>
-        </div>
-      </div>
+          </div>
 
-      {/* Section 3: Next Best Action */}
-      <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #E7E5E4", padding: "24px 24px 24px 28px", marginBottom: 24, borderLeft: "4px solid #22C55E", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 20, flexWrap: "wrap", boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)" }}>
-        <div style={{ flex: 1, minWidth: 200 }}>
-          <h3 style={{ fontSize: 16, fontWeight: 600, color: "#292524", fontFamily: "var(--font-sans)", marginBottom: 4 }}>
-            {nextAction.heading}
-          </h3>
-          <p style={{ fontSize: 14, color: "#57534E", fontFamily: "var(--font-sans)", lineHeight: 1.5, margin: 0 }}>
-            {nextAction.desc}
-          </p>
+          {/* Section 3: Next Best Action */}
+          <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #E7E5E4", padding: "24px 24px 24px 28px", marginBottom: 24, borderLeft: "4px solid #22C55E", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 20, flexWrap: "wrap", boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)" }}>
+            <div style={{ flex: 1, minWidth: 200 }}>
+              <h3 style={{ fontSize: 16, fontWeight: 600, color: "#292524", fontFamily: "var(--font-sans)", marginBottom: 4 }}>
+                {nextAction.heading}
+              </h3>
+              <p style={{ fontSize: 14, color: "#57534E", fontFamily: "var(--font-sans)", lineHeight: 1.5, margin: 0 }}>
+                {nextAction.desc}
+              </p>
+            </div>
+            {nextAction.cta && (
+              <button
+                onClick={() => router.push(nextAction.href)}
+                style={{
+                  padding: "10px 20px",
+                  borderRadius: 10,
+                  border: "none",
+                  background: "#22C55E",
+                  color: "#fff",
+                  fontSize: 14,
+                  fontWeight: 600,
+                  fontFamily: "var(--font-sans)",
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                  flexShrink: 0,
+                  boxShadow: "none",
+                }}
+              >
+                {nextAction.cta}
+              </button>
+            )}
+          </div>
+
+          {/* Section 4: Quick Stats */}
+          <div className="da-home-stats" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 28 }}>
+            {[
+              { value: records.length, label: "Total Records" },
+              { value: activeCaseCount, label: "Active Cases" },
+              { value: vaultDocs.length, label: "Vault Files" },
+              { value: uniqueDays, label: "Days Documented" },
+            ].map((s) => (
+              <div key={s.label} style={{ ...cardStyle, boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)" }}>
+                <div style={statValue}>{s.value}</div>
+                <div style={statLabel}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Section 5: Recent Activity */}
+          {recentActivity.length > 0 && (
+            <div style={{ marginBottom: 28 }}>
+              <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 18, fontWeight: 600, color: "#292524", marginBottom: 14 }}>
+                Recent Activity
+              </h2>
+              <div style={{ ...cardStyle, padding: 0, overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)" }}>
+                {recentActivity.map((item, idx) => {
+                  const dotColor = "#22C55E";
+                  return (
+                    <button
+                      key={`${item.type}-${idx}`}
+                      onClick={() => router.push(item.href)}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 12,
+                        padding: "12px 20px",
+                        borderBottom: idx < recentActivity.length - 1 ? "1px solid #F5F5F4" : "none",
+                        background: "none",
+                        border: "none",
+                        borderBottomWidth: idx < recentActivity.length - 1 ? 1 : 0,
+                        borderBottomStyle: "solid",
+                        borderBottomColor: "#F5F5F4",
+                        cursor: "pointer",
+                        textAlign: "left",
+                        width: "100%",
+                        transition: "background 0.15s ease",
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = "#FAFAF9"; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+                    >
+                      <div style={{ width: 6, height: 6, borderRadius: "50%", background: dotColor, flexShrink: 0 }} />
+                      <span style={{ flex: 1, fontSize: 14, color: "#44403C", fontFamily: "var(--font-sans)", lineHeight: 1.4 }}>
+                        {item.label}
+                      </span>
+                      <span style={{ fontSize: 13, color: "#78716C", fontFamily: "var(--font-sans)", whiteSpace: "nowrap", flexShrink: 0 }}>
+                        {formatRelativeDate(item.date)}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Section 6: Trust Banner */}
+          <div style={{ background: "#F0FDF4", borderRadius: 10, border: "1px solid #BBF7D0", padding: "14px 20px", display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#DCFCE7", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
+            </div>
+            <p style={{ fontSize: 13, color: "#57534E", fontFamily: "var(--font-sans)", lineHeight: 1.5, margin: 0 }}>
+              Your data is private. DocketAlly never shares your information with employers. You own everything you create.
+            </p>
+          </div>
         </div>
-        {nextAction.cta && (
-          <button
-            onClick={() => router.push(nextAction.href)}
-            style={{
-              padding: "10px 20px",
-              borderRadius: 10,
-              border: "none",
-              background: "#22C55E",
-              color: "#fff",
-              fontSize: 14,
-              fontWeight: 600,
-              fontFamily: "var(--font-sans)",
-              cursor: "pointer",
-              whiteSpace: "nowrap",
-              flexShrink: 0,
-              boxShadow: "none",
-            }}
-          >
-            {nextAction.cta}
-          </button>
+
+        {/* ---- Active Cases sidebar ---- */}
+        {activeCases.length > 0 && (
+          <div style={{ width: 320, flexShrink: 0 }}>
+            <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 18, fontWeight: 600, color: "#292524", marginBottom: 14 }}>
+              Active Cases
+            </h2>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {activeCases.map((c) => {
+                const ss = sidebarStatusStyle(c.caseStatus);
+                return (
+                  <button
+                    key={c.id}
+                    onClick={() => router.push(`/dashboard/case/${c.id}`)}
+                    style={{
+                      ...cardStyle,
+                      padding: "16px 18px",
+                      cursor: "pointer",
+                      textAlign: "left",
+                      width: "100%",
+                      transition: "border-color 0.15s ease, box-shadow 0.15s ease",
+                      boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#22C55E"; e.currentTarget.style.boxShadow = "0 1px 6px rgba(34,197,94,0.12)"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#E7E5E4"; e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.04)"; }}
+                  >
+                    <div style={{ fontFamily: "var(--font-serif)", fontSize: 15, fontWeight: 700, color: "#292524", marginBottom: 8, lineHeight: 1.3 }}>
+                      {c.name}
+                    </div>
+                    <span style={{
+                      display: "inline-block",
+                      fontSize: 10,
+                      fontWeight: 700,
+                      fontFamily: "var(--font-mono)",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.04em",
+                      padding: "2px 8px",
+                      borderRadius: 4,
+                      background: ss.bg,
+                      color: ss.text,
+                      border: `1px solid ${ss.border}`,
+                      marginBottom: 10,
+                    }}>
+                      {c.caseStatus}
+                    </span>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span style={{ fontSize: 12, color: "#78716C", fontFamily: "var(--font-mono)" }}>
+                        {c.recordCount} record{c.recordCount !== 1 ? "s" : ""}
+                      </span>
+                      <span style={{ fontSize: 12, color: "#A8A29E", fontFamily: "var(--font-sans)" }}>
+                        {formatRelativeDate(c.lastActivity + "T00:00:00")}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         )}
-      </div>
-
-      {/* Section 4: Quick Stats */}
-      <div className="da-home-stats" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 28 }}>
-        {[
-          { value: records.length, label: "Total Records" },
-          { value: activeCaseCount, label: "Active Cases" },
-          { value: vaultDocs.length, label: "Vault Files" },
-          { value: uniqueDays, label: "Days Documented" },
-        ].map((s) => (
-          <div key={s.label} style={{ ...cardStyle, boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)" }}>
-            <div style={statValue}>{s.value}</div>
-            <div style={statLabel}>{s.label}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Section 5: Recent Activity */}
-      {recentActivity.length > 0 && (
-        <div style={{ marginBottom: 28 }}>
-          <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 18, fontWeight: 600, color: "#292524", marginBottom: 14 }}>
-            Recent Activity
-          </h2>
-          <div style={{ ...cardStyle, padding: 0, overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)" }}>
-            {recentActivity.map((item, idx) => {
-              const dotColor = "#22C55E";
-              return (
-                <button
-                  key={`${item.type}-${idx}`}
-                  onClick={() => router.push(item.href)}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 12,
-                    padding: "12px 20px",
-                    borderBottom: idx < recentActivity.length - 1 ? "1px solid #F5F5F4" : "none",
-                    background: "none",
-                    border: "none",
-                    borderBottomWidth: idx < recentActivity.length - 1 ? 1 : 0,
-                    borderBottomStyle: "solid",
-                    borderBottomColor: "#F5F5F4",
-                    cursor: "pointer",
-                    textAlign: "left",
-                    width: "100%",
-                    transition: "background 0.15s ease",
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = "#FAFAF9"; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
-                >
-                  <div style={{ width: 6, height: 6, borderRadius: "50%", background: dotColor, flexShrink: 0 }} />
-                  <span style={{ flex: 1, fontSize: 14, color: "#44403C", fontFamily: "var(--font-sans)", lineHeight: 1.4 }}>
-                    {item.label}
-                  </span>
-                  <span style={{ fontSize: 13, color: "#78716C", fontFamily: "var(--font-sans)", whiteSpace: "nowrap", flexShrink: 0 }}>
-                    {formatRelativeDate(item.date)}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Section 6: Trust Banner */}
-      <div style={{ background: "#F0FDF4", borderRadius: 10, border: "1px solid #BBF7D0", padding: "14px 20px", display: "flex", alignItems: "center", gap: 12 }}>
-        <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#DCFCE7", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-          </svg>
-        </div>
-        <p style={{ fontSize: 13, color: "#57534E", fontFamily: "var(--font-sans)", lineHeight: 1.5, margin: 0 }}>
-          Your data is private. DocketAlly never shares your information with employers. You own everything you create.
-        </p>
       </div>
     </div>
   );

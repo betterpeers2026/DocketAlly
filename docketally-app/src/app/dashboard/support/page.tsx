@@ -696,7 +696,7 @@ export default function SupportPage() {
   /* ---------------------------------------------------------------- */
 
   return (
-    <div className="da-page-wrapper" style={{ padding: 32, maxWidth: 960, margin: "0 auto" }}>
+    <div className="da-page-wrapper" style={{ padding: 32, maxWidth: 820, margin: "0 auto" }}>
       {/* Header */}
       <div style={{ marginBottom: 24 }}>
         <h1 style={{ fontFamily: "var(--font-serif)", fontSize: 26, fontWeight: 700, color: "#292524", marginBottom: 8 }}>

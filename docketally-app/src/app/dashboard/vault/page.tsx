@@ -522,7 +522,7 @@ export default function VaultPage() {
   /* ---------------------------------------------------------------- */
 
   return (
-    <div className="da-page-wrapper" style={{ padding: 32, maxWidth: 960, margin: "0 auto" }}>
+    <div className="da-page-wrapper" style={{ padding: 32, maxWidth: 1060, margin: "0 auto" }}>
       {/* ---- UPLOAD FORM ---- */}
       {showUpload ? (
         <div

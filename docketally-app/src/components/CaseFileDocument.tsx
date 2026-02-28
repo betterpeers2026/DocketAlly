@@ -697,7 +697,7 @@ export default function CaseFileDocument({
           <span style={{ fontFamily: "var(--font-serif)", fontSize: 16, fontWeight: 800, color: "#292524" }}>Docket</span>
           <span style={{ fontFamily: "var(--font-serif)", fontSize: 16, fontWeight: 800, color: "#22C55E" }}>Ally</span>
         </div>
-        <span style={{ fontSize: 13, color: "#44403C" }}>Confidential Case File</span>
+        <span style={{ fontSize: 13, color: "#44403C" }}>Confidential - Prepared for Attorney Review</span>
       </div>
     </div>
   );
@@ -715,7 +715,7 @@ export default function CaseFileDocument({
   const pageFooter = (
     <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#78716C", paddingTop: 20, borderTop: "1px solid #D6D3D1", marginTop: 40 }}>
       <span>Generated {genDate} at {genTime}</span>
-      <span>DocketAlly Confidential</span>
+      <span>Confidential - Prepared for Attorney Review</span>
     </div>
   );
 
@@ -736,7 +736,7 @@ export default function CaseFileDocument({
     { n: "2", t: "Protected Rights and Legal Context" },
     { n: "3", t: `Timeline of Events (${records.length} record${records.length !== 1 ? "s" : ""})` },
     { n: "", t: "Chronology Table", indent: true },
-    { n: "4", t: `Evidence Index (${linkedDocs.length} file${linkedDocs.length !== 1 ? "s" : ""})` },
+    { n: "4", t: `Evidence Index (${records.length} record${records.length !== 1 ? "s" : ""}, ${linkedDocs.length} file${linkedDocs.length !== 1 ? "s" : ""})` },
     { n: "5", t: `Pattern Analysis (${confirmedCount} confirmed, ${signalCount} signal${signalCount !== 1 ? "s" : ""})` },
     { n: "6", t: "Plan and Progression" },
     { n: "7", t: "Impact Statement" },
@@ -841,7 +841,7 @@ export default function CaseFileDocument({
             {caseData?.case_theory_protected_activity ? (
               <p style={{ fontSize: 15, lineHeight: 1.7 }}>{caseData.case_theory_protected_activity}</p>
             ) : (
-              <p style={{ fontSize: 14, color: "#78716C", fontStyle: "italic" }}>Not yet documented. See Section 1, Case Theory.</p>
+              <p style={{ fontSize: 14, color: "#78716C", fontStyle: "italic" }}>No protected activity documented to date.</p>
             )}
           </div>
 
@@ -851,7 +851,7 @@ export default function CaseFileDocument({
             {caseData?.case_theory_employer_response ? (
               <p style={{ fontSize: 15, lineHeight: 1.7 }}>{caseData.case_theory_employer_response}</p>
             ) : (
-              <p style={{ fontSize: 14, color: "#78716C", fontStyle: "italic" }}>Not yet documented. See Section 1, Case Theory.</p>
+              <p style={{ fontSize: 14, color: "#78716C", fontStyle: "italic" }}>No adverse employment action documented to date.</p>
             )}
           </div>
 
@@ -973,7 +973,7 @@ export default function CaseFileDocument({
             </div>
           ) : (
             <p style={{ fontSize: 14, color: "#78716C", fontStyle: "italic" }}>
-              Case theory not yet documented. You can add your perspective in the Case Info tab.
+              Case theory not yet documented as of {genDate}.
             </p>
           )}
         </div>
@@ -1242,34 +1242,49 @@ export default function CaseFileDocument({
         {runningHeader}
         {sectionHeading(4, "Evidence Index")}
         <p style={purposeStatement}>
-          All files referenced in the timeline, with exhibit labels matching Section 3.
+          All documentation referenced in this case file. Internal records are listed automatically. Uploaded files are assigned exhibit letters.
         </p>
 
-        {linkedDocs.length > 0 ? (
-          <>
-            <div style={{ display: "grid", gridTemplateColumns: "60px 1fr 160px 160px", borderBottom: "2px solid #292524", padding: "10px 0" }}>
-              <span style={{ fontSize: 13, fontWeight: 700 }}>Exhibit</span>
-              <span style={{ fontSize: 13, fontWeight: 700 }}>File</span>
-              <span style={{ fontSize: 13, fontWeight: 700 }}>Record</span>
-              <span style={{ fontSize: 13, fontWeight: 700 }}>Record Type</span>
+        {/* Table header */}
+        <div style={{ display: "grid", gridTemplateColumns: "70px 120px 1fr 130px", borderBottom: "2px solid #292524", padding: "10px 0" }}>
+          <span style={{ fontSize: 13, fontWeight: 700 }}>Reference</span>
+          <span style={{ fontSize: 13, fontWeight: 700 }}>Type</span>
+          <span style={{ fontSize: 13, fontWeight: 700 }}>Description</span>
+          <span style={{ fontSize: 13, fontWeight: 700 }}>Date</span>
+        </div>
+
+        {/* Auto-generated record entries */}
+        {sortedRecords.map((record) => {
+          const rId = recordIdMap.get(record.id) || "";
+          const narrativeSnippet = record.narrative.length > 60 ? record.narrative.slice(0, 60) + "..." : record.narrative;
+          return (
+            <div key={`rec-${record.id}`} style={{ display: "grid", gridTemplateColumns: "70px 120px 1fr 130px", borderBottom: "1px solid #F5F5F4", padding: "8px 0", pageBreakInside: "avoid" }}>
+              <span style={{ fontSize: 13, fontWeight: 700, fontFamily: "var(--font-mono)", color: "#22C55E" }}>{rId}</span>
+              <span style={{ fontSize: 13, color: "#57534E" }}>Internal Record</span>
+              <span style={{ fontSize: 13, color: "#292524" }}>{record.entry_type} - {narrativeSnippet}</span>
+              <span style={{ fontSize: 13, fontFamily: "var(--font-mono)", color: "#57534E" }}>{formatDate(record.date)}</span>
             </div>
-            {linkedDocs.map((doc) => {
-              const record = sortedRecords.find((r) => r.id === doc.linked_record_id);
-              const letter = exhibitLetterMap.get(doc.id) || "?";
-              const rId = record ? recordIdMap.get(record.id) || "-" : "-";
-              return (
-                <div key={doc.id} style={{ display: "grid", gridTemplateColumns: "60px 1fr 160px 160px", borderBottom: "1px solid #F5F5F4", padding: "10px 0", pageBreakInside: "avoid" }}>
-                  <span style={{ fontSize: 13, fontWeight: 700, fontFamily: "var(--font-mono)", color: "#22C55E" }}>Ex. {letter}</span>
-                  <span style={{ fontSize: 13, color: "#292524", fontWeight: 600 }}>{doc.file_name}</span>
-                  <span style={{ fontSize: 13, fontFamily: "var(--font-mono)", color: "#57534E" }}>{rId}{record ? ` \u00b7 ${formatDate(record.date)}` : ""}</span>
-                  <span style={{ fontSize: 13 }}>{record ? record.entry_type : "-"}</span>
-                </div>
-              );
-            })}
-          </>
-        ) : (
-          <p style={{ fontSize: 14, color: "#78716C", fontStyle: "italic" }}>
-            No files have been linked to records in this case file. Evidence files can be linked to individual records from the Records page.
+          );
+        })}
+
+        {/* Uploaded file entries with exhibit letters */}
+        {linkedDocs.map((doc) => {
+          const record = sortedRecords.find((r) => r.id === doc.linked_record_id);
+          const letter = exhibitLetterMap.get(doc.id) || "?";
+          return (
+            <div key={`doc-${doc.id}`} style={{ display: "grid", gridTemplateColumns: "70px 120px 1fr 130px", borderBottom: "1px solid #F5F5F4", padding: "8px 0", pageBreakInside: "avoid" }}>
+              <span style={{ fontSize: 13, fontWeight: 700, fontFamily: "var(--font-mono)", color: "#15803D" }}>Ex. {letter}</span>
+              <span style={{ fontSize: 13, color: "#57534E" }}>Uploaded File</span>
+              <span style={{ fontSize: 13, color: "#292524", fontWeight: 600 }}>{doc.file_name}{record ? ` (${recordIdMap.get(record.id) || ""})` : ""}</span>
+              <span style={{ fontSize: 13, fontFamily: "var(--font-mono)", color: "#57534E" }}>{record ? formatDate(record.date) : formatDate(doc.created_at.split("T")[0])}</span>
+            </div>
+          );
+        })}
+
+        {/* Empty state only when no records at all */}
+        {sortedRecords.length === 0 && (
+          <p style={{ fontSize: 14, color: "#78716C", fontStyle: "italic", marginTop: 16 }}>
+            No records documented in this case file as of {genDate}.
           </p>
         )}
 
@@ -1531,7 +1546,7 @@ export default function CaseFileDocument({
           </div>
         ) : (
           <p style={{ fontSize: 14, color: "#78716C", fontStyle: "italic" }}>
-            No impact statement has been provided for this case file. An impact statement can be added in the Case Info tab.
+            No impact statement documented as of {genDate}.
           </p>
         )}
 

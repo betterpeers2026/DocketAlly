@@ -1076,7 +1076,7 @@ export default function CommsPage() {
 
   if (selectedTemplate) {
     return (
-      <div className="da-page-wrapper" style={{ padding: 32, maxWidth: 960, margin: "0 auto" }}>
+      <div className="da-page-wrapper" style={{ padding: 32, maxWidth: 1100, margin: "0 auto" }}>
         {/* Back button */}
         <button
           onClick={backToList}
@@ -1391,7 +1391,7 @@ export default function CommsPage() {
   /* ---------------------------------------------------------------- */
 
   return (
-    <div className="da-page-wrapper" style={{ padding: 32, maxWidth: 960, margin: "0 auto" }}>
+    <div className="da-page-wrapper" style={{ padding: 32, maxWidth: 1100, margin: "0 auto" }}>
       {/* Header */}
       <div style={{ marginBottom: 28 }}>
         <h1
