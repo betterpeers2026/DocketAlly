@@ -159,11 +159,6 @@
 /*  (outside @layer so they have higher specificity)              */
 /* ============================================================ */
 
-/* ---- Content area max-width ---- */
-main {
-  max-width: 960px;
-}
-
 /* ---- Main content subtle warmth ---- */
 .da-main-content {
   background: var(--color-surface);
@@ -207,6 +202,73 @@ main {
 /* ---- Prevent horizontal overflow globally ---- */
 .da-page-wrapper {
   overflow-x: hidden;
+}
+
+/* ---- Records page layout with case file panel ---- */
+.da-records-layout {
+  display: flex;
+  width: 100%;
+  min-height: 100%;
+}
+.da-records-layout > .da-page-wrapper {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.da-casefile-panel {
+  width: 480px;
+  flex-shrink: 0;
+  align-self: flex-start;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  border-left: 1px solid #E7E5E4;
+  background: #FAFAF9;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.da-casefile-panel-content {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #D6D3D1 transparent;
+}
+.da-casefile-panel-content::-webkit-scrollbar {
+  width: 5px;
+}
+.da-casefile-panel-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+.da-casefile-panel-content::-webkit-scrollbar-thumb {
+  background: #D6D3D1;
+  border-radius: 3px;
+}
+
+.da-casefile-fab {
+  display: none;
+}
+
+/* ============================================================ */
+/*  SMALL DESKTOP  (max-width: 1440px)                          */
+/* ============================================================ */
+@media (max-width: 1440px) {
+  .da-casefile-panel {
+    width: 420px;
+  }
+}
+
+/* ============================================================ */
+/*  LARGE TABLET  (max-width: 1024px)                           */
+/* ============================================================ */
+@media (max-width: 1024px) {
+  .da-casefile-panel {
+    display: none;
+  }
+  .da-casefile-fab {
+    display: flex;
+  }
 }
 
 /* ============================================================ */
@@ -632,4 +694,18 @@ main {
 .da-search-input:focus {
   border-color: #D6D3D1 !important;
   box-shadow: 0 0 0 3px rgba(34,197,94,0.06) !important;
+}
+
+/* ---- Case file panel entry pulse ---- */
+@keyframes entryPulse {
+  0% { background: #F0FDF4; }
+  100% { background: transparent; }
+}
+
+/* ---- Comms toast animation ---- */
+@keyframes toastFade {
+  0%   { opacity: 0; transform: translateX(-50%) translateY(8px); }
+  10%  { opacity: 1; transform: translateX(-50%) translateY(0); }
+  80%  { opacity: 1; transform: translateX(-50%) translateY(0); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-4px); }
 }

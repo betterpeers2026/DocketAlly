@@ -26,6 +26,7 @@ interface CaseData {
   department: string | null;
   location: string | null;
   key_people: string | null;
+  protected_classes: string[];
   created_at: string;
   updated_at: string;
 }
@@ -230,6 +231,28 @@ const CASE_TYPES = [
   "Whistleblower",
 ];
 
+const PROTECTED_CLASSES = [
+  "Race",
+  "Color",
+  "Sex / Gender",
+  "Sexual Orientation",
+  "Gender Identity",
+  "Age (40+)",
+  "Religion",
+  "National Origin",
+  "Disability",
+  "Pregnancy",
+  "Veteran Status",
+  "Genetic Information",
+];
+
+const DISCRIMINATION_TYPES = [
+  "Discrimination",
+  "Harassment",
+  "Hostile Work Environment",
+  "Retaliation",
+];
+
 function resolveTypes(c: { case_types?: string[]; case_type?: string } | null): string[] {
   if (!c) return ["General"];
   if (c.case_types && c.case_types.length > 0) return c.case_types;
@@ -248,7 +271,7 @@ function getInitials(name: string): string {
   return name.trim().slice(0, 2).toUpperCase();
 }
 
-const PILL_COLORS = ["#22C55E", "#3B82F6", "#F59E0B", "#8B5CF6", "#EC4899", "#06B6D4"];
+const AVATAR_COLOR = "#A8A29E";
 
 function getPlanBadgeStyle(): React.CSSProperties {
   return {
@@ -549,6 +572,7 @@ function CaseFileDocPreview({ records, vaultDocs, patterns, contradictions, link
   const caseTypes = resolveTypes(caseData);
   const nonGeneralTypes = caseTypes.filter((t) => t.toLowerCase() !== "general");
   const pdfSubtitle = nonGeneralTypes.length > 0 ? `${nonGeneralTypes.join(" \u00b7 ")} Case File` : "Case File";
+  const pdfProtectedClasses = (caseData?.protected_classes ?? []).length > 0 ? (caseData?.protected_classes ?? []).join(", ") : null;
 
   return (
     <div style={{ fontFamily: "var(--font-sans)", color: "#292524", lineHeight: 1.6 }}>
@@ -565,7 +589,10 @@ function CaseFileDocPreview({ records, vaultDocs, patterns, contradictions, link
         </div>
         <h1 style={{ fontFamily: "var(--font-serif)", fontSize: 48, fontWeight: 900, color: "#292524", lineHeight: 1.1, marginBottom: 12 }}>{caseName}</h1>
         <div style={{ width: 40, height: 3, background: "#22C55E", borderRadius: 2, marginBottom: 16 }} />
-        <p style={{ fontSize: 18, color: "#292524", marginBottom: 60 }}>{pdfSubtitle}</p>
+        <p style={{ fontSize: 18, color: "#292524", marginBottom: pdfProtectedClasses ? 8 : 60 }}>{pdfSubtitle}</p>
+        {pdfProtectedClasses && (
+          <p style={{ fontSize: 14, color: "#57534E", marginBottom: 60 }}>Protected Classes: {pdfProtectedClasses}</p>
+        )}
         <div style={{ maxWidth: 500 }}>
           {[
             { l: "Employer", v: caseData?.employer || "-" },
@@ -790,7 +817,7 @@ export default function CaseDetailPage() {
 
   // Case info edit
   const [editingCaseInfo, setEditingCaseInfo] = useState(false);
-  const [editForm, setEditForm] = useState({ employer: "", role: "", department: "", location: "", key_people: "", description: "", start_date: "", case_types: [] as string[] });
+  const [editForm, setEditForm] = useState({ employer: "", role: "", department: "", location: "", key_people: "", description: "", start_date: "", case_types: [] as string[], protected_classes: [] as string[] });
   const [savingCaseInfo, setSavingCaseInfo] = useState(false);
   const [showToast, setShowToast] = useState(false);
 
@@ -1014,6 +1041,7 @@ export default function CaseDetailPage() {
     if (!caseData) return;
     setSavingCaseInfo(true);
     const typesToSave = editForm.case_types.length > 0 ? editForm.case_types : ["General"];
+    const classesToSave = typesToSave.some((t) => DISCRIMINATION_TYPES.includes(t)) ? editForm.protected_classes : [];
     const { error } = await supabase.from("cases").update({
       employer: editForm.employer || null,
       role: editForm.role || null,
@@ -1024,9 +1052,10 @@ export default function CaseDetailPage() {
       start_date: editForm.start_date || null,
       case_types: typesToSave,
       case_type: typesToSave[0],
+      protected_classes: classesToSave,
     }).eq("id", caseId);
     if (!error) {
-      setCaseData({ ...caseData, ...editForm, employer: editForm.employer || null, role: editForm.role || null, department: editForm.department || null, location: editForm.location || null, key_people: editForm.key_people || null, description: editForm.description || null, start_date: editForm.start_date || null, case_types: typesToSave, case_type: typesToSave[0] });
+      setCaseData({ ...caseData, ...editForm, employer: editForm.employer || null, role: editForm.role || null, department: editForm.department || null, location: editForm.location || null, key_people: editForm.key_people || null, description: editForm.description || null, start_date: editForm.start_date || null, case_types: typesToSave, case_type: typesToSave[0], protected_classes: classesToSave });
       setEditingCaseInfo(false);
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
@@ -1045,6 +1074,7 @@ export default function CaseDetailPage() {
       description: caseData.description || "",
       start_date: caseData.start_date || "",
       case_types: resolveTypes(caseData),
+      protected_classes: caseData.protected_classes || [],
     });
     setEditingCaseInfo(true);
   }
@@ -1493,7 +1523,7 @@ export default function CaseDetailPage() {
                                   <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 8 }}>
                                     {people.map((person, i) => (
                                       <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "4px 14px 4px 4px", borderRadius: 100, background: "#F5F5F4", border: "1px solid #E7E5E4", fontSize: 13, color: "#44403C", fontFamily: "var(--font-sans)", fontWeight: 500 }}>
-                                        <span style={{ width: 28, height: 28, borderRadius: "50%", background: PILL_COLORS[i % PILL_COLORS.length], color: "#fff", fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-mono)" }}>{getInitials(person)}</span>
+                                        <span style={{ width: 28, height: 28, borderRadius: "50%", background: AVATAR_COLOR, color: "#fff", fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-mono)" }}>{getInitials(person)}</span>
                                         {person}
                                       </span>
                                     ))}
@@ -1520,7 +1550,7 @@ export default function CaseDetailPage() {
                                       <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                                         {people.map((person, i) => (
                                           <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "4px 14px 4px 4px", borderRadius: 100, background: "#F5F5F4", border: "1px solid #E7E5E4", fontSize: 13, color: "#44403C", fontFamily: "var(--font-sans)", fontWeight: 500 }}>
-                                            <span style={{ width: 28, height: 28, borderRadius: "50%", background: PILL_COLORS[i % PILL_COLORS.length], color: "#fff", fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-mono)" }}>{getInitials(person)}</span>
+                                            <span style={{ width: 28, height: 28, borderRadius: "50%", background: AVATAR_COLOR, color: "#fff", fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-mono)" }}>{getInitials(person)}</span>
                                             {person}
                                           </span>
                                         ))}
@@ -1654,6 +1684,43 @@ export default function CaseDetailPage() {
                       })}
                     </div>
                   </div>
+                  {editForm.case_types.some((t) => DISCRIMINATION_TYPES.includes(t)) && (
+                    <div style={{ marginBottom: 16 }}>
+                      <label style={labelStyle}>Protected Class (if applicable)</label>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                        {PROTECTED_CLASSES.map((pc) => {
+                          const sel = editForm.protected_classes.includes(pc);
+                          return (
+                            <button
+                              key={pc}
+                              type="button"
+                              onClick={() => {
+                                setEditForm((prev) => ({
+                                  ...prev,
+                                  protected_classes: sel
+                                    ? prev.protected_classes.filter((c) => c !== pc)
+                                    : [...prev.protected_classes, pc],
+                                }));
+                              }}
+                              style={{
+                                padding: "5px 12px",
+                                borderRadius: 20,
+                                fontSize: 11,
+                                fontWeight: 600,
+                                fontFamily: "var(--font-sans)",
+                                cursor: "pointer",
+                                border: sel ? "1px solid #BBF7D0" : "1px solid #E7E5E4",
+                                background: sel ? "#F0FDF4" : "#FAFAF9",
+                                color: sel ? "#15803D" : "#78716C",
+                              }}
+                            >
+                              {sel && <span style={{ marginRight: 3 }}>&#10003;</span>}{pc}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                   <div style={{ marginBottom: 16 }}>
                     <label style={labelStyle}>Key People</label>
                     <textarea value={editForm.key_people} onChange={(e) => setEditForm((prev) => ({ ...prev, key_people: e.target.value }))} placeholder="Managers, HR contacts, witnesses. One per line." rows={3} style={{ ...inputStyle, resize: "vertical" }} />
@@ -1673,16 +1740,11 @@ export default function CaseDetailPage() {
                     <h3 style={{ fontFamily: "var(--font-serif)", fontSize: 18, fontWeight: 700, color: "#292524" }}>Case Information</h3>
                     <button onClick={startEditCaseInfo} style={{ padding: "8px 16px", borderRadius: 8, border: "1px solid var(--color-stone-300)", background: "#fff", color: "var(--color-stone-800)", fontSize: 13, fontWeight: 600, fontFamily: "var(--font-sans)", cursor: "pointer" }}>Edit Case Info</button>
                   </div>
+                  {/* Row 1: Case Name + Case Type */}
                   <div className="da-case-info-grid da-grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0 }}>
                     {[
                       { l: "Case Name", v: caseData?.name },
                       { l: "Case Type", v: "__pills__" },
-                      { l: "Employer", v: caseData?.employer },
-                      { l: "Role", v: caseData?.role },
-                      { l: "Department", v: caseData?.department },
-                      { l: "Location", v: caseData?.location },
-                      { l: "Start Date", v: caseData?.start_date ? formatDate(caseData.start_date) : null },
-                      { l: "Status", v: caseData?.status },
                     ].map((item, i) => (
                       <div key={item.l} style={{ padding: "16px 0", borderBottom: "1px solid #F5F5F4", paddingRight: i % 2 === 0 ? 24 : 0 }}>
                         <div style={{ fontSize: 11, fontWeight: 700, fontFamily: "var(--font-mono)", color: "#78716C", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4 }}>{item.l}</div>
@@ -1698,6 +1760,41 @@ export default function CaseDetailPage() {
                       </div>
                     ))}
                   </div>
+                  {/* Protected Class — only for discrimination-related types */}
+                  {resolveTypes(caseData).some((t) => DISCRIMINATION_TYPES.includes(t)) && (
+                    <div style={{ padding: "16px 0", borderBottom: "1px solid #F5F5F4" }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, fontFamily: "var(--font-mono)", color: "#78716C", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>Protected Class</div>
+                      {(caseData?.protected_classes ?? []).length > 0 ? (
+                        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                          {(caseData?.protected_classes ?? []).map((pc) => (
+                            <span key={pc} style={{ fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em", padding: "4px 10px", borderRadius: 6, background: "#F5F5F4", color: "#57534E", border: "1px solid #E7E5E4" }}>{pc}</span>
+                          ))}
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: 14, fontFamily: "var(--font-sans)" }}>
+                          <span style={{ color: "#A8A29E", fontStyle: "italic" }}>Not specified</span>
+                          {" -- "}
+                          <button onClick={startEditCaseInfo} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, fontSize: 14, fontFamily: "var(--font-sans)", color: "var(--color-stone-500)", textDecoration: "underline" }}>Add in Edit Mode</button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {/* Remaining fields: Employer, Role, etc. */}
+                  <div className="da-case-info-grid da-grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0 }}>
+                    {[
+                      { l: "Employer", v: caseData?.employer },
+                      { l: "Role", v: caseData?.role },
+                      { l: "Department", v: caseData?.department },
+                      { l: "Location", v: caseData?.location },
+                      { l: "Start Date", v: caseData?.start_date ? formatDate(caseData.start_date) : null },
+                      { l: "Status", v: caseData?.status },
+                    ].map((item, i) => (
+                      <div key={item.l} style={{ padding: "16px 0", borderBottom: "1px solid #F5F5F4", paddingRight: i % 2 === 0 ? 24 : 0 }}>
+                        <div style={{ fontSize: 11, fontWeight: 700, fontFamily: "var(--font-mono)", color: "#78716C", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4 }}>{item.l}</div>
+                        <div style={{ fontSize: 15, fontWeight: 400, fontFamily: "var(--font-sans)", color: item.v ? "#292524" : "#78716C" }}>{item.v || "-"}</div>
+                      </div>
+                    ))}
+                  </div>
                   {/* Key People as avatar pills */}
                   <div style={{ marginTop: 20 }}>
                     <div style={{ fontSize: 11, fontWeight: 700, fontFamily: "var(--font-mono)", color: "#78716C", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>Key People</div>
@@ -1707,7 +1804,7 @@ export default function CaseDetailPage() {
                         <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                           {people.map((person, i) => (
                             <div key={person} style={{ display: "flex", alignItems: "center", gap: 8, background: "#F5F5F4", borderRadius: 20, padding: "6px 14px 6px 6px" }}>
-                              <span style={{ width: 28, height: 28, borderRadius: "50%", background: PILL_COLORS[i % PILL_COLORS.length], color: "#fff", fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-mono)" }}>{getInitials(person)}</span>
+                              <span style={{ width: 28, height: 28, borderRadius: "50%", background: AVATAR_COLOR, color: "#fff", fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-mono)" }}>{getInitials(person)}</span>
                               <span style={{ fontSize: 13, fontWeight: 500, color: "#292524", fontFamily: "var(--font-sans)" }}>{person}</span>
                             </div>
                           ))}

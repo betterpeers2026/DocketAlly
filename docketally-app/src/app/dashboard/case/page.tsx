@@ -1126,15 +1126,15 @@ export default function CaseViewPage() {
                                     width: 26,
                                     height: 26,
                                     borderRadius: "50%",
-                                    background: "#EFF6FF",
-                                    border: "1.5px solid #BFDBFE",
+                                    background: "#A8A29E",
                                     display: "flex",
                                     alignItems: "center",
                                     justifyContent: "center",
                                     fontSize: 10,
                                     fontWeight: 700,
-                                    fontFamily: "var(--font-sans)",
-                                    color: "#1E40AF",
+                                    fontFamily: "var(--font-mono)",
+                                    color: "#FFFFFF",
+                                    boxShadow: "0 1px 2px rgba(0,0,0,0.08)",
                                   }}
                                 >
                                   {name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)}

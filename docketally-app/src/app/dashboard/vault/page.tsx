@@ -53,6 +53,7 @@ const VAULT_CATEGORIES = [
   "Email/Correspondence",
   "Slack/Chat Export",
   "Meeting Notes",
+  "Audio",
   "HR Document",
   "Legal Document",
   "Other",
@@ -61,8 +62,24 @@ const VAULT_CATEGORIES = [
 const WARNING_CATEGORIES = new Set(["PIP Document", "HR Document", "Legal Document"]);
 const INFO_CATEGORIES = new Set(["Email/Correspondence", "Slack/Chat Export"]);
 
-const ACCEPTED_TYPES = ".pdf,.png,.jpg,.jpeg,.docx,.doc,.xlsx,.txt,.csv";
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const ACCEPTED_TYPES = ".pdf,.doc,.docx,.png,.jpg,.jpeg,.webp,.mp3,.m4a,.wav";
+
+const ALLOWED_FILE_TYPES: Record<string, { ext: string; maxSize: number; icon: string }> = {
+  "application/pdf": { ext: "PDF", maxSize: 25 * 1024 * 1024, icon: "pdf" },
+  "application/msword": { ext: "DOC", maxSize: 25 * 1024 * 1024, icon: "doc" },
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": { ext: "DOCX", maxSize: 25 * 1024 * 1024, icon: "doc" },
+  "image/png": { ext: "PNG", maxSize: 10 * 1024 * 1024, icon: "image" },
+  "image/jpeg": { ext: "JPG", maxSize: 10 * 1024 * 1024, icon: "image" },
+  "image/webp": { ext: "WEBP", maxSize: 10 * 1024 * 1024, icon: "image" },
+  "audio/mpeg": { ext: "MP3", maxSize: 50 * 1024 * 1024, icon: "audio" },
+  "audio/mp4": { ext: "M4A", maxSize: 50 * 1024 * 1024, icon: "audio" },
+  "audio/wav": { ext: "WAV", maxSize: 50 * 1024 * 1024, icon: "audio" },
+};
+
+const STORAGE_LIMITS = {
+  trial: { maxFiles: 20, maxStorageMB: 500, label: "Free Trial" },
+  paid: { maxFiles: 200, maxStorageMB: 5000, label: "Pro" },
+};
 
 function getCategoryBadgeStyle(category: string): React.CSSProperties {
   const isWarning = WARNING_CATEGORIES.has(category);
@@ -91,15 +108,14 @@ function getFileTypeIcon(fileName: string): {
   label: string;
   bg: string;
   color: string;
+  border: string;
 } {
   const ext = fileName.split(".").pop()?.toLowerCase() || "";
-  if (ext === "pdf") return { label: "PDF", bg: "#FEF2F2", color: "#DC2626" };
-  if (ext === "doc" || ext === "docx") return { label: "DOC", bg: "#EFF6FF", color: "#2563EB" };
-  if (["png", "jpg", "jpeg"].includes(ext)) return { label: "IMG", bg: "#F5F3FF", color: "#7C3AED" };
-  if (ext === "xls" || ext === "xlsx") return { label: "XLS", bg: "#F0FDF4", color: "#16A34A" };
-  if (ext === "csv") return { label: "CSV", bg: "#F0FDF4", color: "#16A34A" };
-  if (ext === "txt") return { label: "TXT", bg: "#F5F5F4", color: "#292524" };
-  return { label: ext.toUpperCase().slice(0, 3) || "FILE", bg: "#F5F5F4", color: "#292524" };
+  if (ext === "pdf") return { label: "PDF", bg: "#FEF2F2", color: "#DC2626", border: "#FECACA" };
+  if (ext === "doc" || ext === "docx") return { label: "DOC", bg: "#EFF6FF", color: "#1D4ED8", border: "#BFDBFE" };
+  if (["png", "jpg", "jpeg", "webp"].includes(ext)) return { label: "IMG", bg: "#F5F3FF", color: "#6D28D9", border: "#DDD6FE" };
+  if (["mp3", "m4a", "wav"].includes(ext)) return { label: ext.toUpperCase(), bg: "#FFFBEB", color: "#92400E", border: "#FDE68A" };
+  return { label: ext.toUpperCase().slice(0, 3) || "FILE", bg: "#F5F5F4", color: "#292524", border: "#E7E5E4" };
 }
 
 /* ------------------------------------------------------------------ */
@@ -165,6 +181,7 @@ export default function VaultPage() {
   // Upload
   const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
   const [uploadError, setUploadError] = useState("");
+  const [uploadErrorUpgrade, setUploadErrorUpgrade] = useState(false);
   const [uploadingFiles, setUploadingFiles] = useState<UploadingFile[]>([]);
 
   // Inline edit
@@ -246,15 +263,41 @@ export default function VaultPage() {
     return (bytes / (1024 * 1024)).toFixed(1) + " MB";
   }
 
+  function validateUpload(file: File): { valid: boolean; error?: string; upgrade?: boolean } {
+    const userPlan = subscription.subscriptionStatus === "active" ? "paid" : "trial";
+    const limits = STORAGE_LIMITS[userPlan];
+    const fileType = ALLOWED_FILE_TYPES[file.type];
+
+    if (!fileType) {
+      return { valid: false, error: `${file.name} is not a supported file type. Upload PDF, DOC, PNG, JPG, or audio files.` };
+    }
+    if (file.size > fileType.maxSize) {
+      const maxMB = fileType.maxSize / (1024 * 1024);
+      return { valid: false, error: `${file.name} is too large. ${fileType.ext} files must be under ${maxMB}MB.` };
+    }
+    if (documents.length >= limits.maxFiles) {
+      return { valid: false, error: `You've reached the ${limits.maxFiles} file limit on your ${limits.label} plan.`, upgrade: userPlan === "trial" };
+    }
+    const currentStorageMB = documents.reduce((sum, f) => sum + (f.file_size || 0), 0) / (1024 * 1024);
+    const newFileMB = file.size / (1024 * 1024);
+    if (currentStorageMB + newFileMB > limits.maxStorageMB) {
+      return { valid: false, error: `Not enough storage. You've used ${Math.round(currentStorageMB)}MB of ${limits.maxStorageMB}MB.`, upgrade: userPlan === "trial" };
+    }
+    return { valid: true };
+  }
+
   function handleFileSelect(fileList: FileList | null) {
     if (!fileList) return;
     setUploadError("");
+    setUploadErrorUpgrade(false);
 
     const newPending: PendingFile[] = [];
     for (let i = 0; i < fileList.length; i++) {
       const file = fileList[i];
-      if (file.size > MAX_FILE_SIZE) {
-        setUploadError(`"${file.name}" exceeds 10MB limit.`);
+      const result = validateUpload(file);
+      if (!result.valid) {
+        setUploadError(result.error || "Upload failed.");
+        if (result.upgrade) setUploadErrorUpgrade(true);
         continue;
       }
       newPending.push({
@@ -263,6 +306,11 @@ export default function VaultPage() {
         notes: "",
         linkedRecordId: "",
       });
+    }
+
+    // Auto-dismiss error after 5 seconds
+    if (newPending.length === 0 && fileList.length > 0) {
+      setTimeout(() => { setUploadError(""); setUploadErrorUpgrade(false); }, 5000);
     }
 
     if (newPending.length > 0) {
@@ -285,6 +333,7 @@ export default function VaultPage() {
     setPendingFiles([]);
     setShowUpload(false);
     setUploadError("");
+    setUploadErrorUpgrade(false);
   }
 
   function startEdit(doc: VaultDocument) {
@@ -690,9 +739,14 @@ export default function VaultPage() {
 
           {/* Error */}
           {uploadError && (
-            <p style={{ fontSize: 13, color: "#EF4444", marginTop: 16 }}>
+            <div style={{ background: "#FEF2F2", border: "2px dashed #FECACA", color: "#991B1B", fontFamily: "var(--font-sans)", fontSize: 13, padding: "12px 16px", borderRadius: 8, textAlign: "center", marginTop: 16 }}>
               {uploadError}
-            </p>
+              {uploadErrorUpgrade && (
+                <div style={{ marginTop: 6 }}>
+                  <a href="/dashboard/billing" style={{ color: "#991B1B", fontWeight: 600, textDecoration: "underline" }}>Upgrade your plan &rarr;</a>
+                </div>
+              )}
+            </div>
           )}
 
           {/* Actions */}
@@ -893,6 +947,25 @@ export default function VaultPage() {
             </label>
           </div>
 
+          {/* Storage usage indicator */}
+          {(() => {
+            const userPlan = subscription.subscriptionStatus === "active" ? "paid" : "trial";
+            const limits = STORAGE_LIMITS[userPlan];
+            const totalSizeMB = documents.reduce((sum, f) => sum + (f.file_size || 0), 0) / (1024 * 1024);
+            const pct = limits.maxStorageMB > 0 ? Math.min((totalSizeMB / limits.maxStorageMB) * 100, 100) : 0;
+            const barColor = pct > 95 ? "#DC2626" : pct > 80 ? "#F59E0B" : "#22C55E";
+            return (
+              <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 0" }}>
+                <div style={{ width: 120, height: 4, background: "#F5F5F4", borderRadius: 2, overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: `${pct}%`, background: barColor, borderRadius: 2, transition: "width 0.3s ease" }} />
+                </div>
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "#A8A29E" }}>
+                  {Math.round(totalSizeMB)}MB of {limits.maxStorageMB >= 1000 ? `${(limits.maxStorageMB / 1000).toFixed(0)}GB` : `${limits.maxStorageMB}MB`} used &middot; {documents.length} of {limits.maxFiles} files
+                </span>
+              </div>
+            );
+          })()}
+
           {/* ---- Drop zone ---- */}
           <div
             className="da-vault-dropzone"
@@ -962,7 +1035,7 @@ export default function VaultPage() {
                 marginTop: 4,
               }}
             >
-              PDF, DOC, PNG, JPG up to 10MB
+              PDF, DOC, PNG, JPG, MP3, M4A up to 25MB per file
             </div>
             <div
               style={{
@@ -981,6 +1054,16 @@ export default function VaultPage() {
               Browse Files
             </div>
           </div>
+
+          {/* Drop zone validation error */}
+          {uploadError && !showUpload && (
+            <div style={{ background: "#FEF2F2", border: "2px dashed #FECACA", color: "#991B1B", fontFamily: "var(--font-sans)", fontSize: 13, padding: "12px 16px", borderRadius: 8, textAlign: "center", marginBottom: 20, marginTop: -16 }}>
+              {uploadError}
+              {uploadErrorUpgrade && (
+                <span>{" "}<a href="/dashboard/billing" style={{ color: "#991B1B", fontWeight: 600, textDecoration: "underline" }}>Upgrade your plan &rarr;</a></span>
+              )}
+            </div>
+          )}
 
           {documents.length === 0 && filteredDocs.length === 0 ? (
             /* ---- EMPTY STATE ---- */
@@ -1195,11 +1278,12 @@ export default function VaultPage() {
                               height: 40,
                               borderRadius: 10,
                               background: typeIcon.bg,
+                              border: `1px solid ${typeIcon.border}`,
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
                               fontFamily: "var(--font-mono)",
-                              fontSize: 10,
+                              fontSize: 9,
                               fontWeight: 700,
                               color: typeIcon.color,
                               letterSpacing: "0.04em",

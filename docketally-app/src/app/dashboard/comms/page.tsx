@@ -45,12 +45,12 @@ function getTagStyle(tag: string): React.CSSProperties {
   if (tag === "Critical") {
     return {
       display: "inline-block",
-      padding: "3px 10px",
-      borderRadius: 20,
-      fontSize: 10,
+      padding: "3px 8px",
+      borderRadius: 4,
+      fontSize: 9,
       fontWeight: 700,
       fontFamily: "var(--font-mono)",
-      letterSpacing: "0.02em",
+      letterSpacing: "0.06em",
       whiteSpace: "nowrap",
       textTransform: "uppercase",
       color: "#991B1B",
@@ -61,33 +61,33 @@ function getTagStyle(tag: string): React.CSSProperties {
   if (tag === "Strategic") {
     return {
       display: "inline-block",
-      padding: "3px 10px",
-      borderRadius: 20,
-      fontSize: 10,
+      padding: "3px 8px",
+      borderRadius: 4,
+      fontSize: 9,
       fontWeight: 700,
       fontFamily: "var(--font-mono)",
-      letterSpacing: "0.02em",
+      letterSpacing: "0.06em",
       whiteSpace: "nowrap",
       textTransform: "uppercase",
-      color: "#1E40AF",
-      background: "#EFF6FF",
-      border: "1px solid #BFDBFE",
+      color: "#15803D",
+      background: "#F0FDF4",
+      border: "1px solid #BBF7D0",
     };
   }
   // Weekly
   return {
     display: "inline-block",
-    padding: "3px 10px",
-    borderRadius: 20,
-    fontSize: 10,
+    padding: "3px 8px",
+    borderRadius: 4,
+    fontSize: 9,
     fontWeight: 700,
     fontFamily: "var(--font-mono)",
-    letterSpacing: "0.02em",
+    letterSpacing: "0.06em",
     whiteSpace: "nowrap",
     textTransform: "uppercase",
-    color: "#292524",
+    color: "#57534E",
     background: "#F5F5F4",
-    border: "1px solid #D6D3D1",
+    border: "1px solid #E7E5E4",
   };
 }
 
@@ -97,83 +97,89 @@ const TEMPLATES: Template[] = [
     id: "pip-acknowledgment",
     title: "PIP Acknowledgment Letter",
     description:
-      "Formally acknowledge receipt of a PIP while reserving your rights and requesting clarification on metrics.",
+      "Acknowledge receipt of a PIP while asking the right clarifying questions to set yourself up for success.",
     category: "Responding to a PIP",
     tag: "Critical",
-    body: `Dear [MANAGER NAME],
+    body: `Subject: PIP Follow-Up -- Next Steps
 
-I am writing to acknowledge receipt of the Performance Improvement Plan dated [PIP DATE]. I have reviewed the document and understand that the company has outlined concerns regarding [AREA OF CONCERN].
+Hi [Manager Name],
 
-I want to confirm that I am committed to meeting the expectations outlined, and I take this matter seriously. However, I would like to request clarification on a few points to ensure I can meet the stated objectives.
+Thank you for walking me through the performance improvement plan. I want to make sure I understand the expectations clearly so I can meet them.
 
-For [GOAL 1], I would appreciate knowing what specific, measurable benchmarks will be used to evaluate success. For [GOAL 2], can you confirm the resources and support that will be made available during this period? And for [GOAL 3], what is the timeline for each milestone, and how will progress be measured?
+A few quick clarifications that would help me:
 
-I also want to note the following for the record. [CONTEXT OR DISAGREEMENT, e.g.,"I was not previously informed that X was considered below expectations."] Additionally, [ADDITIONAL CONTEXT, e.g.,"I received a positive performance review on DATE."]
+- What does success look like at the 30/60/90-day marks?
+- How often should we check in on progress?
+- Are there specific resources or support available as I work through this?
 
-I would appreciate a meeting to discuss these points at your earliest convenience. Please confirm whether [HR REPRESENTATIVE NAME] will be involved in future check-ins.
+I'm committed to meeting these goals and want to set myself up for success. Would it be helpful to schedule a weekly check-in?
 
-I am signing this document to acknowledge receipt only. My signature does not indicate agreement with the characterizations or assessments contained within the PIP.
-
-Sincerely,
-[YOUR NAME]
-[YOUR TITLE]
-[DATE]`,
+Best,
+[Your Name]`,
   },
   {
     id: "pip-clarification",
     title: "PIP Clarification Request",
     description:
-      "Request specific, measurable criteria and challenge vague language in a PIP.",
+      "Request specific, measurable benchmarks so you can track your own progress and stay focused.",
     category: "Responding to a PIP",
     tag: "Strategic",
-    body: `Dear [MANAGER NAME],
+    body: `Subject: Quick Question on Improvement Plan Details
 
-Thank you for the meeting on [MEETING DATE] regarding the Performance Improvement Plan. I want to ensure I fully understand the expectations so I can work toward meeting them effectively.
+Hi [Manager Name],
 
-I am writing to request clarification on several areas.
+I've been reviewing the improvement plan and want to make sure I'm focused on the right things. A couple of the goals feel broad -- could we define specific, measurable benchmarks so I can track my own progress?
 
-Regarding metrics and measurement, the PIP states I need to "improve" in [AREA]. Could you provide the specific metric or KPI that defines success? I would also like to know what baseline measurement is being used to evaluate my current performance, how frequently progress will be measured, and who will conduct the evaluation.
+For example, for [Specific Goal], would success mean [Possible Metric A] or [Possible Metric B]?
 
-Regarding the timeline, the PIP lists a [DURATION]-day timeline. I would appreciate knowing whether there are interim milestones or checkpoints, and what happens if I meet some but not all of the stated goals by the deadline.
+I'd rather ask now than realize later I was aiming at the wrong target. Happy to discuss in our next 1:1 or whenever works for you.
 
-On the topic of resources and support, will I have access to [TRAINING/MENTORING/TOOLS] as mentioned in our discussion? I would also like to confirm who my designated point of contact is for questions during this period.
-
-Finally, regarding documentation, will I receive written feedback at each checkpoint? And how should I document my own progress? Is there a preferred format?
-
-I am committed to this process and want to ensure transparency on both sides. I would appreciate written responses to the above so we have a shared understanding of the expectations.
-
-Please let me know a good time to meet and discuss.
-
-Best regards,
-[YOUR NAME]
-[YOUR TITLE]
-[DATE]`,
+Thanks,
+[Your Name]`,
   },
   {
     id: "pip-rebuttal",
-    title: "PIP Rebuttal Letter",
+    title: "PIP Response Letter",
     description:
-      "Formally dispute the basis of a PIP with documented evidence and timeline of events.",
+      "Share additional context and relevant performance data that may not be reflected in the improvement plan.",
     category: "Responding to a PIP",
     tag: "Critical",
-    body: `Dear [MANAGER NAME] and [HR REPRESENTATIVE NAME],
+    body: `Subject: Additional Context on Performance Review
 
-I am writing to formally respond to the Performance Improvement Plan issued on [PIP DATE]. While I acknowledge receipt of this document, I respectfully disagree with several of the characterizations and assessments contained within it.
+Hi [Manager Name],
 
-I would like to address some factual corrections. The PIP states [SPECIFIC CLAIM FROM PIP]. However, [YOUR EVIDENCE TO THE CONTRARY, e.g.,"my quarterly metrics from Q1-Q3 show I exceeded the team average by X%."]. The PIP also references [ANOTHER CLAIM]. For the record, [YOUR DOCUMENTED RESPONSE, e.g.,"I raised this issue with management on DATE and received no response."]
+I appreciate the feedback in the improvement plan and I'm taking it seriously. I did want to share some additional context that I think is relevant:
 
-I also have concerns about the timeline. On [DATE], I received a performance review rating of [RATING], with no mention of the concerns now cited. The issues described in the PIP were first raised on [DATE], giving me only [NUMBER] days before the PIP was issued. [ANY OTHER RELEVANT TIMELINE ITEMS]
+- [Specific example of strong performance, with dates]
+- [Specific example of positive feedback received, with dates]
+- [Specific example of challenges outside your control, factually stated]
 
-For additional context, [RELEVANT CONTEXT, e.g.,"during this period, my team was reduced by 40% while my workload remained the same."]. [ADDITIONAL CONTEXT, e.g.,"I requested additional support on DATE and was told none was available."]
+I'm not looking to dispute the process -- I want to make sure we have the full picture so the plan reflects where I actually need to improve. I'm happy to discuss any of this in person.
 
-I am requesting a written response to the factual corrections above, a meeting with [HR / SKIP-LEVEL MANAGER] to discuss this matter, and clarification on whether an alternative to the PIP has been considered.
+Thanks for your time,
+[Your Name]`,
+  },
+  {
+    id: "pip-progress-update",
+    title: "PIP Progress Update",
+    description:
+      "Send a proactive update on your improvement plan progress to show engagement and accountability.",
+    category: "Responding to a PIP",
+    tag: "Strategic",
+    body: `Subject: Progress Update -- Week [Week Number]
 
-I remain committed to performing my role to the best of my ability. I am documenting this response for my personal records.
+Hi [Manager Name],
 
-Sincerely,
-[YOUR NAME]
-[YOUR TITLE]
-[DATE]`,
+Wanted to send a quick update on where things stand:
+
+- [Goal 1]: [What you've done, specific result]
+- [Goal 2]: [What you've done, specific result]
+- [Goal 3]: [What you've done, specific result]
+
+Is this tracking with your expectations? If there's anything I should adjust, I'd rather know now. Looking forward to our next check-in.
+
+Best,
+[Your Name]`,
   },
 
   /* ---- Meeting Follow-Ups ---- */
@@ -181,71 +187,73 @@ Sincerely,
     id: "meeting-summary",
     title: "Meeting Summary Email",
     description:
-      "Send a written summary after any workplace meeting to establish a paper trail of what was discussed and agreed.",
+      "Capture what was discussed and agreed upon so everyone stays aligned on next steps.",
     category: "Meeting Follow-Ups",
     tag: "Weekly",
-    body: `Dear [RECIPIENT NAME],
+    body: `Subject: Summary from Our [Meeting Type] -- [Date]
 
-Thank you for meeting with me on [MEETING DATE]. I wanted to follow up with a written summary of what we discussed to make sure we are aligned.
+Hi [Attendee Names],
 
-The meeting took place on [MEETING DATE] at [MEETING TIME], held at [LOCATION / VIRTUAL PLATFORM]. The attendees were [LIST OF ATTENDEES].
+Thanks for the meeting today. Wanted to capture what we discussed so we're all on the same page:
 
-We covered several key discussion points. First, we discussed [TOPIC 1], specifically [BRIEF SUMMARY OF WHAT WAS DISCUSSED]. We also talked about [TOPIC 2], where [BRIEF SUMMARY OF WHAT WAS DISCUSSED]. Finally, we addressed [TOPIC 3], and [BRIEF SUMMARY OF WHAT WAS DISCUSSED].
+What we covered:
+- [Topic 1]: [Key point or decision]
+- [Topic 2]: [Key point or decision]
 
-In terms of action items, [YOUR NAME] will [ACTION ITEM] by [DATE]. [OTHER PERSON] will [ACTION ITEM] by [DATE]. [ADDITIONAL ACTION ITEMS]
+Action items:
+- [Your Name]: [Task] by [Date]
+- [Other Person]: [Task] by [Date]
 
-We also reached some agreements. We agreed that [AGREEMENT 1], and we agreed that [AGREEMENT 2].
+Anything I missed or got wrong? If not, I'll use this as our working plan. Thanks, everyone.
 
-Please let me know if I have mischaracterized anything or if you have additions. If I don't hear back, I will consider this an accurate record of our discussion.
-
-Best regards,
-[YOUR NAME]`,
+Best,
+[Your Name]`,
   },
   {
     id: "one-on-one-followup",
     title: "1:1 Follow-Up",
     description:
-      "Document key takeaways from your regular 1:1 meetings, especially when performance or expectations are discussed.",
+      "Recap key takeaways from your 1:1 so you and your manager stay aligned on expectations.",
     category: "Meeting Follow-Ups",
     tag: "Weekly",
-    body: `Hi [MANAGER NAME],
+    body: `Subject: Follow-Up from Our 1:1
 
-Thanks for the 1:1 today. I want to make sure I captured the key points correctly.
+Hi [Manager Name],
 
-On the feedback side, [FEEDBACK ITEM 1, e.g.,"you mentioned I should prioritize X project over Y."]. You also noted [FEEDBACK ITEM 2, e.g.,"that my presentation last week went well."]. [FEEDBACK ITEM 3]
+Thanks for the conversation today. Just wanted to capture the key takeaways:
 
-From my end, I shared that [YOUR UPDATE, e.g.,"the Q2 report is on track for Friday delivery."]. I also raised [CONCERN/QUESTION, e.g.,"the timeline for the product launch may need adjustment."]
+- [Key discussion point or feedback received]
+- [Any agreed-upon next steps]
+- [Any deadlines or deliverables discussed]
 
-For next steps, I will [ACTION ITEM] by [DATE]. You mentioned you would [ACTION ITEM, e.g.,"follow up with the team about resource allocation."]
-
-Please let me know if I missed anything. Looking forward to our next check-in on [NEXT MEETING DATE].
+Let me know if I missed anything. Appreciate the time.
 
 Best,
-[YOUR NAME]`,
+[Your Name]`,
   },
   {
     id: "verbal-warning-followup",
     title: "Verbal Warning Follow-Up",
     description:
-      "Create a written record after receiving a verbal warning or informal reprimand.",
+      "Confirm your understanding of feedback received and show you're already taking action to address it.",
     category: "Meeting Follow-Ups",
     tag: "Critical",
-    body: `Dear [MANAGER NAME],
+    body: `Subject: Following Up on Our Conversation -- Want to Make Sure I'm on Track
 
-I am following up on our conversation on [DATE] at [TIME] regarding [TOPIC OF WARNING]. I want to ensure I have an accurate understanding of what was communicated.
+Hi [Manager Name],
 
-Based on our discussion, you stated that [SUMMARY OF WARNING, e.g.,"my recent project delivery was below expectations."]. You indicated that [CONSEQUENCE OR NEXT STEP, e.g.,"if this continues, it may result in a formal PIP."]. You also suggested I [RECOMMENDED ACTION, e.g.,"work more closely with the team lead on project planning."]
+Thanks for being direct with me today. I want to make sure I understood the feedback correctly so I can act on it:
 
-I want to note for the record that [CONTEXT, e.g.,"this is the first time this concern has been raised with me."]. I should also mention that [ADDITIONAL CONTEXT, e.g.,"I was not provided with written documentation of this warning."]. During our conversation, [YOUR RESPONSE, e.g.,"I explained that the delay was due to a dependency on another team."]
+- The concern was about [Your understanding of the issue]
+- Going forward, the expectation is [Your understanding of what needs to change]
+- We agreed on [Any next steps discussed]
 
-Going forward, I will [YOUR PLANNED ACTION] to address the concern raised. I would appreciate [YOUR REQUEST, e.g.,"written feedback going forward so I can track expectations clearly."]
+I've already started [Specific action you're taking], and I plan to [Additional step]. If there's anything else I should be doing differently, I'm open to hearing it.
 
-Please confirm whether this accurately reflects our discussion. I am keeping a copy of this email for my personal records.
+I appreciate you bringing this to my attention directly -- I'd rather know and fix it than not know.
 
-Regards,
-[YOUR NAME]
-[YOUR TITLE]
-[DATE]`,
+Thanks,
+[Your Name]`,
   },
 
   /* ---- Escalation & HR ---- */
@@ -253,430 +261,589 @@ Regards,
     id: "hr-complaint",
     title: "Formal HR Complaint",
     description:
-      "File a formal written complaint with HR about workplace treatment, discrimination, or policy violations.",
+      "Request HR's guidance on a workplace situation you haven't been able to resolve on your own.",
     category: "Escalation & HR",
     tag: "Critical",
-    body: `Dear [HR REPRESENTATIVE NAME],
+    body: `Subject: Requesting Guidance on a Workplace Situation
 
-I am writing to file a formal complaint regarding [NATURE OF COMPLAINT, e.g.,"workplace treatment," "harassment," "discrimination," "retaliation"]. I have attempted to resolve this matter informally but believe it requires formal attention.
+Hi [HR Representative Name],
 
-[1-2 SENTENCE OVERVIEW, e.g.,"Over the past X months, I have experienced repeated instances of Y from Z, which I believe constitutes a violation of company policy."]
+I'm reaching out because I'd like your help with a situation I've been trying to work through on my own.
 
-I would like to provide a detailed account of the relevant incidents. On [DATE], [SPECIFIC INCIDENT, include who was present, what was said/done, and the impact]. On [DATE], [SPECIFIC INCIDENT]. On [DATE], [SPECIFIC INCIDENT].
+Here's a quick summary:
+- [Factual description of the issue -- dates, what happened, who was involved]
+- I've already tried to address this by [What you did -- spoke to manager, raised it in 1:1, sent follow-up email, etc.]
+- Unfortunately, [What happened -- nothing changed, it continued, it got worse, I didn't receive a response]
 
-I have made prior attempts to resolve this. On [DATE], I raised this issue with [PERSON] and was told [RESPONSE]. On [DATE], I [ACTION TAKEN, e.g.,"sent an email requesting a meeting to discuss my concerns."]
+I want to resolve this the right way, and I'd appreciate your guidance on what options are available. I'm not looking to create problems -- I genuinely want to find a solution that works for everyone.
 
-I have supporting evidence available, including [EMAIL/DOCUMENT REFERENCE, e.g.,"an email from DATE regarding X"]. [WITNESS, e.g.,"NAME was present during the incident on DATE."] I also have [OTHER EVIDENCE, e.g.,"a performance review from DATE showing positive feedback."]
+Could we set up a time to talk? I'm flexible on scheduling.
 
-I am requesting a formal investigation into this matter, written confirmation that this complaint has been received and logged, information about the company's investigation process and expected timeline, and assurance that I will be protected from retaliation for filing this complaint.
+Thank you,
+[Your Name]`,
+  },
+  {
+    id: "discrimination-concern",
+    title: "Discrimination Concern",
+    description:
+      "Request a confidential conversation with HR about experiences that may involve discriminatory treatment.",
+    category: "Escalation & HR",
+    tag: "Critical",
+    body: `Subject: Requesting a Confidential Conversation
 
-I am available to meet at your earliest convenience to discuss further.
+Hi [HR Representative Name],
 
-Sincerely,
-[YOUR NAME]
-[YOUR TITLE]
-[DEPARTMENT]
-[DATE]`,
+I'd like to request a confidential conversation about some experiences I've been having at work. I've taken some time to reflect on this and have tried to address it through [Previous steps -- e.g., conversations with my manager, raising it in team settings], but I believe it may need additional attention.
+
+I want to handle this appropriately and would appreciate your guidance on the right approach. Could we find time to meet this week? I can walk you through the specifics in person.
+
+Thank you for your time,
+[Your Name]`,
+  },
+  {
+    id: "harassment-report",
+    title: "Harassment Report",
+    description:
+      "Request a confidential meeting with HR about behavior that's affecting your ability to work.",
+    category: "Escalation & HR",
+    tag: "Critical",
+    body: `Subject: Request for a Confidential Meeting
+
+Hi [HR Representative Name],
+
+I need to discuss something that's been affecting my work. I've been trying to manage it on my own, but I've reached a point where I think it's important to involve someone who can help.
+
+I've previously [Steps taken -- e.g., asked the person to stop, raised it with my manager, tried to avoid the situation], and I want to make sure I'm handling next steps correctly.
+
+Could we schedule 30 minutes this week? I'd prefer to discuss details in person.
+
+Thank you,
+[Your Name]`,
   },
   {
     id: "skip-level-escalation",
     title: "Skip-Level Escalation",
     description:
-      "Escalate concerns to your manager's manager when direct communication has been unsuccessful.",
+      "Reach out to a senior leader for guidance when you haven't been able to resolve a matter through regular channels.",
     category: "Escalation & HR",
     tag: "Strategic",
-    body: `Dear [SKIP-LEVEL MANAGER NAME],
+    body: `Subject: Would Appreciate Your Perspective
 
-I hope this message finds you well. I am reaching out directly because I have been unable to resolve a matter through the usual channels, and I believe it warrants your attention.
+Hi [Senior Leader Name],
 
-I have been in the [ROLE] position on the [TEAM NAME] team for [DURATION]. During this time, [BRIEF POSITIVE CONTEXT, e.g.,"I have consistently met or exceeded performance targets."]
+I hope you're doing well. I wanted to reach out because I'd value your perspective on something I've been working through.
 
-The core concern is as follows. [CLEAR SUMMARY, e.g.,"I have raised concerns about X with my direct manager on multiple occasions, but the issue remains unaddressed."]
+I've raised [Brief description of issue] with [Manager Name] on [Date] and followed up on [Date], but I haven't been able to make progress. I don't want to create unnecessary noise -- I just want to make sure I'm approaching this the right way.
 
-To give you a sense of the timeline, I first raised this on [DATE] when [FIRST ATTEMPT TO RESOLVE, e.g.,"I brought it up with NAME during our 1:1."]. I followed up on [DATE] by [SECOND ATTEMPT, e.g.,"sending an email (attached)."]. Most recently, on [DATE], [MOST RECENT ATTEMPT, e.g.,"I requested a meeting and did not receive a response."]
+Could I get 15 minutes of your time to talk it through? I appreciate your leadership and would value your guidance.
 
-I am asking for [SPECIFIC REQUEST, e.g.,"an opportunity to discuss this matter with you directly."]. I would also welcome [ADDITIONAL REQUEST, e.g.,"a fair review of my performance concerns."]
-
-I want to emphasize that I am raising this matter in good faith and with the goal of finding a constructive resolution. I have documentation available to support the points above.
-
-Thank you for your time. I am available to meet at your convenience.
-
-Respectfully,
-[YOUR NAME]
-[YOUR TITLE]
-[DATE]`,
+Thanks for your time,
+[Your Name]`,
   },
   {
-    id: "retaliation-documentation",
-    title: "Retaliation Documentation Letter",
+    id: "retaliation-concern",
+    title: "Retaliation Concern",
     description:
-      "Document suspected retaliation following a complaint, HR report, or protected activity.",
+      "Flag changes in your treatment following a complaint or protected activity so they can be addressed early.",
     category: "Escalation & HR",
     tag: "Critical",
-    body: `Dear [HR REPRESENTATIVE NAME],
+    body: `Subject: Following Up -- Wanted to Flag Something
 
-I am writing to formally document what I believe to be retaliatory actions taken against me following [PROTECTED ACTIVITY, e.g.,"my formal complaint filed on DATE," "my request for accommodation on DATE," "my report of policy violations on DATE"].
+Hi [HR Representative Name],
 
-Here is the timeline of events. On [DATE], I [PROTECTED ACTIVITY, e.g.,"filed a formal complaint about X."]. Then on [DATE], [FIRST RETALIATORY ACTION, e.g.,"I was removed from the Y project without explanation."]. On [DATE], [SECOND ACTION, e.g.,"my 1:1 meetings with my manager were cancelled for three consecutive weeks."]. On [DATE], [ADDITIONAL ACTION, e.g.,"I was excluded from a team meeting that all other team members attended."]
+I hope you're well. I wanted to follow up on our previous conversation from [Date] about [Brief reference to original complaint].
 
-The change in treatment has been noticeable. Before [PROTECTED ACTIVITY DATE], [POSITIVE TREATMENT, e.g.,"I was included in all team decisions and received positive feedback."]. After [PROTECTED ACTIVITY DATE], [CHANGED TREATMENT, e.g.,"I have been excluded from meetings, reassigned from key projects, and received my first negative feedback."]
+Since then, I've noticed some changes that I want to mention, in case they're relevant:
 
-I have supporting documentation available. This includes [DOCUMENT 1, e.g.,"an email from DATE showing my inclusion on the project"], [DOCUMENT 2, e.g.,"calendar screenshots showing cancelled meetings"], and [DOCUMENT 3, e.g.,"a performance review from DATE showing strong ratings."]
+- [Specific factual change 1 -- e.g., removed from project on Date]
+- [Specific factual change 2 -- e.g., meeting invites stopped on Date]
+- [Specific factual change 3 -- e.g., shift in responsibilities on Date]
 
-I am requesting an immediate investigation into the pattern described above, written confirmation that this letter has been received and logged, protection from further retaliatory actions, and a meeting with [HR/LEGAL] to discuss next steps.
+There may be a perfectly reasonable explanation for each of these, and I don't want to jump to conclusions. But given the timing, I thought it was worth mentioning so we can address it early if needed.
 
-I am documenting this matter for my personal records as well.
+I'm still committed to resolving the original matter constructively. Could we touch base briefly?
 
-Sincerely,
-[YOUR NAME]
-[YOUR TITLE]
-[DATE]`,
+Thanks,
+[Your Name]`,
   },
 
   /* ---- Severance & Exit ---- */
   {
-    id: "severance-counter",
-    title: "Severance Counteroffer Letter",
+    id: "severance-negotiation",
+    title: "Severance Negotiation",
     description:
-      "Respond to a severance offer with a professional counteroffer requesting better terms.",
+      "Respond to a severance offer with clarifying questions and professional requests for adjusted terms.",
     category: "Severance & Exit",
     tag: "Strategic",
-    body: `Dear [HR REPRESENTATIVE NAME / MANAGER NAME],
+    body: `Subject: Following Up on Separation Terms
 
-Thank you for presenting the severance agreement dated [DATE]. I have carefully reviewed the terms and would like to propose the following modifications before signing.
+Hi [HR Representative Name],
 
-As I understand it, the current offer includes [AMOUNT / WEEKS] in severance pay, [DURATION] of benefits continuation, and [SUMMARY OF KEY TERMS].
+Thank you for the conversation about my transition. I've reviewed the initial terms and I have a few questions:
 
-I respectfully request the following adjustments.
+- Could you clarify [Specific term or timeline]?
+- Is there flexibility on [Specific item -- e.g., extended benefits, reference letter]?
+- What is the timeline for finalizing the agreement?
 
-Regarding severance pay, [YOUR REQUESTED AMOUNT, e.g.,"I am requesting X weeks of base salary, increased from the offered Y weeks, reflecting my Z years of tenure."]
+I want to make sure I fully understand everything before moving forward. Happy to schedule a call if that's easier.
 
-Regarding benefits, [YOUR REQUEST, e.g.,"I am requesting COBRA coverage paid by the company for X months instead of Y months."]
-
-Regarding references, [YOUR REQUEST, e.g.,"I am requesting a neutral or positive reference letter, and agreement that the company will not contest unemployment benefits."]
-
-Regarding non-disparagement, [YOUR REQUEST, e.g.,"I am requesting a mutual non-disparagement clause, applying to both parties equally."]
-
-Regarding the transition timeline, [YOUR REQUEST, e.g.,"I am requesting X additional days to review and sign the agreement."]
-
-My rationale is as follows. I have been with the company for [DURATION] and have [RELEVANT CONTRIBUTIONS]. [ADDITIONAL CONTEXT, e.g.,"The circumstances of my departure were not performance-related."]. [MARKET CONTEXT, e.g.,"Industry standard for my role and tenure is X weeks."]
-
-I am open to discussing these points further. Please let me know a convenient time to meet. I may also seek independent legal review of the agreement, as is my right under [RELEVANT LAW, e.g.,"the Older Workers Benefit Protection Act" or "state law"].
-
-Regards,
-[YOUR NAME]
-[DATE]`,
+Thank you,
+[Your Name]`,
   },
   {
     id: "resignation-professional",
-    title: "Professional Resignation Letter",
+    title: "Resignation Letter",
     description:
-      "Resign from your position with a clear, professional tone while preserving your documented record.",
+      "Resign from your position with a clear, professional tone and a commitment to a smooth transition.",
     category: "Severance & Exit",
     tag: "Strategic",
-    body: `Dear [MANAGER NAME],
+    body: `Subject: Resignation -- [Your Name]
 
-I am writing to formally notify you of my resignation from my position as [YOUR TITLE] at [COMPANY NAME], effective [LAST DAY, typically 2 weeks from date].
+Dear [Manager Name],
 
-I have valued my time with the company and the opportunities for professional growth. I am committed to ensuring a smooth transition during my remaining time.
+I'm writing to formally resign from my position as [Your Title], effective [Last Day Date].
 
-For the transition, I plan to complete [CURRENT PROJECT/TASK] by [DATE]. I am available to train my replacement or hand off responsibilities, and I will document [KEY PROCESSES/KNOWLEDGE] before my departure.
+I've valued my time here and the opportunities I've had. I'm committed to making the transition as smooth as possible and am happy to help with knowledge transfer over the next [Notice Period].
 
-On the administrative side, please confirm the process for final pay, including any accrued PTO. I would also appreciate information about COBRA enrollment and benefits termination dates, as well as the return process for company equipment.
-
-I want to note for the record that [OPTIONAL, e.g.,"my resignation is voluntary" or "I have documented my workplace concerns separately" or "this resignation follows the events I have previously reported to HR"]. I am retaining copies of my personal performance records and correspondence for my files.
-
-Please send written confirmation of receipt of this resignation and my official last day.
-
-Thank you for your time.
+Thank you for everything.
 
 Sincerely,
-[YOUR NAME]
-[YOUR TITLE]
-[DATE]`,
+[Your Name]`,
   },
   {
     id: "exit-interview-prep",
     title: "Exit Interview Talking Points",
     description:
-      "Prepare structured talking points for your exit interview: what to say, what to document, and what to hold back.",
+      "Prepare structured talking points so you stay professional and on-message during your exit interview.",
     category: "Severance & Exit",
     tag: "Weekly",
-    body: `EXIT INTERVIEW PREPARATION NOTES
-Date: [EXIT INTERVIEW DATE]
-Interviewer: [NAME AND TITLE]
+    body: `EXIT INTERVIEW PREPARATION
 
-THINGS TO SAY
+Date: [Exit Interview Date]
+Interviewer: [Interviewer Name and Title]
 
-When discussing positive contributions, mention [ACHIEVEMENT 1, e.g.,"leading the X initiative which resulted in Y."] Also highlight [ACHIEVEMENT 2] and [ACHIEVEMENT 3].
+KEY MESSAGES
 
-For constructive feedback that is safe to share, consider mentioning [FEEDBACK 1, e.g.,"that the onboarding process could benefit from better documentation."] You could also note [FEEDBACK 2, e.g.,"that cross-team communication was sometimes challenging."]
+What to say:
+- I've valued my time here and learned a lot, especially [Specific Positive Experience]
+- The strongest parts of my experience were [Positive Aspect 1] and [Positive Aspect 2]
+- One suggestion: [Constructive, Non-Inflammatory Suggestion]
+- Reason for leaving: [Prepared Statement -- e.g., I found an opportunity that aligns with my long-term goals]
 
-When asked about your reason for departure, use this prepared statement: [PREPARED STATEMENT, e.g.,"I am pursuing a new opportunity that aligns with my career goals."]
+What to keep to yourself:
+- [Sensitive Item 1 -- e.g., details of any ongoing HR matters]
+- [Sensitive Item 2 -- e.g., specifics about interpersonal conflicts]
+- [Sensitive Item 3 -- e.g., anything you wouldn't want quoted back to you]
 
-THINGS TO DOCUMENT BUT NOT SAY
+Questions to ask:
+- Will I receive a written summary of this conversation?
+- What is the company's reference policy?
+- When will I receive my final paycheck and any accrued PTO?
+- What's the timeline for COBRA paperwork?
 
-Keep these in your personal records but do not volunteer them in the exit interview. This includes [SENSITIVE ITEM 1, e.g.,"the specific incidents I reported to HR on DATE"], [SENSITIVE ITEM 2, e.g.,"my concerns about retaliation following my complaint"], and [SENSITIVE ITEM 3, e.g.,"details of the severance negotiation."]
-
-QUESTIONS TO ASK
-
-Ask whether you will receive a written summary of the exit interview. Ask about the reference policy, specifically who you can list and what will be disclosed. Confirm when you will receive your final paycheck and any owed PTO. Also ask about the timeline for COBRA enrollment paperwork.
-
-REMINDERS
-
-Be professional and measured throughout the conversation. Do not sign anything new without reviewing it first. Take notes during the interview, and request a copy of any documents presented.`,
+Reminders:
+- Be warm and professional throughout
+- Don't sign anything new without reading it carefully
+- Take notes after the meeting while details are fresh`,
   },
 
   /* ---- Feedback & Reviews ---- */
   {
-    id: "request-written-feedback",
-    title: "Request for Written Feedback",
-    description:
-      "Ask your manager to put verbal feedback in writing so it's on record.",
-    category: "Feedback & Reviews",
-    tag: "Strategic",
-    body: `Hi [MANAGER NAME],
-
-Thanks for the feedback you shared during [our conversation on DATE / our recent 1:1 / the team meeting]. I found it helpful and want to make sure I'm capturing it accurately.
-
-Would you mind sending me a brief written version of what you shared? Even a few sentences would be great. I like to keep track of feedback I receive so I can reference it during review season and make sure I'm making progress in the right areas.
-
-If it's easier, I'm happy to write up my understanding and send it to you for confirmation. Just let me know what works best.
-
-Thanks,
-[YOUR NAME]`,
-  },
-  {
     id: "performance-review-response",
     title: "Performance Review Response",
     description:
-      "Respond professionally to a review you disagree with, using facts.",
+      "Respond thoughtfully to your review by acknowledging feedback and sharing additional context.",
     category: "Feedback & Reviews",
     tag: "Critical",
-    body: `Hi [MANAGER NAME],
+    body: `Subject: Thoughts on Performance Review
 
-Thank you for completing my performance review. I appreciate the time you put into it and want to share some additional context on a few points.
+Hi [Manager Name],
 
-Regarding [AREA OF DISAGREEMENT], I want to note that [SPECIFIC FACT OR EXAMPLE THAT CONTRADICTS THE ASSESSMENT]. For reference, [SUPPORTING DETAIL, e.g.,"this was acknowledged in your email on DATE" or "the project was delivered on DATE, ahead of the original deadline"].
+Thank you for the review and the feedback. I appreciate the recognition of [Positive Items Mentioned] and I understand the areas you'd like to see growth in.
 
-I also want to highlight [ACCOMPLISHMENT OR CONTRIBUTION NOT MENTIONED IN THE REVIEW], which I believe is relevant to the overall assessment of my performance during this period.
+I wanted to share a few thoughts:
 
-I'm not asking for the review to be rewritten, but I would like this response to be included alongside the original evaluation in my file. I want to make sure there's a complete picture of my work.
+- Regarding [Area of Growth]: I've actually been working on this -- [Specific example]. I'd welcome any suggestions on how to improve further.
+- I'd also love to discuss opportunities for [Professional development, expanded responsibilities, etc.]
 
-I'm happy to discuss this further if that would be helpful.
+Could we schedule a follow-up to talk through a development plan? I want to keep building on the momentum.
 
-Thank you,
-[YOUR NAME]`,
+Best,
+[Your Name]`,
+  },
+  {
+    id: "request-written-feedback",
+    title: "Request for Written Feedback",
+    description:
+      "Ask your manager to send a quick written recap of verbal feedback so you can stay on track.",
+    category: "Feedback & Reviews",
+    tag: "Strategic",
+    body: `Subject: Quick Request -- Written Recap of Feedback
+
+Hi [Manager Name],
+
+Thanks for the feedback in our [Meeting or 1:1] today. Would you mind sending me a quick written summary of the key points? It helps me track what I'm working on and make sure I don't miss anything.
+
+No need for anything formal -- even a few bullet points would be great. Appreciate it.
+
+Thanks,
+[Your Name]`,
   },
   {
     id: "self-assessment-submission",
     title: "Self-Assessment Submission",
     description:
-      "Document your accomplishments before review season in your own words.",
+      "Share a summary of your contributions and growth areas ahead of review season.",
     category: "Feedback & Reviews",
     tag: "Weekly",
-    body: `Hi [MANAGER NAME],
+    body: `Subject: Self-Assessment for Review Period
 
-Ahead of the upcoming review cycle, I wanted to share a summary of my contributions over the past [REVIEW PERIOD, e.g.,"six months" or "year"].
+Hi [Manager Name],
 
-The projects I'm most proud of include [PROJECT 1], where I [SPECIFIC RESULT OR IMPACT], and [PROJECT 2], where I [SPECIFIC RESULT OR IMPACT]. I also took on [ADDITIONAL RESPONSIBILITY OR INITIATIVE] which contributed to [OUTCOME].
+Ahead of our upcoming review, I wanted to share a summary of what I've been focused on and where I'd like to grow.
 
-In terms of growth, I've developed in [SKILL OR AREA] through [HOW, e.g.,"leading the Q3 migration" or "completing the certification program"]. Feedback from [COLLEAGUE/STAKEHOLDER NAME] on [DATE OR CONTEXT] reflected this progress.
+Key contributions this period:
+- [Project 1]: [Specific outcome or metric]
+- [Project 2]: [Specific outcome or metric]
+- [Additional Responsibility]: [How it contributed to the team]
 
-Looking ahead, I'd like to focus on [DEVELOPMENT GOAL] and would appreciate your support in [SPECIFIC ASK, e.g.,"access to the leadership training program" or "more visibility on cross-functional projects"].
+Areas I'm working to strengthen:
+- [Growth Area]: I've been [Specific action you're taking to improve]
 
-I hope this is useful context for our review conversation. Happy to discuss any of this in more detail.
+Looking ahead, I'd love to focus on [Development Goal] and would appreciate your input on the best way to get there.
+
+Happy to discuss any of this in our review conversation. Thanks for your support.
 
 Best,
-[YOUR NAME]`,
+[Your Name]`,
   },
 
   /* ---- Role & Compensation ---- */
   {
     id: "role-expansion-documentation",
-    title: "Role Expansion Documentation",
+    title: "Role Expansion Check-In",
     description:
-      "Document when your responsibilities have grown beyond your current title or compensation.",
+      "Touch base with your manager about responsibilities that have grown beyond your original scope.",
     category: "Role & Compensation",
     tag: "Strategic",
-    body: `Hi [MANAGER NAME],
+    body: `Subject: Quick Check-In on My Current Scope
 
-I wanted to take a moment to document some of the responsibilities I've taken on over the past [TIME PERIOD] that go beyond my current role as [CURRENT TITLE].
+Hi [Manager Name],
 
-Since [DATE OR EVENT], I've been handling [RESPONSIBILITY 1], which was previously managed by [PERSON OR ROLE]. I've also taken on [RESPONSIBILITY 2] and [RESPONSIBILITY 3], including [SPECIFIC EXAMPLE OF SCOPE INCREASE].
+I wanted to touch base about the scope of my role. Over the past [Time Period], I've taken on a few additional responsibilities and I want to make sure we're aligned on expectations.
 
-I'm glad to contribute at this level and want to continue doing so. At the same time, I want to make sure my role and compensation reflect the work I'm actually doing. I'd appreciate the opportunity to discuss whether a title adjustment or compensation review would be appropriate given these changes.
+Here's what I'm currently handling beyond my original scope:
+- [New Responsibility 1] -- started around [Date or Timeframe]
+- [New Responsibility 2] -- picked up when [Context]
+- [New Responsibility 3] -- ongoing since [Date or Timeframe]
 
-I'm not looking for an immediate answer, just a conversation. Would any time this week or next work for you?
+I'm happy to keep contributing at this level -- I enjoy the work. I just want to make sure my role reflects what I'm actually doing, so we can have a conversation about it when the time is right.
 
-Thank you,
-[YOUR NAME]`,
+No rush -- just wanted to plant the seed. Happy to discuss whenever works.
+
+Thanks,
+[Your Name]`,
   },
   {
     id: "promotion-request",
     title: "Promotion Request",
     description:
-      "Make a structured case for why you're ready for the next level.",
+      "Start a conversation about your career trajectory and what the path to the next level looks like.",
     category: "Role & Compensation",
     tag: "Strategic",
-    body: `Hi [MANAGER NAME],
+    body: `Subject: Career Growth Conversation
 
-I'd like to formally express my interest in being considered for a promotion to [TARGET ROLE OR LEVEL]. I've given this a lot of thought and want to share why I believe the timing is right.
+Hi [Manager Name],
 
-Over the past [TIME PERIOD], I've consistently delivered at or above the expectations for my current role. Highlights include [ACCOMPLISHMENT 1 WITH MEASURABLE IMPACT], [ACCOMPLISHMENT 2], and [ACCOMPLISHMENT 3]. I've also received positive feedback from [STAKEHOLDER OR COLLEAGUE] regarding [SPECIFIC CONTEXT].
+I'd love to set up some time to talk about my career trajectory. I've been thinking about what the path to [Target Role or Level] looks like, and I want to make sure I'm doing the right things to get there.
 
-In terms of readiness for the next level, I'm already operating at that scope in several areas, including [EXAMPLE OF NEXT-LEVEL WORK]. I've also invested in [DEVELOPMENT ACTIVITY, e.g.,"mentoring junior team members" or "completing the management training program"].
+Over the past [Time Period], I've focused on:
+- [Accomplishment 1 with Measurable Impact]
+- [Accomplishment 2]
+- [Area Where You're Already Operating at Next Level]
 
-I understand that promotions involve timing and budget considerations beyond individual performance. I'm happy to discuss what the path looks like and what, if anything, you'd want to see from me to make this move happen.
+I'd value your candid feedback on where I stand and what you'd need to see from me to make that next step. I'm open to whatever timeline makes sense -- I just want to be proactive about my growth.
 
-Thank you for your support,
-[YOUR NAME]`,
+Thanks for your support,
+[Your Name]`,
   },
   {
     id: "compensation-adjustment-request",
     title: "Compensation Adjustment Request",
     description:
-      "A data-driven, professional ask for a raise.",
+      "Share context for a compensation discussion with market data and expanded scope.",
     category: "Role & Compensation",
     tag: "Strategic",
-    body: `Hi [MANAGER NAME],
+    body: `Subject: Compensation Discussion
 
-I'd like to schedule some time to discuss my compensation. I want to approach this thoughtfully, so I'm sharing some context in advance.
+Hi [Manager Name],
 
-Since my last adjustment on [DATE], my responsibilities have expanded to include [NEW RESPONSIBILITY 1] and [NEW RESPONSIBILITY 2]. I've also delivered [KEY RESULT OR PROJECT] which contributed to [BUSINESS IMPACT].
+I'd like to schedule some time to discuss my compensation. I want to be thoughtful about this, so I'm sharing context in advance.
 
-Based on my research into market rates for [ROLE TITLE] in [LOCATION OR INDUSTRY], the typical range is [SALARY RANGE]. My current compensation of [CURRENT COMP] falls [below/at the lower end of] that range given my experience and contributions.
+Since my last adjustment on [Date], my role has expanded to include [New Responsibility 1] and [New Responsibility 2]. I've also delivered [Key Result] which contributed to [Business Impact].
 
-I'm requesting an adjustment to [TARGET AMOUNT OR RANGE] to reflect both the expanded scope of my work and current market benchmarks. I'm open to discussing the timing and structure of any adjustment.
+Based on what I'm seeing in the market for [Role Title] in [Location or Industry], the typical range is [Salary Range]. I'd like to discuss whether an adjustment is possible to reflect the expanded scope and current benchmarks.
 
-I value my role here and want to make sure the compensation reflects the value I'm contributing. Happy to discuss whenever works for you.
+I'm flexible on timing and structure -- I just want to make sure we're on the same page. Would any time in the next couple weeks work?
 
-Thank you,
-[YOUR NAME]`,
+Thanks,
+[Your Name]`,
   },
   {
     id: "title-change-request",
     title: "Title Change Request",
     description:
-      "Request a title update when your work has outgrown your current title.",
+      "Ask about updating your title to better reflect the work you're actually doing.",
     category: "Role & Compensation",
     tag: "Strategic",
-    body: `Hi [MANAGER NAME],
+    body: `Subject: Quick Question About My Title
 
-I'd like to discuss updating my title to better reflect the work I'm currently doing. My current title of [CURRENT TITLE] was accurate when I started in this role on [DATE], but my responsibilities have since evolved significantly.
+Hi [Manager Name],
 
-Today, I'm regularly [DESCRIPTION OF CURRENT SCOPE, e.g.,"leading cross-functional initiatives", "managing vendor relationships", "owning the full project lifecycle for CLIENT"]. This work aligns more closely with a [PROPOSED TITLE] role than my current designation.
+I wanted to ask about the possibility of updating my title. My current title of [Current Title] was accurate when I started, but the work I'm doing now looks quite different.
 
-A title update matters to me for a few reasons. It ensures my contributions are accurately represented internally, it aligns my role with how I'm already introduced to external stakeholders, and it supports my long-term career development.
+Day to day, I'm regularly [Description of Current Scope -- e.g., leading cross-functional projects, managing vendor relationships, owning client deliverables]. This aligns more closely with a [Proposed Title] role.
 
-I'm happy to discuss this at your convenience and provide any additional context that would be helpful.
+I know titles aren't everything, but it would help with [Reason -- e.g., external stakeholder clarity, career development]. Happy to discuss whenever it makes sense.
 
-Thank you,
-[YOUR NAME]`,
+Thanks,
+[Your Name]`,
   },
 
   /* ---- Workplace Changes ---- */
   {
-    id: "transfer-request",
-    title: "Transfer Request",
+    id: "transfer-concerns",
+    title: "Transfer/Role Change Request",
     description:
-      "Request a team or department transfer professionally.",
+      "Ask clarifying questions about a recent change to make sure you're set up for success.",
     category: "Workplace Changes",
     tag: "Strategic",
-    body: `Hi [MANAGER NAME / HR REPRESENTATIVE NAME],
+    body: `Subject: Questions About the Recent Changes
 
-I'd like to discuss the possibility of transferring to [TARGET TEAM OR DEPARTMENT]. I've thought about this carefully and want to share my reasoning.
+Hi [Manager or HR Name],
 
-I've valued my time on [CURRENT TEAM] and am proud of the work I've done here, particularly [SPECIFIC CONTRIBUTION]. At the same time, I believe my skills in [RELEVANT SKILL] and my interest in [AREA] would allow me to make a stronger impact on [TARGET TEAM], especially given [SPECIFIC OPPORTUNITY OR NEED ON THAT TEAM].
+I wanted to follow up about the recent [Transfer, role change, or restructuring]. I have a few questions:
 
-I've spoken informally with [CONTACT ON TARGET TEAM, if applicable] and understand there may be [OPPORTUNITY OR OPENING]. I want to make sure I'm pursuing this through the right channels and with your awareness.
+- How does this change affect my [Reporting structure, responsibilities, or title]?
+- Is there a formal timeline for the transition?
+- Who should I reach out to if I have concerns during the process?
 
-I'm committed to ensuring a smooth transition for my current responsibilities and am happy to work with you on a timeline that works for the team.
+I want to make sure I'm set up for success in the new structure. Appreciate any clarity you can provide.
 
-Thank you for considering this,
-[YOUR NAME]`,
+Thanks,
+[Your Name]`,
   },
   {
     id: "remote-hybrid-accommodation",
     title: "Remote/Hybrid Accommodation Request",
     description:
-      "Request flexible work arrangements with a professional, documented ask.",
+      "Request a flexible work arrangement with a professional, results-oriented ask.",
     category: "Workplace Changes",
     tag: "Strategic",
-    body: `Hi [MANAGER NAME],
+    body: `Subject: Flexible Work Arrangement Request
 
-I'd like to request a [remote / hybrid / adjusted schedule] arrangement and wanted to put this in writing so we can discuss it properly.
+Hi [Manager Name],
 
-The reason for this request is [REASON, e.g.,"a medical need that I'm happy to discuss privately", "a caregiving responsibility", "a commute that significantly impacts my productivity", "a personal circumstance"]. I've found that I'm able to deliver my best work when [DESCRIPTION OF PREFERRED ARRANGEMENT].
+I'd like to discuss the possibility of a [Remote, hybrid, or adjusted schedule] arrangement. I think it would help me do my best work while still meeting all team expectations.
 
-To address any concerns, I want to note that during [PREVIOUS REMOTE/FLEXIBLE PERIOD OR EXAMPLE], I successfully [SPECIFIC DELIVERABLE OR RESULT]. I'm committed to maintaining full availability during core hours, attending all required meetings, and meeting every deadline.
+The reason: [Brief professional reason -- e.g., a long commute affecting productivity, a personal situation, a health-related need].
 
-If there's a formal process for requesting this accommodation, I'm happy to follow it. I'd also welcome a trial period if that would be helpful in evaluating the arrangement.
+To put your mind at ease, during [Previous remote period or example], I [Specific deliverable or result]. I'm committed to full availability during core hours, attending all meetings, and hitting every deadline.
 
-Thank you for considering this,
-[YOUR NAME]`,
+If it helps, I'm open to a trial period so we can see how it works. Would you be open to discussing it?
+
+Thanks,
+[Your Name]`,
   },
   {
-    id: "workload-concern-documentation",
-    title: "Workload Concern Documentation",
+    id: "workload-concern",
+    title: "Workload Priorities Request",
     description:
-      "Document when your workload is unrealistic or being used to set you up to fail.",
+      "Ask your manager to help you prioritize when deadlines overlap and workload exceeds capacity.",
     category: "Workplace Changes",
     tag: "Critical",
-    body: `Hi [MANAGER NAME],
+    body: `Subject: Quick Question on Priorities
 
-I want to flag a concern about my current workload and make sure it's documented. I take my responsibilities seriously and want to deliver quality work, which is why I'm raising this now rather than waiting until something falls through the cracks.
+Hi [Manager Name],
 
-Over the past [TIME PERIOD], my assignments have included [LIST KEY ASSIGNMENTS]. Several of these have overlapping deadlines, specifically [DEADLINE CONFLICT DETAILS]. Given the scope of each project, I don't believe it's realistic to complete all of them to the standard expected within the current timeline.
+I wanted to get your input on how to prioritize my workload. Right now I'm working on:
 
-I'd like to discuss how to prioritize these assignments. Specifically, I'd appreciate your guidance on which deliverables take priority, whether any deadlines can be adjusted, and whether any tasks can be reassigned or supported by additional resources.
+- [Assignment 1] -- due [Date]
+- [Assignment 2] -- due [Date]
+- [Assignment 3] -- due [Date]
 
-I want to be transparent about this so that expectations are clear and I can focus my energy where it matters most. I'm happy to discuss this in our next meeting or sooner if needed.
+I want to deliver quality work on all of these, and a few of the timelines overlap. Could you help me rank these in order of importance? That way I can make sure the highest-priority items get my best attention first.
 
-Thank you,
-[YOUR NAME]`,
+If everything needs to land on time, I'm happy to discuss what trade-offs might help -- whether that's adjusted deadlines, additional support, or narrowing scope on one of them. I just want to set realistic expectations rather than quietly let something slip.
+
+Happy to discuss whenever works for you.
+
+Thanks,
+[Your Name]`,
   },
   {
     id: "reasonable-accommodation",
     title: "Reasonable Accommodation Request",
     description:
-      "Formally request a workplace accommodation under the ADA or similar laws.",
+      "Formally request a workplace accommodation with a brief, professional ask.",
     category: "Workplace Changes",
     tag: "Critical",
-    body: `Dear [MANAGER NAME / HR REPRESENTATIVE NAME],
+    body: `Subject: Accommodation Request
 
-I am writing to formally request a reasonable accommodation in connection with [CONDITION OR DISABILITY, you are not required to disclose a specific diagnosis, but should indicate that you have a qualifying need]. This request is being made under the Americans with Disabilities Act and any applicable state or local laws.
+Hi [HR Representative Name],
 
-The accommodation I am requesting is [SPECIFIC ACCOMMODATION, e.g.,"a modified work schedule," "ergonomic equipment," "the ability to work remotely on certain days," "a reassignment of non-essential job functions"]. This accommodation would allow me to continue performing the essential functions of my role as [YOUR TITLE] while managing my condition.
+I'd like to request a workplace accommodation related to [General description -- e.g., a medical condition, disability]. I can provide documentation from my healthcare provider if needed.
 
-I am happy to provide supporting documentation from my healthcare provider if needed. I understand the company may want to engage in an interactive process to identify effective accommodations, and I welcome that conversation.
+The accommodation I'm requesting is [Specific accommodation -- e.g., modified schedule, ergonomic equipment, remote work arrangement]. I believe this would allow me to continue performing my role effectively.
 
-For context, I have been in my current role since [START DATE] and have [BRIEF POSITIVE CONTEXT, e.g.,"consistently met performance expectations" or "received positive feedback during my most recent review"]. My request is not related to performance concerns and should not be treated as such.
+Could we schedule a time to discuss the process?
 
-I would appreciate a written acknowledgment that this request has been received, along with information about the next steps and expected timeline for a response. I am available to meet at your convenience to discuss this further.
-
-Thank you for your attention to this matter.
-
-Sincerely,
-[YOUR NAME]
-[YOUR TITLE]
-[DATE]`,
+Thank you,
+[Your Name]`,
   },
 ];
 
 /* ------------------------------------------------------------------ */
-/*  Shared Styles                                                      */
+/*  Placeholder regex                                                  */
 /* ------------------------------------------------------------------ */
 
-const labelStyle: React.CSSProperties = {
-  display: "block",
-  fontFamily: "var(--font-mono)",
-  fontSize: 10,
-  fontWeight: 700,
-  color: "#292524",
-  textTransform: "uppercase",
-  letterSpacing: "0.06em",
-  marginBottom: 8,
+const PLACEHOLDER_RE = /(\[[A-Z][^\[\]]*\])/g;
+
+/* ------------------------------------------------------------------ */
+/*  Template tips                                                      */
+/* ------------------------------------------------------------------ */
+
+const TEMPLATE_TIPS: Record<string, string[]> = {
+  "pip-acknowledgment": [
+    "Send within 24 hours -- it shows you're taking it seriously",
+    "Asking clarifying questions signals engagement, not pushback",
+    "Offering to schedule check-ins shows you want to succeed",
+  ],
+  "pip-clarification": [
+    "Specific metrics protect both sides -- your manager will appreciate the clarity",
+    "Asking questions now prevents misunderstandings later",
+    "Shorter is better -- keep it focused on what you need to know",
+  ],
+  "pip-rebuttal": [
+    "Lead with what you agree with before sharing additional context",
+    "Use specific dates and results -- accuracy shows professionalism",
+    "Offer to discuss in person -- it shows you're collaborative, not combative",
+  ],
+  "pip-progress-update": [
+    "Send these proactively -- don't wait to be asked",
+    "Include specific results, not just activities",
+    "Ask if you're on track -- it shows you care about the outcome",
+  ],
+  "meeting-summary": [
+    "Send within 24 hours while details are fresh and accurate",
+    "Ending with 'let me know if I missed anything' invites correction naturally",
+    "Including action items keeps everyone accountable",
+  ],
+  "one-on-one-followup": [
+    "Send the same day while the conversation is fresh",
+    "Include any verbal commitments -- it helps both of you stay aligned",
+    "Keep it brief -- a quick recap is more likely to be read",
+  ],
+  "verbal-warning-followup": [
+    "Frame it as wanting to get it right, not as defending yourself",
+    "Mention what you're already doing to address it -- action speaks loudest",
+    "Thanking them for directness disarms the situation",
+  ],
+  "hr-complaint": [
+    "Reference what you've already tried -- it shows you're not jumping to escalation",
+    "Asking for guidance rather than demanding action sets a collaborative tone",
+    "Always offer to meet -- it shows you want resolution",
+  ],
+  "discrimination-concern": [
+    "Requesting a confidential conversation gives HR the chance to help before it escalates",
+    "Mention previous steps you've taken -- it shows patience and good faith",
+    "Keep the email short -- details are better shared in person",
+  ],
+  "harassment-report": [
+    "Mention that you've tried to handle it yourself first -- it shows reasonableness",
+    "Requesting an in-person meeting keeps sensitive details out of email",
+    "Keep the tone measured -- calm emails carry more weight",
+  ],
+  "skip-level-escalation": [
+    "Only reach out after you've genuinely tried to resolve it directly",
+    "Be specific about what you've already tried -- it shows you're not skipping steps",
+    "Frame it as wanting guidance, not as going over your manager's head",
+  ],
+  "retaliation-concern": [
+    "Acknowledge there may be a reasonable explanation -- it shows fairness",
+    "Include specific dates and changes -- accuracy builds credibility",
+    "Framing it as 'flagging early' rather than accusing keeps the door open",
+  ],
+  "severance-negotiation": [
+    "Never accept or sign anything on the spot -- asking questions is expected",
+    "Framing requests as questions keeps the negotiation collaborative",
+    "Take your time -- you usually have at least 21 days to review",
+  ],
+  "resignation-professional": [
+    "Keep it brief and warm -- you may need these relationships later",
+    "Offering to help with transition shows class and professionalism",
+    "Send via email so there's clarity on your last day and terms",
+  ],
+  "exit-interview-prep": [
+    "Prepare talking points in advance so you stay on message",
+    "Be positive and constructive -- what you say here can follow you",
+    "Don't volunteer more than you're asked -- keep it professional",
+  ],
+  "performance-review-response": [
+    "Start with what you agree with before sharing your perspective",
+    "Specific examples with dates carry more weight than general statements",
+    "Asking for a follow-up shows you're invested in growth",
+  ],
+  "request-written-feedback": [
+    "Frame it as helping yourself stay on track, not as a request for proof",
+    "Offering to write it up yourself makes it easy for them to say yes",
+    "Follow up once if you don't hear back, then let it go",
+  ],
+  "self-assessment-submission": [
+    "Quantify results wherever possible -- numbers speak louder than narratives",
+    "Include feedback from others to show broader impact",
+    "Submitting early gives your manager time to prepare thoughtfully",
+  ],
+  "role-expansion-documentation": [
+    "Frame it as wanting alignment, not as a complaint about workload",
+    "Be specific about when each new responsibility started",
+    "Planting the seed early makes the eventual conversation easier",
+  ],
+  "promotion-request": [
+    "Asking for feedback on readiness is more effective than asking for a promotion directly",
+    "Tie your contributions to business impact, not just personal effort",
+    "Time this during review season or after a visible win",
+  ],
+  "compensation-adjustment-request": [
+    "Sharing context in advance gives your manager time to advocate internally",
+    "Market data makes the case -- focus on benchmarks, not personal needs",
+    "Being flexible on timing shows maturity and patience",
+  ],
+  "title-change-request": [
+    "Titles are often easier to change than compensation -- start here if relevant",
+    "Reference how you're already being introduced externally",
+    "Keep the ask casual -- a light touch goes further than a formal demand",
+  ],
+  "transfer-concerns": [
+    "Ask clarifying questions -- it shows you're engaged, not resistant",
+    "Understanding the rationale helps you adapt faster",
+    "Following up in writing prevents misunderstandings during transitions",
+  ],
+  "remote-hybrid-accommodation": [
+    "Offering a trial period reduces perceived risk for your manager",
+    "Reference past productivity during flexible work -- results matter",
+    "Keep it professional -- personal reasons don't need to be detailed",
+  ],
+  "workload-concern": [
+    "Asking for priorities shows initiative, not weakness",
+    "Raise it before something falls through the cracks, not after",
+    "Offering trade-offs shows you're thinking about the team, not just yourself",
+  ],
+  "reasonable-accommodation": [
+    "You don't need to share your specific diagnosis",
+    "Your employer is legally required to engage in a conversation about accommodations",
+    "Keep the email brief -- details can be discussed in person",
+  ],
 };
 
 /* ------------------------------------------------------------------ */
@@ -691,10 +858,17 @@ export default function CommsPage() {
     "All"
   );
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
-  const [editedBody, setEditedBody] = useState("");
-  const [copied, setCopied] = useState(false);
+  const [activeTemplateId, setActiveTemplateId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Edit & Fill state
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [filledValues, setFilledValues] = useState<Record<string, string>>({});
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const editInputRef = useRef<HTMLInputElement>(null);
+
+  // Toast state
+  const [showToast, setShowToast] = useState(false);
 
   // Filter templates
   const filteredTemplates = TEMPLATES.filter((t) => {
@@ -718,58 +892,187 @@ export default function CommsPage() {
   // Select template
   const openTemplate = useCallback((template: Template) => {
     setSelectedTemplate(template);
-    setEditedBody(template.body);
-    setCopied(false);
+    setActiveTemplateId(template.id);
+    setIsEditMode(false);
+    setFilledValues({});
+    setEditingIndex(null);
+    setShowToast(false);
   }, []);
+
+  // Build final text with filled placeholder values
+  function getTextWithFilledValues(body: string): string {
+    if (Object.keys(filledValues).length === 0) return body;
+    return body.replace(PLACEHOLDER_RE, (match) => {
+      return filledValues[match] || match;
+    });
+  }
 
   // Copy to clipboard
   async function copyToClipboard() {
+    const text = selectedTemplate ? getTextWithFilledValues(selectedTemplate.body) : "";
     try {
-      await navigator.clipboard.writeText(editedBody);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      await navigator.clipboard.writeText(text);
     } catch {
-      // Fallback
       const textarea = document.createElement("textarea");
-      textarea.value = editedBody;
+      textarea.value = text;
       document.body.appendChild(textarea);
       textarea.select();
       document.execCommand("copy");
       document.body.removeChild(textarea);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
     }
-  }
-
-  // Reset template
-  function resetTemplate() {
-    if (selectedTemplate) {
-      setEditedBody(selectedTemplate.body);
-      setCopied(false);
-    }
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 2000);
   }
 
   // Back to list
   function backToList() {
     setSelectedTemplate(null);
-    setEditedBody("");
-    setCopied(false);
+    setIsEditMode(false);
+    setFilledValues({});
+    setEditingIndex(null);
+    setShowToast(false);
   }
 
-  // Count placeholders
-  const placeholderCount = (editedBody.match(/\[[A-Z][A-Z0-9 /—,.']*\]/g) || []).length;
-
-  // Auto-resize textarea
+  // Auto-focus edit input
   useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto";
-      textareaRef.current.style.height = textareaRef.current.scrollHeight + "px";
+    if (editingIndex !== null && editInputRef.current) {
+      editInputRef.current.focus();
     }
-  }, [editedBody]);
+  }, [editingIndex]);
+
+  /* ---------------------------------------------------------------- */
+  /*  Render body with placeholder chips                               */
+  /* ---------------------------------------------------------------- */
+
+  function renderBodyWithPlaceholders(body: string) {
+    const parts = body.split(PLACEHOLDER_RE);
+    return parts.map((part, i) => {
+      // Check if this part is a placeholder
+      if (PLACEHOLDER_RE.test(part)) {
+        // Reset regex lastIndex since we use .test
+        PLACEHOLDER_RE.lastIndex = 0;
+        const filled = filledValues[part];
+
+        // Currently editing this specific placeholder instance
+        if (isEditMode && editingIndex === i) {
+          return (
+            <input
+              key={i}
+              ref={editInputRef}
+              defaultValue={filled || ""}
+              placeholder={part.slice(1, -1)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  const val = (e.target as HTMLInputElement).value.trim();
+                  if (val) {
+                    setFilledValues((prev) => ({ ...prev, [part]: val }));
+                  }
+                  setEditingIndex(null);
+                }
+              }}
+              onBlur={(e) => {
+                const val = e.target.value.trim();
+                if (val) {
+                  setFilledValues((prev) => ({ ...prev, [part]: val }));
+                }
+                setEditingIndex(null);
+              }}
+              style={{
+                border: "none",
+                borderBottom: "2px solid #22C55E",
+                background: "transparent",
+                fontFamily: "var(--font-sans)",
+                fontSize: 14,
+                color: "#292524",
+                outline: "none",
+                padding: "0 2px",
+                minWidth: 80,
+                width: `${Math.max(80, (filled || part.slice(1, -1)).length * 8.5)}px`,
+              }}
+            />
+          );
+        }
+
+        // Filled placeholder
+        if (filled) {
+          return (
+            <span
+              key={i}
+              onClick={() => {
+                if (isEditMode) setEditingIndex(i);
+              }}
+              style={{
+                background: "#F0FDF4",
+                color: "#15803D",
+                border: "1px solid #BBF7D0",
+                borderRadius: 4,
+                padding: "1px 6px",
+                fontFamily: "var(--font-mono)",
+                fontSize: 13,
+                cursor: isEditMode ? "pointer" : "default",
+                transition: "background 0.15s",
+              }}
+            >
+              {filled}
+            </span>
+          );
+        }
+
+        // Unfilled placeholder chip
+        return (
+          <span
+            key={i}
+            onClick={() => {
+              if (isEditMode) setEditingIndex(i);
+            }}
+            onMouseEnter={(e) => {
+              if (isEditMode) {
+                e.currentTarget.style.background = "#FEF3C7";
+                e.currentTarget.style.borderColor = "#F59E0B";
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (isEditMode) {
+                e.currentTarget.style.background = "#FFFBEB";
+                e.currentTarget.style.borderColor = "#FDE68A";
+              }
+            }}
+            style={{
+              background: "#FFFBEB",
+              color: "#92400E",
+              border: "1px solid #FDE68A",
+              borderRadius: 4,
+              padding: "1px 6px",
+              fontFamily: "var(--font-mono)",
+              fontSize: 13,
+              cursor: isEditMode ? "pointer" : "default",
+              transition: "background 0.15s",
+            }}
+          >
+            {part}
+          </span>
+        );
+      }
+
+      // Regular text -- preserve newlines
+      return (
+        <span key={i}>
+          {part.split("\n").map((line, li, arr) => (
+            <span key={li}>
+              {line}
+              {li < arr.length - 1 && <br />}
+            </span>
+          ))}
+        </span>
+      );
+    });
+  }
 
   /* ---------------------------------------------------------------- */
   /*  Template Editor View                                             */
   /* ---------------------------------------------------------------- */
+
+  const tips = selectedTemplate ? (TEMPLATE_TIPS[selectedTemplate.id] || []) : [];
 
   if (selectedTemplate) {
     return (
@@ -814,79 +1117,132 @@ export default function CommsPage() {
           Back to templates
         </button>
 
-        {/* Template header */}
-        <div style={{ marginBottom: 24 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-            <span style={getTagStyle(selectedTemplate.tag)}>
-              {selectedTemplate.tag}
-            </span>
-            <span
-              style={{
-                fontSize: 11,
-                color: "var(--color-stone-500)",
-                fontFamily: "var(--font-mono)",
-                textTransform: "uppercase",
-                letterSpacing: "0.04em",
-              }}
-            >
-              {selectedTemplate.category}
-            </span>
-          </div>
-          <h1
-            style={{
-              fontFamily: "var(--font-serif)",
-              fontSize: 26,
-              fontWeight: 700,
-              color: "#292524",
-              marginBottom: 8,
-            }}
-          >
-            {selectedTemplate.title}
-          </h1>
-          <p
-            style={{
-              fontSize: 14,
-              color: "var(--color-stone-600)",
-              lineHeight: 1.6,
-              fontFamily: "var(--font-sans)",
-            }}
-          >
-            {selectedTemplate.description}
-          </p>
-        </div>
-
-        {/* Placeholder hint */}
-        {placeholderCount > 0 && (
+        {/* Template header with actions */}
+        <div style={{ marginBottom: 0 }}>
           <div
             style={{
-              background: "#EFF6FF",
-              border: "1px solid #BFDBFE",
-              borderRadius: 10,
-              padding: "12px 16px",
-              marginBottom: 20,
               display: "flex",
-              alignItems: "center",
-              gap: 10,
-              fontSize: 13,
-              color: "#1E40AF",
-              fontFamily: "var(--font-sans)",
+              alignItems: "flex-start",
+              justifyContent: "space-between",
+              gap: 16,
+              marginBottom: 8,
+              flexWrap: "wrap",
             }}
           >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
+            {/* Left: Title + Tag */}
+            <div style={{ flex: 1, minWidth: 200 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                <h1
+                  style={{
+                    fontFamily: "var(--font-serif)",
+                    fontSize: 26,
+                    fontWeight: 700,
+                    color: "#292524",
+                    margin: 0,
+                  }}
+                >
+                  {selectedTemplate.title}
+                </h1>
+                <span style={getTagStyle(selectedTemplate.tag)}>
+                  {selectedTemplate.tag}
+                </span>
+              </div>
+              <p
+                style={{
+                  fontSize: 14,
+                  color: "var(--color-stone-600)",
+                  lineHeight: 1.6,
+                  fontFamily: "var(--font-sans)",
+                  margin: 0,
+                }}
+              >
+                {selectedTemplate.description}
+              </p>
+            </div>
+
+            {/* Right: Copy + Edit & Fill buttons */}
+            <div style={{ display: "flex", gap: 8, flexShrink: 0, marginTop: 4 }}>
+              <button
+                onClick={copyToClipboard}
+                style={{
+                  background: "transparent",
+                  border: "1px solid #E7E5E4",
+                  borderRadius: 8,
+                  padding: "8px 14px",
+                  cursor: "pointer",
+                  fontFamily: "var(--font-sans)",
+                  fontSize: 12.5,
+                  fontWeight: 600,
+                  color: "#57534E",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 5,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = "#D6D3D1";
+                  e.currentTarget.style.background = "var(--color-stone-50)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "#E7E5E4";
+                  e.currentTarget.style.background = "transparent";
+                }}
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#78716C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                  <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                </svg>
+                Copy
+              </button>
+              <button
+                onClick={() => setIsEditMode(!isEditMode)}
+                style={{
+                  background: isEditMode ? "#16A34A" : "#22C55E",
+                  border: "none",
+                  borderRadius: 8,
+                  padding: "8px 14px",
+                  cursor: "pointer",
+                  fontFamily: "var(--font-sans)",
+                  fontSize: 12.5,
+                  fontWeight: 600,
+                  color: "#FFFFFF",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 5,
+                }}
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+                {isEditMode ? "Done Editing" : "Edit & Fill"}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Tip bar */}
+        {isEditMode && (
+          <div
+            style={{
+              padding: "10px 28px",
+              background: "#FFFBEB",
+              borderBottom: "1px solid #FDE68A",
+              borderTop: "1px solid #FDE68A",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              marginTop: 16,
+              borderRadius: "10px 10px 0 0",
+            }}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
               <circle cx="12" cy="12" r="10" />
               <line x1="12" y1="16" x2="12" y2="12" />
               <line x1="12" y1="8" x2="12.01" y2="8" />
             </svg>
-            {placeholderCount} placeholder{placeholderCount !== 1 ? "s" : ""} to fill in. Look for [BRACKETED TEXT]
+            <span style={{ fontSize: 12, color: "#92400E", fontFamily: "var(--font-sans)" }}>
+              Click any highlighted field to fill in your details
+            </span>
           </div>
         )}
 
@@ -898,7 +1254,8 @@ export default function CommsPage() {
               border: "1px solid #FDE68A",
               borderRadius: 10,
               padding: "12px 16px",
-              marginBottom: 20,
+              marginTop: isEditMode ? 0 : 16,
+              marginBottom: 0,
               display: "flex",
               alignItems: "flex-start",
               gap: 10,
@@ -929,202 +1286,102 @@ export default function CommsPage() {
           </div>
         )}
 
-        {/* Textarea editor */}
+        {/* Template content with placeholder chips */}
         <div
           style={{
             background: "#fff",
-            borderRadius: 14,
+            borderRadius: isEditMode ? "0 0 14px 14px" : 14,
             border: "1px solid var(--color-stone-300)",
-            overflow: "hidden",
+            borderTop: isEditMode ? "none" : "1px solid var(--color-stone-300)",
+            padding: "28px 28px",
+            marginTop: isEditMode ? 0 : 16,
+            fontSize: 14,
+            fontFamily: "var(--font-sans)",
+            color: "#292524",
+            lineHeight: 1.8,
+            whiteSpace: "pre-wrap",
+            wordWrap: "break-word",
           }}
         >
-          <div
-            className="da-comms-editor-bar"
-            style={{
-              padding: "14px 20px",
-              borderBottom: "1px solid var(--color-stone-100)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 12,
-            }}
-          >
-            <label style={{ ...labelStyle, marginBottom: 0 }}>Edit Template</label>
-            <div style={{ display: "flex", gap: 8 }}>
-              <button
-                onClick={resetTemplate}
-                style={{
-                  padding: "6px 14px",
-                  borderRadius: 8,
-                  border: "1px solid #D6D3D1",
-                  background: "#fff",
-                  color: "#292524",
-                  fontSize: 12,
-                  fontWeight: 600,
-                  fontFamily: "var(--font-sans)",
-                  cursor: "pointer",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "var(--color-stone-50)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "#fff";
-                }}
-              >
-                Reset
-              </button>
-              <button
-                onClick={copyToClipboard}
-                style={{
-                  padding: "6px 14px",
-                  borderRadius: 8,
-                  border: "none",
-                  background: copied ? "#16A34A" : "var(--color-green)",
-                  color: "#fff",
-                  fontSize: 12,
-                  fontWeight: 600,
-                  fontFamily: "var(--font-sans)",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  transition: "background 0.15s",
-                }}
-              >
-                {copied ? (
-                  <>
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                    Copied
-                  </>
-                ) : (
-                  <>
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                      <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
-                    </svg>
-                    Copy to Clipboard
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-          <textarea
-            ref={textareaRef}
-            value={editedBody}
-            onChange={(e) => {
-              setEditedBody(e.target.value);
-              setCopied(false);
-            }}
-            style={{
-              width: "100%",
-              padding: "20px 20px",
-              border: "none",
-              fontSize: 14,
-              fontFamily: "var(--font-sans)",
-              color: "#292524",
-              lineHeight: 1.7,
-              resize: "none",
-              outline: "none",
-              background: "#fff",
-              minHeight: 400,
-              display: "block",
-            }}
-          />
+          {renderBodyWithPlaceholders(selectedTemplate.body)}
         </div>
 
-        {/* Bottom action bar */}
-        <div
-          className="da-comms-editor-bar"
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginTop: 20,
-          }}
-        >
-          <span
+        {/* Tips footer */}
+        {tips.length > 0 && (
+          <div
             style={{
-              fontSize: 12,
-              color: "var(--color-stone-500)",
-              fontFamily: "var(--font-mono)",
+              padding: "28px 28px 16px",
+              background: "#FAFAF9",
+              borderLeft: "1px solid var(--color-stone-300)",
+              borderRight: "1px solid var(--color-stone-300)",
+              borderBottom: "1px solid var(--color-stone-300)",
+              borderTop: "1px solid #F5F5F4",
+              borderRadius: "0 0 14px 14px",
+              marginTop: -14,
             }}
           >
-            {editedBody.length} characters
-          </span>
-          <button
-            onClick={copyToClipboard}
+            <div
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: 9.5,
+                fontWeight: 700,
+                textTransform: "uppercase",
+                color: "#A8A29E",
+                letterSpacing: "0.06em",
+                marginBottom: 10,
+              }}
+            >
+              Tips for this template
+            </div>
+            <ul
+              style={{
+                margin: 0,
+                paddingLeft: 18,
+                display: "flex",
+                flexDirection: "column",
+                gap: 6,
+              }}
+            >
+              {tips.map((tip, i) => (
+                <li
+                  key={i}
+                  style={{
+                    fontSize: 13,
+                    color: "var(--color-stone-600)",
+                    fontFamily: "var(--font-sans)",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {tip}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Toast notification */}
+        {showToast && (
+          <div
             style={{
-              padding: "12px 24px",
-              borderRadius: 10,
-              border: "none",
-              background: copied ? "#16A34A" : "var(--color-green)",
+              position: "fixed",
+              bottom: 24,
+              left: "50%",
+              transform: "translateX(-50%)",
+              background: "#292524",
               color: "#fff",
-              fontSize: 14,
-              fontWeight: 600,
               fontFamily: "var(--font-sans)",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              transition: "background 0.15s",
+              fontSize: 13,
+              fontWeight: 600,
+              padding: "10px 20px",
+              borderRadius: 8,
+              boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+              zIndex: 9999,
+              animation: "toastFade 2s ease forwards",
             }}
           >
-            {copied ? (
-              <>
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-                Copied to Clipboard
-              </>
-            ) : (
-              <>
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                  <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
-                </svg>
-                Copy to Clipboard
-              </>
-            )}
-          </button>
-        </div>
+            Copied to clipboard
+          </div>
+        )}
       </div>
     );
   }
@@ -1353,88 +1610,99 @@ export default function CommsPage() {
                 gap: 12,
               }}
             >
-              {group.templates.map((template) => (
-                <button
-                  key={template.id}
-                  onClick={() => openTemplate(template)}
-                  style={{
-                    background: "#fff",
-                    borderRadius: 14,
-                    border: "1px solid var(--color-stone-300)",
-                    padding: "20px 20px",
-                    textAlign: "left",
-                    cursor: "pointer",
-                    transition: "border-color 0.15s, box-shadow 0.15s",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 10,
-                    boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = "#D6D3D1";
-                    e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.03)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = "var(--color-stone-300)";
-                    e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)";
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={getTagStyle(template.tag)}>{template.tag}</span>
-                  </div>
-                  <div
+              {group.templates.map((template) => {
+                const isCardActive = activeTemplateId === template.id;
+                return (
+                  <button
+                    key={template.id}
+                    onClick={() => openTemplate(template)}
                     style={{
-                      fontSize: 15,
-                      fontWeight: 600,
-                      color: "#292524",
-                      fontFamily: "var(--font-sans)",
-                    }}
-                  >
-                    {template.title}
-                  </div>
-                  <p
-                    style={{
-                      fontSize: 13,
-                      color: "var(--color-stone-600)",
-                      lineHeight: 1.6,
-                      fontFamily: "var(--font-sans)",
-                      display: "-webkit-box",
-                      WebkitLineClamp: 3,
-                      WebkitBoxOrient: "vertical" as never,
-                      overflow: "hidden",
-                    }}
-                  >
-                    {template.description}
-                  </p>
-                  <div
-                    style={{
+                      background: "#fff",
+                      borderRadius: 14,
+                      border: isCardActive
+                        ? "2px solid #22C55E"
+                        : "1px solid var(--color-stone-300)",
+                      padding: isCardActive ? "19px 19px" : "20px 20px",
+                      textAlign: "left",
+                      cursor: "pointer",
+                      transition: "border-color 0.15s, box-shadow 0.15s",
                       display: "flex",
-                      alignItems: "center",
-                      gap: 6,
-                      fontSize: 12,
-                      color: "var(--color-green-text)",
-                      fontWeight: 600,
-                      fontFamily: "var(--font-sans)",
-                      marginTop: "auto",
+                      flexDirection: "column",
+                      gap: 10,
+                      boxShadow: isCardActive
+                        ? "0 0 0 3px rgba(34,197,94,0.08), 0 1px 3px rgba(0,0,0,0.04)"
+                        : "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isCardActive) {
+                        e.currentTarget.style.borderColor = "#D6D3D1";
+                        e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.03)";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isCardActive) {
+                        e.currentTarget.style.borderColor = "var(--color-stone-300)";
+                        e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)";
+                      }
                     }}
                   >
-                    Use template
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={getTagStyle(template.tag)}>{template.tag}</span>
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 15,
+                        fontWeight: 600,
+                        color: "#292524",
+                        fontFamily: "var(--font-sans)",
+                      }}
                     >
-                      <line x1="5" y1="12" x2="19" y2="12" />
-                      <polyline points="12 5 19 12 12 19" />
-                    </svg>
-                  </div>
-                </button>
-              ))}
+                      {template.title}
+                    </div>
+                    <p
+                      style={{
+                        fontSize: 13,
+                        color: "var(--color-stone-600)",
+                        lineHeight: 1.6,
+                        fontFamily: "var(--font-sans)",
+                        display: "-webkit-box",
+                        WebkitLineClamp: 3,
+                        WebkitBoxOrient: "vertical" as never,
+                        overflow: "hidden",
+                      }}
+                    >
+                      {template.description}
+                    </p>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
+                        fontSize: 12,
+                        color: "var(--color-green-text)",
+                        fontWeight: 600,
+                        fontFamily: "var(--font-sans)",
+                        marginTop: "auto",
+                      }}
+                    >
+                      Use template
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                        <polyline points="12 5 19 12 12 19" />
+                      </svg>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
         ))

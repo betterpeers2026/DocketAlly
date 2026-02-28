@@ -264,6 +264,7 @@ export default function Sidebar({ user, subscription }: { user: User; subscripti
           display: "flex",
           flexDirection: "column",
           flexShrink: 0,
+          overflow: "hidden",
         }}
       >
       {/* Logo */}

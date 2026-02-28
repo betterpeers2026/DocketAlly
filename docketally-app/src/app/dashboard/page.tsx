@@ -7,6 +7,7 @@ import RichTextarea from "@/components/RichTextarea";
 import { renderMarkdown } from "@/lib/renderMarkdown";
 import { useSubscription } from "@/components/SubscriptionProvider";
 import { hasActiveAccess } from "@/lib/subscription";
+import CaseFilePanel from "@/components/CaseFilePanel";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -108,7 +109,7 @@ function getInitials(name: string): string {
   return name.trim().slice(0, 2).toUpperCase();
 }
 
-const PILL_COLORS = ["#8B5CF6", "#3B82F6", "#22C55E", "#F59E0B", "#EC4899", "#06B6D4"];
+const AVATAR_COLOR = "#A8A29E";
 
 function todayStr(): string {
   return new Date().toISOString().split("T")[0];
@@ -227,9 +228,9 @@ export default function RecordPage() {
     if (!userId) return;
     const { data } = await supabase
       .from("cases")
-      .select("id, name, case_type, case_types")
+      .select("*")
       .eq("user_id", userId)
-      .order("name");
+      .order("created_at", { ascending: false });
     if (data) setCases(data);
   }, [userId, supabase]);
 
@@ -676,7 +677,8 @@ export default function RecordPage() {
     formData.entry_type && formData.title.trim() && formData.narrative.trim();
 
   return (
-    <div className="da-page-wrapper" style={{ padding: 32, maxWidth: 960, margin: "0 auto" }}>
+    <div className="da-records-layout">
+    <div className="da-page-wrapper" style={{ padding: 32, maxWidth: 960, flex: 1, minWidth: 0 }}>
       {/* ---- FORM VIEW ---- */}
       {showForm ? (
         <div
@@ -1393,7 +1395,7 @@ export default function RecordPage() {
                           <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14 }}>
                             {people.map((person, i) => (
                               <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 7, padding: "4px 12px 4px 4px", borderRadius: 20, background: "#FAFAF9", border: "1px solid #E7E5E4", fontSize: 12.5, color: "#44403C", fontFamily: "var(--font-sans)", fontWeight: 500 }}>
-                                <span style={{ width: 24, height: 24, borderRadius: "50%", background: PILL_COLORS[i % PILL_COLORS.length], color: "#fff", fontSize: 9, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-mono)", boxShadow: "0 1px 2px rgba(0,0,0,0.1)" }}>
+                                <span style={{ width: 24, height: 24, borderRadius: "50%", background: AVATAR_COLOR, color: "#fff", fontSize: 9, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-mono)", boxShadow: "0 1px 2px rgba(0,0,0,0.1)" }}>
                                   {getInitials(person)}
                                 </span>
                                 {person}
@@ -1498,7 +1500,7 @@ export default function RecordPage() {
                               <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                                 {people.map((person, i) => (
                                   <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 7, padding: "4px 12px 4px 4px", borderRadius: 20, background: "#FAFAF9", border: "1px solid #E7E5E4", fontSize: 12.5, color: "#44403C", fontFamily: "var(--font-sans)", fontWeight: 500 }}>
-                                    <span style={{ width: 24, height: 24, borderRadius: "50%", background: PILL_COLORS[i % PILL_COLORS.length], color: "#fff", fontSize: 9, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-mono)", boxShadow: "0 1px 2px rgba(0,0,0,0.1)" }}>
+                                    <span style={{ width: 24, height: 24, borderRadius: "50%", background: AVATAR_COLOR, color: "#fff", fontSize: 9, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-mono)", boxShadow: "0 1px 2px rgba(0,0,0,0.1)" }}>
                                       {getInitials(person)}
                                     </span>
                                     {person}
@@ -1938,6 +1940,39 @@ export default function RecordPage() {
           </div>
         </div>
       )}
+    </div>
+    <CaseFilePanel cases={cases} userId={userId || ""} subscription={subscription} />
+    {cases.length > 0 && (
+      <button
+        className="da-casefile-fab"
+        onClick={() => router.push(`/dashboard/case/${cases[0].id}?tab=casefile`)}
+        style={{
+          position: "fixed",
+          bottom: 80,
+          right: 20,
+          width: 48,
+          height: 48,
+          borderRadius: "50%",
+          background: "#22C55E",
+          color: "#fff",
+          border: "none",
+          boxShadow: "0 4px 12px rgba(34,197,94,0.35)",
+          cursor: "pointer",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 50,
+        }}
+        title="View Case File"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+          <polyline points="14 2 14 8 20 8" />
+          <line x1="16" y1="13" x2="8" y2="13" />
+          <line x1="16" y1="17" x2="8" y2="17" />
+          <polyline points="10 9 9 9 8 9" />
+        </svg>
+      </button>
+    )}
     </div>
   );
 }

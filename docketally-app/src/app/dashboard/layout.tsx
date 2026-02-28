@@ -43,6 +43,8 @@ export default async function DashboardLayout({
             display: "flex",
             flexDirection: "column",
             overflow: "hidden",
+            position: "relative",
+            zIndex: 1,
           }}
         >
           <TopBar />
