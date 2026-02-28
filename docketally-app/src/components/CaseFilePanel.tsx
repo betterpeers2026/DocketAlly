@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { renderMarkdown } from "@/lib/renderMarkdown";
 import type { SubscriptionInfo } from "@/lib/subscription";
 import CaseFileDocument from "@/components/CaseFileDocument";
 
@@ -50,12 +49,15 @@ interface DocketRecord {
   user_id: string;
   title: string;
   entry_type: string;
+  event_type: string | null;
   date: string;
   time: string | null;
   narrative: string;
   people: string | null;
   facts: string | null;
   follow_up: string | null;
+  employer_stated_reason: string | null;
+  my_response: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -64,6 +66,41 @@ interface VaultDocument {
   id: string;
   file_name: string;
   category: string;
+  linked_record_id: string | null;
+  created_at: string;
+}
+
+interface Plan {
+  id: string;
+  user_id: string;
+  name: string;
+  start_date: string;
+  end_date: string | null;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface PlanGoal {
+  id: string;
+  plan_id: string;
+  description: string;
+  status: string;
+  deadline: string | null;
+  original_description: string | null;
+  revised_date: string | null;
+  revision_notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface PlanCheckin {
+  id: string;
+  plan_id: string;
+  checkin_date: string;
+  summary: string;
+  manager_feedback: string | null;
+  private_notes: string | null;
   linked_record_id: string | null;
   created_at: string;
 }
@@ -166,12 +203,6 @@ function resolveTypes(
   if (c.case_types && c.case_types.length > 0) return c.case_types;
   if (c.case_type) return [c.case_type];
   return ["General"];
-}
-
-function formatDatetime(record: { date: string; time: string | null }): string {
-  const date = formatDate(record.date);
-  if (record.time) return `${date} \u00b7 ${formatTime(record.time)}`;
-  return date;
 }
 
 function textContainsAny(text: string, keywords: string[]): boolean {
@@ -292,7 +323,6 @@ interface CaseFilePanelProps {
 export default function CaseFilePanel({
   cases,
   userId,
-  subscription,
 }: CaseFilePanelProps) {
   const supabase = createClient();
   const router = useRouter();
@@ -307,6 +337,9 @@ export default function CaseFilePanel({
   const [activeTab, setActiveTab] = useState<"casefile" | "timeline" | "info">(
     "casefile"
   );
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [planGoals, setPlanGoals] = useState<PlanGoal[]>([]);
+  const [planCheckins, setPlanCheckins] = useState<PlanCheckin[]>([]);
   const [loadingData, setLoadingData] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const [showCaseDropdown, setShowCaseDropdown] = useState(false);
@@ -376,6 +409,29 @@ export default function CaseFilePanel({
       setRecords([]);
     }
 
+    // Fetch plans linked to this case + their goals and check-ins
+    const { data: plansData } = await supabase
+      .from("plans")
+      .select("*")
+      .eq("case_id", selectedCaseId)
+      .order("start_date", { ascending: true });
+    if (plansData && plansData.length > 0) {
+      setPlans(plansData);
+      const planIds = plansData.map((p: Plan) => p.id);
+      const [goalsRes, checkinsRes] = await Promise.all([
+        supabase.from("plan_goals").select("*").in("plan_id", planIds),
+        supabase.from("plan_checkins").select("*").in("plan_id", planIds),
+      ]);
+      if (goalsRes.data) setPlanGoals(goalsRes.data);
+      else setPlanGoals([]);
+      if (checkinsRes.data) setPlanCheckins(checkinsRes.data);
+      else setPlanCheckins([]);
+    } else {
+      setPlans([]);
+      setPlanGoals([]);
+      setPlanCheckins([]);
+    }
+
     setLoadingData(false);
     hasFetchedRef.current = true;
   }, [selectedCaseId, userId, supabase]);
@@ -409,35 +465,10 @@ export default function CaseFilePanel({
 
   // Computed
   const caseTypes = resolveTypes(caseData);
-  const nonGeneralTypes = caseTypes.filter(
-    (t) => t.toLowerCase() !== "general"
-  );
   const showProtectedClasses =
     caseData &&
     (caseData.protected_classes ?? []).length > 0 &&
     caseTypes.some((t) => DISCRIMINATION_TYPES.includes(t));
-
-  const peopleCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    records.forEach((r) => {
-      parsePeople(r.people).forEach((name) => {
-        counts[name] = (counts[name] || 0) + 1;
-      });
-    });
-    return Object.entries(counts)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 10);
-  }, [records]);
-
-  const linkedDocsCount = vaultDocs.filter(
-    (d) =>
-      d.linked_record_id &&
-      records.some((r) => r.id === d.linked_record_id)
-  ).length;
-
-  const sortedDates = records.map((r) => r.date).sort();
-  const firstDate = sortedDates.length > 0 ? sortedDates[0] : null;
-  const lastDate = sortedDates.length > 0 ? sortedDates[sortedDates.length - 1] : null;
 
   const patterns = useMemo(() => detectPatterns(records), [records]);
   const contradictions = useMemo(() => detectContradictions(records), [records]);
@@ -446,7 +477,6 @@ export default function CaseFilePanel({
     vaultDocs.forEach((doc) => { if (doc.linked_record_id) { if (!map[doc.linked_record_id]) map[doc.linked_record_id] = []; map[doc.linked_record_id].push(doc); } });
     return map;
   }, [vaultDocs]);
-  const linkedDocs = vaultDocs.filter((d) => d.linked_record_id && records.some((r) => r.id === d.linked_record_id));
   const keyDates = useMemo(() => records.filter((r) => WARNING_TYPES.has(r.entry_type)), [records]);
 
   // PDF export
@@ -454,20 +484,22 @@ export default function CaseFilePanel({
     const el = docRef.current;
     if (!el) return;
     setGeneratingPdf(true);
-
-    // Temporarily position for A4 render
-    const origStyle = el.style.cssText;
-    el.style.position = "fixed";
-    el.style.left = "0";
-    el.style.top = "0";
-    el.style.width = "720px";
-    el.style.zIndex = "-1";
-    el.style.opacity = "0";
-    el.offsetHeight; // force reflow
-
+    // The docRef wraps the visible CaseFileDocument. Its parent applies a CSS
+    // scale(0.72) transform for the panel preview. We temporarily undo the
+    // transform and remove overflow constraints so html2canvas captures the
+    // full-size document.
+    const parent = el.parentElement;
+    const prevParentStyle = parent ? parent.style.cssText : "";
+    if (parent) { parent.style.transform = "none"; parent.style.width = "720px"; }
+    const prevOverflow = el.style.overflow;
+    const prevMaxHeight = el.style.maxHeight;
+    el.style.overflow = "visible";
+    el.style.maxHeight = "none";
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const html2pdf = (await import("html2pdf.js")).default as any;
+      const mod = await import("html2pdf.js");
+      const html2pdf = ((mod as any).default || mod) as any;
+      if (typeof html2pdf !== "function") throw new Error("html2pdf.js failed to load");
       const today = new Date().toISOString().split("T")[0];
       const safeName = (caseData?.name || "Case").replace(/[^a-zA-Z0-9]/g, "-");
       await html2pdf()
@@ -475,7 +507,7 @@ export default function CaseFilePanel({
           margin: [15, 15, 15, 15],
           filename: `DocketAlly-${safeName}-${today}.pdf`,
           image: { type: "jpeg", quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+          html2canvas: { scale: 2, useCORS: true, scrollY: 0, windowWidth: 720 },
           jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
           pagebreak: { mode: ["avoid-all", "css", "legacy"] },
         })
@@ -484,8 +516,10 @@ export default function CaseFilePanel({
     } catch (err) {
       console.error("PDF generation error:", err);
     }
-
-    el.style.cssText = origStyle;
+    // Restore original styles
+    el.style.overflow = prevOverflow;
+    el.style.maxHeight = prevMaxHeight;
+    if (parent) { parent.style.cssText = prevParentStyle; }
     setGeneratingPdf(false);
   }
 
@@ -495,243 +529,25 @@ export default function CaseFilePanel({
   /*  Tab: Case File (Document Preview)                                */
   /* ---------------------------------------------------------------- */
 
+  const emptyStarredIds = useMemo(() => new Set<string>(), []);
+
   function renderCaseFileTab() {
-    const today = new Date();
-    const genDate = today.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
-    const genTime = today.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
-    const daySpan = firstDate && lastDate ? Math.round((new Date(lastDate + "T00:00:00").getTime() - new Date(firstDate + "T00:00:00").getTime()) / 86400000) : 0;
-
-    const caseName = caseData?.name || "Case File";
-    const pdfSubtitle = nonGeneralTypes.length > 0 ? `${nonGeneralTypes.join(" \u00b7 ")} Case File` : "Case File";
-    const pdfProtectedClasses = (caseData?.protected_classes ?? []).length > 0 ? (caseData?.protected_classes ?? []).join(", ") : null;
-
-    const dLabel: React.CSSProperties = { fontSize: 9.5, fontWeight: 700, fontFamily: "var(--font-mono)", color: "#292524", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 3 };
-
-    const sectionHeading = (num: number, title: string) => (
-      <div style={{ marginBottom: 20 }}>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 5 }}>
-          <span style={{ fontSize: 14, fontWeight: 700, color: "#22C55E" }}>{num}</span>
-          <span style={{ fontSize: 14, fontWeight: 700, color: "#292524", fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.04em" }}>{title}</span>
-        </div>
-        <div style={{ width: 28, height: 2.5, background: "#22C55E", borderRadius: 2 }} />
-      </div>
-    );
-
-    const runningHeader = (
-      <div style={{ marginBottom: 22 }}>
-        <div style={{ height: 3, background: "#22C55E", marginBottom: 10 }} />
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 10, borderBottom: "1px solid #D6D3D1" }}>
-          <div>
-            <span style={{ fontFamily: "var(--font-serif)", fontSize: 14, fontWeight: 800, color: "#292524" }}>Docket</span>
-            <span style={{ fontFamily: "var(--font-serif)", fontSize: 14, fontWeight: 800, color: "#22C55E" }}>Ally</span>
-          </div>
-          <span style={{ fontSize: 11, color: "#44403C" }}>Confidential Case File</span>
-        </div>
-      </div>
-    );
-
-    const pageFooter = (
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9.5, color: "#78716C", paddingTop: 16, borderTop: "1px solid #D6D3D1", marginTop: 32 }}>
-        <span>Generated {genDate} at {genTime}</span>
-        <span>DocketAlly Confidential</span>
-      </div>
-    );
-
     return (
-      <div ref={docRef} style={{ fontFamily: "var(--font-sans)", color: "#292524", lineHeight: 1.6 }}>
-        {/* Cover Page */}
-        <div style={{ padding: "40px 28px 36px" }}>
-          <div style={{ height: 3, background: "#22C55E", marginBottom: 32 }} />
-          <div style={{ marginBottom: 56 }}>
-            <span style={{ fontFamily: "var(--font-serif)", fontSize: 18, fontWeight: 800, color: "#292524" }}>Docket</span>
-            <span style={{ fontFamily: "var(--font-serif)", fontSize: 18, fontWeight: 800, color: "#22C55E" }}>Ally</span>
-            <div style={{ display: "flex", gap: 3, marginTop: 3 }}>
-              <div style={{ width: 20, height: 2.5, background: "#22C55E", borderRadius: 2 }} />
-              <div style={{ width: 20, height: 2.5, background: "#22C55E", borderRadius: 2 }} />
-            </div>
-          </div>
-          <h1 style={{ fontFamily: "var(--font-serif)", fontSize: 36, fontWeight: 900, color: "#292524", lineHeight: 1.1, marginBottom: 10 }}>{caseName}</h1>
-          <div style={{ width: 32, height: 2.5, background: "#22C55E", borderRadius: 2, marginBottom: 12 }} />
-          <p style={{ fontSize: 15, color: "#292524", marginBottom: pdfProtectedClasses ? 6 : 40 }}>{pdfSubtitle}</p>
-          {pdfProtectedClasses && (
-            <p style={{ fontSize: 12, color: "#57534E", marginBottom: 40 }}>Protected Classes: {pdfProtectedClasses}</p>
-          )}
-          <div>
-            {[
-              { l: "Employer", v: caseData?.employer || "-" },
-              { l: "Role", v: caseData?.role || "-" },
-              { l: "Documentation period", v: firstDate && lastDate ? `${formatDate(firstDate)} to ${formatDate(lastDate)}` : "-" },
-              { l: "Records", v: records.length > 0 ? `${records.length} entr${records.length !== 1 ? "ies" : "y"} over ${daySpan} days` : "-" },
-              { l: "Patterns identified", v: String(patterns.length + contradictions.length) },
-              { l: "Attachments", v: `${linkedDocs.length} file${linkedDocs.length !== 1 ? "s" : ""} referenced` },
-            ].map((row) => (
-              <div key={row.l} style={{ display: "flex", padding: "10px 0", borderBottom: "1px solid #F5F5F4" }}>
-                <div style={{ width: 140, fontSize: 11, color: "#292524", flexShrink: 0 }}>{row.l}</div>
-                <div style={{ fontSize: 12.5, fontWeight: 600 }}>{row.v}</div>
-              </div>
-            ))}
-          </div>
-          <div style={{ marginTop: 48 }}>
-            <div style={{ height: 1, background: "#FECACA", opacity: 0.5, marginBottom: 12 }} />
-            <p style={{ fontSize: 9.5, color: "#292524", lineHeight: 1.6 }}>
-              This document was generated by DocketAlly. It contains user-created records and is not legal advice.<br />
-              DocketAlly provides documentation and risk awareness tools. Consult an employment attorney for legal guidance.
-            </p>
-          </div>
-        </div>
-
-        {/* Table of Contents */}
-        <div style={{ padding: "0 28px 36px", borderTop: "1px solid #E7E5E4" }}>
-          <div style={{ paddingTop: 28 }}>{runningHeader}</div>
-          <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 22, fontWeight: 800, marginBottom: 24 }}>Contents</h2>
-          {[
-            { n: 1, t: "Case Summary" },
-            { n: 2, t: "Key Dates" },
-            { n: 3, t: `Complete Timeline (${records.length} records)` },
-            { n: 4, t: `Pattern Analysis (${patterns.length + contradictions.length} patterns)` },
-            { n: 5, t: "Attachments Index" },
-          ].map((item) => (
-            <div key={item.n} style={{ display: "flex", alignItems: "center", padding: "12px 0", borderBottom: "1px solid #F5F5F4" }}>
-              <span style={{ width: 36, fontSize: 14, fontWeight: 700, color: "#22C55E" }}>{item.n}</span>
-              <span style={{ fontSize: 13, fontWeight: 600 }}>{item.t}</span>
-            </div>
-          ))}
-          {pageFooter}
-        </div>
-
-        {/* 1. Case Summary */}
-        <div style={{ padding: "0 28px 36px", borderTop: "1px solid #E7E5E4" }}>
-          <div style={{ paddingTop: 28 }}>{runningHeader}</div>
-          {sectionHeading(1, "CASE SUMMARY")}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0 }}>
-            {[
-              { l: "Employer", v: caseData?.employer || "-" },
-              { l: "Role", v: caseData?.role || "-" },
-              { l: "Start Date", v: caseData?.start_date ? formatDate(caseData.start_date) : "-" },
-              { l: "Department", v: caseData?.department || "-" },
-              { l: "Location", v: caseData?.location || "-" },
-              { l: "Key People", v: caseData?.key_people || "-" },
-            ].map((item, i) => (
-              <div key={item.l} style={{ padding: "12px 0", borderBottom: "1px solid #F5F5F4", paddingRight: i % 2 === 0 ? 16 : 0 }}>
-                <div style={dLabel}>{item.l}</div>
-                <div style={{ fontSize: 12.5 }}>{item.v}</div>
-              </div>
-            ))}
-          </div>
-          {caseData?.description && (
-            <div style={{ marginTop: 24 }}>
-              <h3 style={{ fontFamily: "var(--font-serif)", fontSize: 16, fontWeight: 700, marginBottom: 10 }}>Situation</h3>
-              <p style={{ fontSize: 12.5, lineHeight: 1.8, whiteSpace: "pre-wrap" }}>{caseData.description}</p>
-            </div>
-          )}
-          {pageFooter}
-        </div>
-
-        {/* 2. Key Dates */}
-        {keyDates.length > 0 && (
-          <div style={{ padding: "0 28px 36px", borderTop: "1px solid #E7E5E4" }}>
-            <div style={{ paddingTop: 28 }}>{runningHeader}</div>
-            {sectionHeading(2, "KEY DATES")}
-            {keyDates.map((record) => (
-              <div key={record.id} style={{ display: "flex", padding: "10px 0", borderBottom: "1px solid #F5F5F4", gap: 16 }}>
-                <span style={{ fontFamily: "var(--font-mono)", fontSize: 11.5, fontWeight: 700, color: "#22C55E", whiteSpace: "nowrap", minWidth: 140 }}>
-                  {new Date(record.date + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
-                  {record.time && ` \u00b7 ${formatTime(record.time)}`}
-                </span>
-                <span style={{ fontSize: 12 }}>{record.title}</span>
-              </div>
-            ))}
-            {pageFooter}
-          </div>
-        )}
-
-        {/* 3. Complete Timeline */}
-        <div style={{ padding: "0 28px 36px", borderTop: "1px solid #E7E5E4" }}>
-          <div style={{ paddingTop: 28 }}>{runningHeader}</div>
-          {sectionHeading(3, "COMPLETE TIMELINE")}
-          <p style={{ fontSize: 11, color: "#292524", lineHeight: 1.6, marginBottom: 20 }}>All records in chronological order.</p>
-          {records.map((record) => {
-            const docsForRecord = linkedDocsMap[record.id] || [];
-            return (
-              <div key={record.id} style={{ borderLeft: "3px solid #22C55E", paddingLeft: 18, marginBottom: 22 }}>
-                <div style={{ fontSize: 12, fontFamily: "var(--font-mono)", fontWeight: 700, color: "#22C55E", marginBottom: 3 }}>
-                  {new Date(record.date + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
-                  {record.time && ` \u00b7 ${formatTime(record.time)}`}
-                </div>
-                <div style={{ marginBottom: 6, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                  <span style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase" }}>{record.entry_type}</span>
-                  {record.people && <span style={{ fontSize: 11, color: "#292524" }}>{record.people}</span>}
-                  {WARNING_TYPES.has(record.entry_type) && <span style={{ fontSize: 10, color: "#DC2626", fontWeight: 600 }}>[Escalation]</span>}
-                </div>
-                <div style={dLabel}>WHAT HAPPENED</div>
-                <div style={{ fontSize: 12, lineHeight: 1.7, marginBottom: 10 }}>{renderMarkdown(record.narrative)}</div>
-                {record.facts && (<><div style={dLabel}>ADDITIONAL CONTEXT</div><div style={{ fontSize: 12, lineHeight: 1.7, marginBottom: 10 }}>{renderMarkdown(record.facts)}</div></>)}
-                {record.follow_up && (<><div style={{ ...dLabel, color: "#22C55E" }}>NEXT STEPS</div><div style={{ fontSize: 12, lineHeight: 1.7, marginBottom: 10 }}>{renderMarkdown(record.follow_up)}</div></>)}
-                {docsForRecord.length > 0 && (<><div style={dLabel}>ATTACHMENTS</div><p style={{ fontSize: 12 }}>{docsForRecord.map((d) => d.file_name).join(", ")}</p></>)}
-              </div>
-            );
-          })}
-          {pageFooter}
-        </div>
-
-        {/* 4. Pattern Analysis */}
-        {(patterns.length > 0 || contradictions.length > 0) && (
-          <div style={{ padding: "0 28px 36px", borderTop: "1px solid #E7E5E4" }}>
-            <div style={{ paddingTop: 28 }}>{runningHeader}</div>
-            {sectionHeading(4, "PATTERN ANALYSIS")}
-            <p style={{ fontSize: 11, color: "#292524", lineHeight: 1.6, marginBottom: 20 }}>Patterns are recurring themes identified across multiple records.</p>
-            {patterns.map((pattern, idx) => (
-              <div key={`p-${idx}`} style={{ borderLeft: "3px solid #22C55E", paddingLeft: 18, marginBottom: 20 }}>
-                <div style={{ marginBottom: 6 }}>
-                  <span style={{ fontFamily: "var(--font-serif)", fontSize: 15, fontWeight: 700 }}>{pattern.label}</span>
-                  <span style={{ fontSize: 10, fontWeight: 600, color: "#22C55E", marginLeft: 10 }}>[{pattern.type === "plan" ? "Plan Pattern" : "Notable Pattern"}]</span>
-                </div>
-                <p style={{ fontSize: 12, lineHeight: 1.7 }}>{pattern.detail}</p>
-              </div>
-            ))}
-            {contradictions.map((c, idx) => (
-              <div key={`c-${idx}`} style={{ borderLeft: "3px solid #F59E0B", paddingLeft: 18, marginBottom: 20 }}>
-                <div style={{ marginBottom: 6 }}>
-                  <span style={{ fontFamily: "var(--font-serif)", fontSize: 15, fontWeight: 700 }}>
-                    {c.type === "performance" ? "Contradictory Performance Signals" : c.type === "shifting" ? "Shifting Expectations" : c.type === "exclusion" ? "Post-Complaint Changes" : "Plan Contradiction"}
-                  </span>
-                  <span style={{ fontSize: 10, fontWeight: 600, color: "#F59E0B", marginLeft: 10 }}>[Potential Contradiction]</span>
-                </div>
-                <p style={{ fontSize: 12, lineHeight: 1.7 }}>{c.detail}</p>
-              </div>
-            ))}
-            {pageFooter}
-          </div>
-        )}
-
-        {/* 5. Attachments Index */}
-        {linkedDocs.length > 0 && (
-          <div style={{ padding: "0 28px 36px", borderTop: "1px solid #E7E5E4" }}>
-            <div style={{ paddingTop: 28 }}>{runningHeader}</div>
-            {sectionHeading(5, "ATTACHMENTS INDEX")}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 120px", borderBottom: "2px solid #292524", padding: "8px 0" }}>
-              <span style={{ fontSize: 11, fontWeight: 700 }}>File</span>
-              <span style={{ fontSize: 11, fontWeight: 700 }}>Record Date</span>
-            </div>
-            {linkedDocs.map((doc) => {
-              const record = records.find((r) => r.id === doc.linked_record_id);
-              return (
-                <div key={doc.id} style={{ display: "grid", gridTemplateColumns: "1fr 120px", borderBottom: "1px solid #F5F5F4", padding: "8px 0" }}>
-                  <span style={{ fontSize: 11, color: "#22C55E", fontWeight: 600 }}>{doc.file_name}</span>
-                  <span style={{ fontSize: 11 }}>{record ? formatDatetime(record) : "-"}</span>
-                </div>
-              );
-            })}
-            {pageFooter}
-          </div>
-        )}
-
-        {/* End Disclaimer */}
-        <div style={{ padding: "20px 28px 32px", borderTop: "1px solid #D6D3D1" }}>
-          <p style={{ fontSize: 9.5, color: "#292524", lineHeight: 1.6 }}>
-            End of case file. This document was generated by DocketAlly from user-created records. It is not legal advice.
-            DocketAlly provides documentation and risk awareness tools. Consult a qualified employment attorney for legal guidance specific to your situation.
-          </p>
+      <div style={{ transformOrigin: "top left", transform: "scale(0.72)", width: "138.9%" }}>
+        <div ref={docRef}>
+          <CaseFileDocument
+            records={records}
+            vaultDocs={vaultDocs}
+            patterns={patterns}
+            contradictions={contradictions}
+            linkedDocsMap={linkedDocsMap}
+            caseData={caseData}
+            starredIds={emptyStarredIds}
+            keyDates={keyDates}
+            plans={plans}
+            planGoals={planGoals}
+            planCheckins={planCheckins}
+          />
         </div>
       </div>
     );

@@ -1253,19 +1253,11 @@ export default function CaseDetailPage() {
     const el = caseFileRef.current;
     if (!el) return;
     setGeneratingPdf(true);
-    // Save current inline style so we can restore it after capture
-    const prevStyle = el.getAttribute("style") || "";
-    // Position element off-screen but fully rendered (NOT opacity:0, which
-    // html2canvas respects and produces a blank capture). Using absolute
-    // positioning off-viewport keeps it invisible to the user while
-    // html2canvas can still read computed styles and paint the canvas.
-    el.style.cssText = "position:absolute;left:-9999px;top:0;width:720px;display:block;background:#fff;";
-    // Force layout, then wait for the browser to finish painting the full
-    // component tree (display:none -> display:block needs a paint cycle).
-    el.offsetHeight;
-    await new Promise<void>((resolve) => {
-      requestAnimationFrame(() => { setTimeout(resolve, 500); });
-    });
+    // Temporarily remove overflow:hidden so html2canvas captures the full document
+    const prevOverflow = el.style.overflow;
+    const prevMaxHeight = el.style.maxHeight;
+    el.style.overflow = "visible";
+    el.style.maxHeight = "none";
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const mod = await import("html2pdf.js");
@@ -1285,8 +1277,9 @@ export default function CaseDetailPage() {
       console.error("PDF generation error:", err);
       window.alert("PDF generation failed. Please use the Print button instead.");
     }
-    // Restore original inline style
-    el.setAttribute("style", prevStyle);
+    // Restore original styles
+    el.style.overflow = prevOverflow;
+    el.style.maxHeight = prevMaxHeight;
     setGeneratingPdf(false);
   }
 
@@ -1996,7 +1989,7 @@ export default function CaseDetailPage() {
 
               {/* Document Preview (visible when document view) */}
               {caseFileView === "document" && (
-                <div className="da-print-casefile" style={{ maxWidth: 720, margin: "0 auto", background: "#fff", border: "1px solid #D6D3D1", borderRadius: 3, boxShadow: "0 2px 16px rgba(0,0,0,0.06)", overflow: "hidden" }}>
+                <div ref={caseFileRef} className="da-print-casefile" style={{ maxWidth: 720, margin: "0 auto", background: "#fff", border: "1px solid #D6D3D1", borderRadius: 3, boxShadow: "0 2px 16px rgba(0,0,0,0.06)", overflow: "hidden" }}>
                   <CaseFileDocument records={records} vaultDocs={vaultDocs} patterns={patterns} contradictions={contradictions} linkedDocsMap={linkedDocsMap} caseData={caseData} starredIds={starredIds} keyDates={keyDates} plans={plans} planGoals={planGoals} planCheckins={planCheckins} />
                 </div>
               )}
@@ -2159,10 +2152,6 @@ export default function CaseDetailPage() {
         </>
       )}
 
-      {/* Document Preview — always rendered off-screen for PDF generation */}
-      <div ref={caseFileRef} className="da-doc-preview" style={activeTab === "casefile" && caseFileView === "document" ? { display: "none" } : { position: "absolute", left: "-9999px", top: 0, width: 720, background: "#fff" }}>
-        <CaseFileDocument records={records} vaultDocs={vaultDocs} patterns={patterns} contradictions={contradictions} linkedDocsMap={linkedDocsMap} caseData={caseData} starredIds={starredIds} keyDates={keyDates} plans={plans} planGoals={planGoals} planCheckins={planCheckins} />
-      </div>
 
       {/* ============================================================ */}
       {/*  ADD RECORDS MODAL                                            */}
