@@ -142,6 +142,7 @@ export default function CaseFilePanel({
   const supabase = createClient();
   const router = useRouter();
   const docRef = useRef<HTMLDivElement>(null);
+  const hasFetchedRef = useRef(false);
 
   // State
   const [selectedCaseId, setSelectedCaseId] = useState<string>("");
@@ -165,10 +166,19 @@ export default function CaseFilePanel({
     }
   }, [cases, selectedCaseId]);
 
+  // Reset initial-load flag when case changes
+  useEffect(() => {
+    hasFetchedRef.current = false;
+  }, [selectedCaseId]);
+
   // Fetch case data when selection changes
   const fetchCaseData = useCallback(async () => {
     if (!selectedCaseId || !userId) return;
-    setLoadingData(true);
+
+    // Only show loading spinner on the first fetch, not on interval refetches
+    if (!hasFetchedRef.current) {
+      setLoadingData(true);
+    }
 
     const [caseRes, linksRes, vaultRes] = await Promise.all([
       supabase.from("cases").select("*").eq("id", selectedCaseId).single(),
@@ -203,6 +213,7 @@ export default function CaseFilePanel({
     }
 
     setLoadingData(false);
+    hasFetchedRef.current = true;
   }, [selectedCaseId, userId, supabase]);
 
   useEffect(() => {

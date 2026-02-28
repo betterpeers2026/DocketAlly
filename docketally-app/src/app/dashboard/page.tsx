@@ -678,7 +678,7 @@ export default function RecordPage() {
 
   return (
     <div className="da-records-layout">
-    <div className="da-page-wrapper" style={{ padding: 32, maxWidth: 960, flex: 1, minWidth: 0 }}>
+    <div className="da-page-wrapper" style={{ padding: 32, flex: 1, minWidth: 0 }}>
       {/* ---- FORM VIEW ---- */}
       {showForm ? (
         <div
