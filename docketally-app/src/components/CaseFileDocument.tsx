@@ -68,6 +68,7 @@ interface Contradiction {
 interface Plan {
   id: string;
   name: string;
+  plan_type?: string;
   start_date: string;
   end_date: string | null;
   status: string;
@@ -77,7 +78,9 @@ interface Plan {
 interface PlanGoal {
   id: string;
   plan_id: string;
+  title?: string;
   description: string;
+  success_criteria?: string | null;
   status: string;
   deadline: string | null;
   original_description: string | null;
@@ -1402,8 +1405,27 @@ export default function CaseFileDocument({
                 {/* Plan name - prominent heading */}
                 <h3 style={{ fontFamily: "var(--font-serif)", fontSize: 22, fontWeight: 800, color: "#292524", marginBottom: 12 }}>{plan.name}</h3>
 
-                {/* Status + date range */}
+                {/* Type + Status + date range */}
                 <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12, flexWrap: "wrap" }}>
+                  {(() => {
+                    const tc = (() => {
+                      switch (plan.plan_type) {
+                        case "pip": case "corrective": return { color: "#DC2626", bg: "#FEF2F2", border: "#FECACA" };
+                        case "development": return { color: "#2563EB", bg: "#EFF6FF", border: "#BFDBFE" };
+                        case "role_transition": return { color: "#9333EA", bg: "#FAF5FF", border: "#E9D5FF" };
+                        case "probation": case "return_to_work": case "accommodation": return { color: "#D97706", bg: "#FFFBEB", border: "#FDE68A" };
+                        default: return { color: "#57534E", bg: "#F5F5F4", border: "#D6D3D1" };
+                      }
+                    })();
+                    return (
+                      <span style={{
+                        fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.04em",
+                        padding: "3px 10px", borderRadius: 5, background: tc.bg, border: `1px solid ${tc.border}`, color: tc.color,
+                      }}>
+                        {plan.plan_type ? plan.plan_type.replace(/_/g, " ") : "plan"}
+                      </span>
+                    );
+                  })()}
                   <span style={{
                     fontSize: 10,
                     fontWeight: 700,
@@ -1412,9 +1434,9 @@ export default function CaseFileDocument({
                     letterSpacing: "0.04em",
                     padding: "3px 10px",
                     borderRadius: 5,
-                    background: plan.status === "completed" ? "#F0FDF4" : plan.status === "active" ? "#EFF6FF" : "#FFF7ED",
-                    border: plan.status === "completed" ? "1px solid #BBF7D0" : plan.status === "active" ? "1px solid #BFDBFE" : "1px solid #FED7AA",
-                    color: plan.status === "completed" ? "#15803D" : plan.status === "active" ? "#1D4ED8" : "#C2410C",
+                    background: plan.status === "completed" ? "#DCFCE7" : plan.status === "active" ? "#F0FDF4" : "#F5F5F4",
+                    border: plan.status === "completed" ? "1px solid #86EFAC" : plan.status === "active" ? "1px solid #BBF7D0" : "1px solid #D6D3D1",
+                    color: plan.status === "completed" ? "#15803D" : plan.status === "active" ? "#16A34A" : "#78716C",
                   }}>
                     {plan.status}
                   </span>
@@ -1442,47 +1464,103 @@ export default function CaseFileDocument({
                     <div style={{ ...dLabel, marginBottom: 10 }}>Goals ({goals.length})</div>
                     {goals.map((goal) => {
                       const isRevised = !!(goal.revised_date || goal.original_description);
+                      const goalTitle = goal.title || goal.description;
                       return (
-                        <div key={goal.id} style={{ padding: "10px 0", borderBottom: "1px solid #F5F5F4" }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                        <div key={goal.id} style={{ padding: "14px 16px", marginBottom: 10, borderRadius: 8, border: "1px solid #E7E5E4", background: "#fff", pageBreakInside: "avoid" }}>
+                          {/* Goal header */}
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
                             <span style={{
-                              fontSize: 11,
-                              fontWeight: 600,
-                              fontFamily: "var(--font-mono)",
-                              padding: "1px 6px",
-                              borderRadius: 3,
+                              fontSize: 11, fontWeight: 600, fontFamily: "var(--font-mono)", padding: "1px 6px", borderRadius: 3, textTransform: "uppercase",
                               background: goal.status === "completed" ? "#F0FDF4" : goal.status === "missed" ? "#FEF2F2" : "#F5F5F4",
                               border: goal.status === "completed" ? "1px solid #BBF7D0" : goal.status === "missed" ? "1px solid #FECACA" : "1px solid #E7E5E4",
                               color: goal.status === "completed" ? "#15803D" : goal.status === "missed" ? "#DC2626" : "#57534E",
-                              textTransform: "uppercase",
                             }}>
                               {goal.status}
                             </span>
                             {isRevised && (
-                              <span style={{ fontSize: 11, fontWeight: 600, color: "#D97706", fontFamily: "var(--font-mono)" }}>REVISED</span>
+                              <span style={{ fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.04em", padding: "1px 6px", borderRadius: 3, color: "#D97706", background: "#FFFBEB", border: "1px solid #FDE68A" }}>
+                                Revised
+                              </span>
                             )}
                             {goal.deadline && (
                               <span style={{ fontSize: 11, color: "#78716C", fontFamily: "var(--font-mono)" }}>Due {formatDate(goal.deadline)}</span>
                             )}
                           </div>
-                          <p style={{ fontSize: 14, lineHeight: 1.6, color: "#292524" }}>{goal.description}</p>
-                          {goal.original_description && goal.original_description !== goal.description && (
-                            <div style={{ marginTop: 8, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                              <div style={{ padding: "8px 12px", borderRadius: 6, background: "#FEF2F2", border: "1px solid #FECACA" }}>
-                                <div style={{ fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", color: "#DC2626", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 4 }}>Before</div>
-                                <p style={{ fontSize: 13, lineHeight: 1.6, color: "#57534E" }}>{goal.original_description}</p>
+
+                          {/* Goal title / description */}
+                          <p style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.6, color: "#292524", marginBottom: isRevised ? 12 : 0 }}>{goalTitle}</p>
+
+                          {/* Revision block */}
+                          {isRevised && goal.original_description && goal.original_description !== goal.description && (
+                            <div style={{ borderRadius: 8, border: "1px solid #FDE68A", overflow: "hidden", marginBottom: goal.success_criteria ? 12 : 0 }}>
+                              {/* Revision header */}
+                              <div style={{ padding: "8px 14px", background: "#FFFBEB", borderBottom: "1px solid #FDE68A", display: "flex", alignItems: "center", gap: 8 }}>
+                                <span style={{ fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.04em", color: "#D97706" }}>
+                                  Revision
+                                </span>
+                                {goal.revised_date && (
+                                  <span style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: "#92400E" }}>
+                                    {formatDate(goal.revised_date)}
+                                  </span>
+                                )}
                               </div>
-                              <div style={{ padding: "8px 12px", borderRadius: 6, background: "#F0FDF4", border: "1px solid #BBF7D0" }}>
-                                <div style={{ fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", color: "#15803D", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 4 }}>After</div>
-                                <p style={{ fontSize: 13, lineHeight: 1.6, color: "#292524" }}>{goal.description}</p>
+
+                              {/* Revision note */}
+                              {goal.revision_notes && (
+                                <div style={{ margin: "10px 14px 0", padding: "10px 14px", borderRadius: 6, background: "#292524", color: "#FAFAF9" }}>
+                                  <p style={{ fontSize: 13, lineHeight: 1.6, margin: 0, fontFamily: "var(--font-sans)", fontStyle: "italic" }}>
+                                    &ldquo;{goal.revision_notes}&rdquo;
+                                  </p>
+                                </div>
+                              )}
+
+                              {/* Before / After comparison */}
+                              <div style={{ padding: "10px 14px 14px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                                <div style={{ padding: "10px 14px", borderRadius: 6, background: "#FEF2F2", border: "1px solid #FECACA" }}>
+                                  <div style={{ fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", color: "#DC2626", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 6 }}>Before</div>
+                                  <p style={{ fontSize: 13, lineHeight: 1.6, color: "#57534E", margin: 0 }}>{goal.original_description}</p>
+                                </div>
+                                <div style={{ padding: "10px 14px", borderRadius: 6, background: "#F0FDF4", border: "1px solid #BBF7D0" }}>
+                                  <div style={{ fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", color: "#16A34A", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 6 }}>After</div>
+                                  <p style={{ fontSize: 13, lineHeight: 1.6, color: "#292524", margin: 0 }}>{goal.description}</p>
+                                </div>
                               </div>
                             </div>
                           )}
-                          {goal.original_description && goal.original_description === goal.description && (
-                            <div style={{ marginTop: 6, padding: "6px 12px", borderRadius: 6, background: "#FFF7ED", border: "1px solid #FED7AA" }}>
-                              <span style={{ fontSize: 12, color: "#C2410C" }}>Goal marked as revised but text is unchanged.</span>
-                              {goal.revision_notes && <span style={{ fontSize: 12, color: "#78716C", marginLeft: 6 }}>Notes: {goal.revision_notes}</span>}
+
+                          {/* Revised but text unchanged */}
+                          {isRevised && goal.original_description && goal.original_description === goal.description && (
+                            <div style={{ borderRadius: 8, border: "1px solid #FDE68A", overflow: "hidden", marginBottom: goal.success_criteria ? 12 : 0 }}>
+                              <div style={{ padding: "8px 14px", background: "#FFFBEB", borderBottom: "1px solid #FDE68A", display: "flex", alignItems: "center", gap: 8 }}>
+                                <span style={{ fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.04em", color: "#D97706" }}>Revision</span>
+                                {goal.revised_date && (
+                                  <span style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: "#92400E" }}>{formatDate(goal.revised_date)}</span>
+                                )}
+                              </div>
+                              <div style={{ padding: "10px 14px" }}>
+                                <span style={{ fontSize: 12, color: "#C2410C" }}>Goal marked as revised but text is unchanged.</span>
+                                {goal.revision_notes && (
+                                  <div style={{ marginTop: 8, padding: "10px 14px", borderRadius: 6, background: "#292524", color: "#FAFAF9" }}>
+                                    <p style={{ fontSize: 13, lineHeight: 1.6, margin: 0, fontFamily: "var(--font-sans)", fontStyle: "italic" }}>&ldquo;{goal.revision_notes}&rdquo;</p>
+                                  </div>
+                                )}
+                              </div>
                             </div>
+                          )}
+
+                          {/* Success criteria */}
+                          {goal.success_criteria && (
+                            <div style={{ marginTop: isRevised ? 0 : 10 }}>
+                              <div style={{ fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.04em", color: "#78716C", marginBottom: 4 }}>Success Criteria</div>
+                              <p style={{ fontSize: 13, lineHeight: 1.6, color: "#57534E", margin: 0 }}>{goal.success_criteria}</p>
+                            </div>
+                          )}
+
+                          {/* Revision provenance note */}
+                          {isRevised && (
+                            <p style={{ fontSize: 10, color: "#A8A29E", fontFamily: "var(--font-mono)", marginTop: 10, marginBottom: 0, lineHeight: 1.5 }}>
+                              Goal revisions are documented automatically when flagged by the user. Original text is preserved for comparison.
+                            </p>
                           )}
                         </div>
                       );

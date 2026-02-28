@@ -82,6 +82,7 @@ interface Plan {
   id: string;
   user_id: string;
   name: string;
+  plan_type?: string;
   start_date: string;
   end_date: string | null;
   status: string;
@@ -117,8 +118,8 @@ type TimelineItem =
   | { kind: "record"; date: string; record: DocketRecord }
   | { kind: "plan-start"; date: string; plan: Plan; goals: PlanGoal[] }
   | { kind: "plan-end"; date: string; plan: Plan }
-  | { kind: "checkin"; date: string; checkin: PlanCheckin; planName: string }
-  | { kind: "goal-revised"; date: string; goal: PlanGoal; planName: string };
+  | { kind: "checkin"; date: string; checkin: PlanCheckin; planName: string; planType?: string }
+  | { kind: "goal-revised"; date: string; goal: PlanGoal; planName: string; planType?: string };
 
 type DateRangeOption = "all" | "7" | "30" | "90" | "custom";
 
@@ -286,7 +287,23 @@ function getInitials(name: string): string {
 
 const AVATAR_COLOR = "#1c1917";
 
-function getPlanBadgeStyle(): React.CSSProperties {
+function getPlanBadgeStyle(planType?: string): React.CSSProperties {
+  let color = "#D97706";
+  let bg = "#FFFBEB";
+  let border = "#FDE68A";
+  switch (planType) {
+    case "pip":
+    case "corrective":
+      color = "#DC2626"; bg = "#FEF2F2"; border = "#FECACA"; break;
+    case "development":
+      color = "#2563EB"; bg = "#EFF6FF"; border = "#BFDBFE"; break;
+    case "role_transition":
+      color = "#9333EA"; bg = "#FAF5FF"; border = "#E9D5FF"; break;
+    case "probation":
+    case "return_to_work":
+    case "accommodation":
+      color = "#D97706"; bg = "#FFFBEB"; border = "#FDE68A"; break;
+  }
   return {
     display: "inline-block",
     padding: "3px 10px",
@@ -297,9 +314,9 @@ function getPlanBadgeStyle(): React.CSSProperties {
     letterSpacing: "0.02em",
     whiteSpace: "nowrap",
     textTransform: "uppercase",
-    color: "#92400E",
-    background: "#FFFBEB",
-    border: "1px solid #FDE68A",
+    color,
+    background: bg,
+    border: `1px solid ${border}`,
   };
 }
 
@@ -1228,13 +1245,13 @@ export default function CaseDetailPage() {
     planCheckins.forEach((checkin) => {
       if (dateInRange(checkin.checkin_date)) {
         const plan = plans.find((p) => p.id === checkin.plan_id);
-        items.push({ kind: "checkin", date: checkin.checkin_date, checkin, planName: plan?.name || "Plan" });
+        items.push({ kind: "checkin", date: checkin.checkin_date, checkin, planName: plan?.name || "Plan", planType: plan?.plan_type });
       }
     });
     planGoals.forEach((goal) => {
       if (goal.revised_date && dateInRange(goal.revised_date)) {
         const plan = plans.find((p) => p.id === goal.plan_id);
-        items.push({ kind: "goal-revised", date: goal.revised_date, goal, planName: plan?.name || "Plan" });
+        items.push({ kind: "goal-revised", date: goal.revised_date, goal, planName: plan?.name || "Plan", planType: plan?.plan_type });
       }
     });
     items.sort((a, b) => new Date(a.date + "T00:00:00").getTime() - new Date(b.date + "T00:00:00").getTime());
@@ -1762,17 +1779,21 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
                     }
                     /* Plan event cards */
                     const planEventKey = item.kind === "plan-start" ? `plan-start-${item.plan.id}` : item.kind === "plan-end" ? `plan-end-${item.plan.id}` : item.kind === "checkin" ? `checkin-${item.checkin.id}` : `goal-revised-${item.goal.id}`;
-                    const badgeLabel = item.kind === "plan-start" ? "PIP STARTED" : item.kind === "plan-end" ? "PIP ENDED" : item.kind === "checkin" ? "CHECK-IN" : "GOAL REVISED";
+                    const eventPlanType = (item.kind === "plan-start" || item.kind === "plan-end") ? item.plan.plan_type : item.planType;
+                    const badgeLabel = item.kind === "plan-start" ? "PLAN STARTED" : item.kind === "plan-end" ? "PLAN ENDED" : item.kind === "checkin" ? "CHECK-IN" : "GOAL REVISED";
                     const title = item.kind === "plan-start" ? item.plan.name : item.kind === "plan-end" ? item.plan.name : item.kind === "checkin" ? `${item.planName}: Check-in` : `${item.planName}: Goal Updated`;
                     const subtitle = item.kind === "plan-start" ? `${item.goals.length} goal${item.goals.length !== 1 ? "s" : ""} assigned${item.plan.end_date ? ` \u00b7 Target end: ${formatDate(item.plan.end_date)}` : ""}` : item.kind === "plan-end" ? `Plan ${item.plan.status}` : item.kind === "checkin" ? item.checkin.summary : item.goal.description;
+                    const planBadge = getPlanBadgeStyle(eventPlanType);
+                    const dotBg = planBadge.background as string;
+                    const dotBorder = (planBadge.color as string) || "#F59E0B";
                     return (
                       <div key={planEventKey} style={{ position: "relative", marginBottom: 20 }}>
-                        <div style={{ position: "absolute", left: -29, top: 8, width: 12, height: 12, borderRadius: "50%", background: "#FFFBEB", border: "2px solid #F59E0B", zIndex: 1 }} />
-                        <div style={{ background: "#fff", borderRadius: 14, border: "1px solid var(--color-stone-300)", borderLeft: "3px solid #F59E0B", overflow: "hidden" }}>
+                        <div style={{ position: "absolute", left: -29, top: 8, width: 12, height: 12, borderRadius: "50%", background: dotBg, border: `2px solid ${dotBorder}`, zIndex: 1 }} />
+                        <div style={{ background: "#fff", borderRadius: 14, border: "1px solid var(--color-stone-300)", borderLeft: `3px solid ${dotBorder}`, overflow: "hidden" }}>
                           <div style={{ padding: "18px 24px" }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
                               <span style={{ fontSize: 12, color: "var(--color-stone-600)", fontFamily: "var(--font-mono)", whiteSpace: "nowrap" }}>{formatDate(item.date)}</span>
-                              <span style={getPlanBadgeStyle()}>{badgeLabel}</span>
+                              <span style={planBadge}>{badgeLabel}</span>
                               {item.kind === "plan-end" && (
                                 <span style={{ fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.02em", padding: "3px 10px", borderRadius: 20, color: item.plan.status === "completed" ? "#166534" : "#991B1B", background: item.plan.status === "completed" ? "#F0FDF4" : "#FEF2F2", border: item.plan.status === "completed" ? "1px solid #BBF7D0" : "1px solid #FECACA" }}>{item.plan.status}</span>
                               )}

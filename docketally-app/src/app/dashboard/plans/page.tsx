@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import RichTextarea from "@/components/RichTextarea";
 import { renderMarkdown } from "@/lib/renderMarkdown";
 import { useSubscription } from "@/components/SubscriptionProvider";
 import { hasActiveAccess } from "@/lib/subscription";
 import ProGate from "@/components/ProGate";
+import CaseFilePanel from "@/components/CaseFilePanel";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -29,6 +31,8 @@ interface Plan {
 interface CaseBasic {
   id: string;
   name: string;
+  case_type: string;
+  case_types?: string[];
 }
 
 interface PlanGoal {
@@ -88,16 +92,17 @@ function getTypeBadge(planType: string): { color: string; bg: string; border: st
   switch (planType) {
     case "pip":
     case "corrective":
-      return { color: "#991B1B", bg: "#FEF2F2", border: "#FECACA" };
+      return { color: "#DC2626", bg: "#FEF2F2", border: "#FECACA" };
+    case "development":
+      return { color: "#2563EB", bg: "#EFF6FF", border: "#BFDBFE" };
+    case "role_transition":
+      return { color: "#9333EA", bg: "#FAF5FF", border: "#E9D5FF" };
     case "probation":
     case "return_to_work":
-      return { color: "#92400E", bg: "#FFFBEB", border: "#FDE68A" };
     case "accommodation":
-      return { color: "#1E40AF", bg: "#EFF6FF", border: "#BFDBFE" };
-    case "role_transition":
-    case "development":
+      return { color: "#D97706", bg: "#FFFBEB", border: "#FDE68A" };
     default:
-      return { color: "#292524", bg: "#F5F5F4", border: "#D6D3D1" };
+      return { color: "#57534E", bg: "#F5F5F4", border: "#D6D3D1" };
   }
 }
 
@@ -184,53 +189,7 @@ function todayStr(): string {
 }
 
 function getStatusBadge(status: string): React.CSSProperties {
-  if (status === "met" || status === "completed") {
-    return {
-      display: "inline-block",
-      padding: "3px 10px",
-      borderRadius: 20,
-      fontSize: 10,
-      fontWeight: 700,
-      fontFamily: "var(--font-mono)",
-      letterSpacing: "0.02em",
-      textTransform: "uppercase",
-      color: "#15803D",
-      background: "#F0FDF4",
-      border: "1px solid #BBF7D0",
-    };
-  }
-  if (status === "not_met" || status === "expired") {
-    return {
-      display: "inline-block",
-      padding: "3px 10px",
-      borderRadius: 20,
-      fontSize: 10,
-      fontWeight: 700,
-      fontFamily: "var(--font-mono)",
-      letterSpacing: "0.02em",
-      textTransform: "uppercase",
-      color: "#991B1B",
-      background: "#FEF2F2",
-      border: "1px solid #FECACA",
-    };
-  }
-  if (status === "revised") {
-    return {
-      display: "inline-block",
-      padding: "3px 10px",
-      borderRadius: 20,
-      fontSize: 10,
-      fontWeight: 700,
-      fontFamily: "var(--font-mono)",
-      letterSpacing: "0.02em",
-      textTransform: "uppercase",
-      color: "#92400E",
-      background: "#FFFBEB",
-      border: "1px solid #FDE68A",
-    };
-  }
-  // in_progress / active
-  return {
+  const base: React.CSSProperties = {
     display: "inline-block",
     padding: "3px 10px",
     borderRadius: 20,
@@ -239,10 +198,21 @@ function getStatusBadge(status: string): React.CSSProperties {
     fontFamily: "var(--font-mono)",
     letterSpacing: "0.02em",
     textTransform: "uppercase",
-    color: "#292524",
-    background: "#F5F5F4",
-    border: "1px solid #D6D3D1",
   };
+  if (status === "met" || status === "completed") {
+    return { ...base, color: "#15803D", background: "#DCFCE7", border: "1px solid #86EFAC" };
+  }
+  if (status === "not_met" || status === "expired") {
+    return { ...base, color: "#DC2626", background: "#FEF2F2", border: "1px solid #FECACA" };
+  }
+  if (status === "revised") {
+    return { ...base, color: "#92400E", background: "#FFFBEB", border: "1px solid #FDE68A" };
+  }
+  if (status === "in_progress") {
+    return { ...base, color: "#16A34A", background: "#F0FDF4", border: "1px solid #BBF7D0" };
+  }
+  // not_started / default
+  return { ...base, color: "#78716C", background: "#F5F5F4", border: "1px solid #D6D3D1" };
 }
 
 function statusLabel(s: string): string {
@@ -258,6 +228,7 @@ export default function PlansPage() {
   if (!hasActiveAccess(subscription)) return <ProGate feature="Plans" />;
 
   const supabase = createClient();
+  const router = useRouter();
 
   /* ----- state ----- */
   const [userId, setUserId] = useState<string | null>(null);
@@ -351,7 +322,7 @@ export default function PlansPage() {
         .order("date", { ascending: false }),
       supabase
         .from("cases")
-        .select("id, name")
+        .select("id, name, case_type, case_types")
         .eq("user_id", userId)
         .order("name", { ascending: true }),
     ]);
@@ -764,9 +735,9 @@ export default function PlansPage() {
                           fontFamily: "var(--font-mono)",
                           letterSpacing: "0.04em",
                           textTransform: "uppercase",
-                          color: "#292524",
-                          background: "#F5F5F4",
-                          border: "1px solid #D6D3D1",
+                          color: getTypeBadge(type.value).color,
+                          background: getTypeBadge(type.value).bg,
+                          border: `1px solid ${getTypeBadge(type.value).border}`,
                         }}
                       >
                         {type.shortLabel}
@@ -1955,7 +1926,8 @@ export default function PlansPage() {
   /* ---------------------------------------------------------------- */
 
   return (
-    <div className="da-page-wrapper" style={{ padding: 32, maxWidth: 960, margin: "0 auto" }}>
+    <div className="da-records-layout">
+    <div className="da-page-wrapper" style={{ padding: 32, flex: 1, minWidth: 0 }}>
       {/* Header */}
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 28, gap: 16, flexWrap: "wrap" }}>
         <div>
@@ -2100,6 +2072,39 @@ export default function PlansPage() {
           </div>
         </div>
       )}
+    </div>
+    <CaseFilePanel cases={cases} userId={userId || ""} subscription={subscription} />
+    {cases.length > 0 && (
+      <button
+        className="da-casefile-fab"
+        onClick={() => router.push(`/dashboard/case/${cases[0].id}?tab=casefile`)}
+        style={{
+          position: "fixed",
+          bottom: 80,
+          right: 20,
+          width: 48,
+          height: 48,
+          borderRadius: "50%",
+          background: "#22C55E",
+          color: "#fff",
+          border: "none",
+          boxShadow: "0 4px 12px rgba(34,197,94,0.35)",
+          cursor: "pointer",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 50,
+        }}
+        title="View Case File"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+          <polyline points="14 2 14 8 20 8" />
+          <line x1="16" y1="13" x2="8" y2="13" />
+          <line x1="16" y1="17" x2="8" y2="17" />
+          <polyline points="10 9 9 9 8 9" />
+        </svg>
+      </button>
+    )}
     </div>
   );
 }
