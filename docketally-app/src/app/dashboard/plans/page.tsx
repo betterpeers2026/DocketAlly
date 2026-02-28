@@ -977,377 +977,321 @@ export default function PlansPage() {
     const checkinCount = planCheckins.length;
 
     return (
-      <div key={plan.id} style={{ marginBottom: 16 }}>
-        {/* Summary Pill */}
+      <div key={plan.id} style={{
+        marginBottom: 32,
+        background: "#fff",
+        borderRadius: 14,
+        border: "1px solid #e5e5e4",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)",
+        overflow: "hidden",
+      }}>
+        {/* ===== SUMMARY HEADER - always visible, click to expand/collapse ===== */}
         <div
-          style={{
-            background: "var(--color-stone-50)",
-            border: "1px solid var(--color-stone-300)",
-            borderRadius: 10,
-            padding: "12px 18px",
-            marginBottom: 8,
-          }}
+          onClick={() => setExpandedPlanId(isExpanded ? null : plan.id)}
+          style={{ padding: "16px 20px", cursor: "pointer" }}
         >
-          <p
-            style={{
-              fontSize: 13,
-              fontWeight: 700,
-              color: "#292524",
-              fontFamily: "var(--font-sans)",
-              lineHeight: 1.6,
-              margin: 0,
-            }}
-          >
-            {durationDays}-day {typeInfo.shortLabel} ({startStr} to {endStr}) · {goalCount} goal{goalCount !== 1 ? "s" : ""} · {revisionCount} revision{revisionCount !== 1 ? "s" : ""} · {checkinCount} check-in{checkinCount !== 1 ? "s" : ""}
-            {pStatus !== "completed" && <> · Status: {pStatus.charAt(0).toUpperCase() + pStatus.slice(1)}</>}
+          <div className="da-plan-header" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0, flexWrap: "wrap" }}>
+              {/* Type badge */}
+              <span
+                style={{
+                  display: "inline-block",
+                  padding: "3px 10px",
+                  borderRadius: 20,
+                  fontSize: 10,
+                  fontWeight: 700,
+                  fontFamily: "var(--font-mono)",
+                  letterSpacing: "0.02em",
+                  textTransform: "uppercase",
+                  color: typeBadge.color,
+                  background: typeBadge.bg,
+                  border: `1px solid ${typeBadge.border}`,
+                }}
+              >
+                {typeInfo.shortLabel}
+              </span>
+              <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 20, fontWeight: 600, color: "#292524", margin: 0 }}>
+                {plan.plan_name}
+              </h2>
+              <span style={getStatusBadge(pStatus)}>{statusLabel(pStatus)}</span>
+              {(() => {
+                if (!plan.case_id) return null;
+                const linkedCase = cases.find((c) => c.id === plan.case_id);
+                if (!linkedCase) return null;
+                return (
+                  <span style={{
+                    display: "inline-flex",
+                    padding: "3px 10px",
+                    borderRadius: 5,
+                    background: "#F5F5F4",
+                    border: "1px solid #E7E5E4",
+                    fontSize: 9.5,
+                    fontWeight: 600,
+                    color: "#57534E",
+                    fontFamily: "var(--font-mono)",
+                  }}>
+                    {linkedCase.name.length > 24 ? linkedCase.name.slice(0, 24) + "..." : linkedCase.name}
+                  </span>
+                );
+              })()}
+            </div>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="var(--color-stone-500)"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.15s", flexShrink: 0, marginTop: 4 }}
+            >
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </div>
+          {/* Stats row */}
+          <p style={{ fontSize: 12, color: "var(--color-stone-500)", fontFamily: "var(--font-mono)", margin: "8px 0 0", lineHeight: 1.6 }}>
+            {startStr} &rarr; {endStr} &middot; {durationDays} day{durationDays !== 1 ? "s" : ""}
+            {(pStatus === "in_progress" || pStatus === "not_started") && <> &middot; {progress.daysRemaining} remaining</>}
+            {goalCount > 0 && <> &middot; {goalCount} goal{goalCount !== 1 ? "s" : ""}</>}
+            {checkinCount > 0 && <> &middot; {checkinCount} check-in{checkinCount !== 1 ? "s" : ""}</>}
+            {revisionCount > 0 && <> &middot; {revisionCount} revision{revisionCount !== 1 ? "s" : ""}</>}
           </p>
         </div>
 
-        {/* Plan Header Card */}
-        <div style={{ ...cardStyle, marginBottom: 0 }}>
-          {/* Clickable header to expand/collapse */}
-          <div
-            onClick={() => setExpandedPlanId(isExpanded ? null : plan.id)}
-            style={{ cursor: "pointer" }}
-          >
-            {/* 1. Header row: type badge + title + status | expand chevron + buttons */}
-            <div className="da-plan-header" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap", marginBottom: 12 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0, flexWrap: "wrap" }}>
-                {/* Type badge */}
-                <span
+        {/* ===== EXPANDED CONTENT - only when expanded ===== */}
+        {isExpanded && (
+          <div style={{ borderTop: "1px solid var(--color-stone-100)", padding: "20px" }}>
+            {/* Action buttons row */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 8, marginBottom: 16 }}>
+              {isEditing ? (
+                <button onClick={() => setEditingPlanId(null)} style={{ ...btnOutline, color: "var(--color-stone-500)" }}>
+                  Cancel Edit
+                </button>
+              ) : (
+                <button
+                  onClick={() => openEditPlan(plan)}
+                  title="Edit Plan"
                   style={{
-                    display: "inline-block",
-                    padding: "3px 10px",
-                    borderRadius: 20,
-                    fontSize: 10,
-                    fontWeight: 700,
-                    fontFamily: "var(--font-mono)",
-                    letterSpacing: "0.02em",
-                    textTransform: "uppercase",
-                    color: typeBadge.color,
-                    background: typeBadge.bg,
-                    border: `1px solid ${typeBadge.border}`,
+                    padding: 6,
+                    borderRadius: 6,
+                    border: "1px solid var(--color-stone-300)",
+                    background: "transparent",
+                    color: "var(--color-stone-500)",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "var(--color-stone-50)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
                 >
-                  {typeInfo.shortLabel}
-                </span>
-                <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 20, fontWeight: 600, color: "#292524", margin: 0 }}>
-                  {plan.plan_name}
-                </h2>
-                <span style={getStatusBadge(pStatus)}>{statusLabel(pStatus)}</span>
-                {(() => {
-                  if (!plan.case_id) return null;
-                  const linkedCase = cases.find((c) => c.id === plan.case_id);
-                  if (!linkedCase) return null;
-                  return (
-                    <span style={{
-                      display: "inline-flex",
-                      padding: "3px 10px",
-                      borderRadius: 5,
-                      background: "#F5F5F4",
-                      border: "1px solid #E7E5E4",
-                      fontSize: 9.5,
-                      fontWeight: 600,
-                      color: "#57534E",
-                      fontFamily: "var(--font-mono)",
-                    }}>
-                      {linkedCase.name.length > 24 ? linkedCase.name.slice(0, 24) + "..." : linkedCase.name}
-                    </span>
-                  );
-                })()}
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }} onClick={(e) => e.stopPropagation()}>
-                {isEditing ? (
-                  <button onClick={() => setEditingPlanId(null)} style={{ ...btnOutline, color: "var(--color-stone-500)" }}>
-                    Cancel Edit
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => openEditPlan(plan)}
-                    title="Edit Plan"
-                    style={{
-                      padding: 6,
-                      borderRadius: 6,
-                      border: "1px solid var(--color-stone-300)",
-                      background: "transparent",
-                      color: "var(--color-stone-500)",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                    onMouseEnter={(e) => { e.currentTarget.style.background = "var(--color-stone-50)"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 114 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
-                  </button>
-                )}
-                {(pStatus === "in_progress" || pStatus === "not_started") && (
-                  <button
-                    onClick={() => markPlanComplete(plan.id)}
-                    disabled={saving}
-                    style={{ ...btnOutline, color: "#15803D", borderColor: "#BBF7D0" }}
-                  >
-                    {saving ? "..." : "Mark Complete"}
-                  </button>
-                )}
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="var(--color-stone-500)"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  style={{ transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.15s", marginLeft: 4 }}
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 114 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                </button>
+              )}
+              {(pStatus === "in_progress" || pStatus === "not_started") && (
+                <button
+                  onClick={() => markPlanComplete(plan.id)}
+                  disabled={saving}
+                  style={{ ...btnOutline, color: "#15803D", borderColor: "#BBF7D0" }}
                 >
-                  <polyline points="6 9 12 15 18 9" />
-                </svg>
-              </div>
+                  {saving ? "..." : "Mark Complete"}
+                </button>
+              )}
             </div>
-          </div>
 
-          {/* CARD BODY — unified layout */}
+            {/* Edit-mode accent */}
+            {isEditing && <div style={{ borderTop: "2px solid var(--color-green)", marginBottom: 16 }} />}
 
-          {/* Edit-mode accent */}
-          {isEditing && <div style={{ borderTop: "2px solid var(--color-green)", marginTop: 12 }} />}
-
-          {/* Plan Name — only visible when editing (header h2 shows it in read mode) */}
-          {isEditing && (
-            <div style={{ marginTop: 16 }}>
-              <label style={labelStyle}>Plan Name</label>
-              <input
-                type="text"
-                value={planForm.plan_name}
-                onChange={(e) => setPlanForm({ ...planForm, plan_name: e.target.value })}
-                style={inputStyle}
-                onFocus={focusInput}
-                onBlur={blurInput}
-              />
-            </div>
-          )}
-
-          {/* Dates — meta text (read) or date inputs (edit) */}
-          <div style={{ marginTop: isEditing ? 20 : 0 }}>
-            {isEditing ? (
-              <div className="da-grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                <div>
-                  <label style={labelStyle}>Start Date</label>
-                  <input
-                    type="date"
-                    value={planForm.start_date}
-                    onChange={(e) => setPlanForm({ ...planForm, start_date: e.target.value })}
-                    style={inputStyle}
-                    onFocus={focusInput}
-                    onBlur={blurInput}
-                  />
-                </div>
-                <div>
-                  <label style={labelStyle}>End Date</label>
-                  <input
-                    type="date"
-                    value={planForm.end_date}
-                    onChange={(e) => setPlanForm({ ...planForm, end_date: e.target.value })}
-                    style={inputStyle}
-                    onFocus={focusInput}
-                    onBlur={blurInput}
-                  />
-                </div>
+            {/* Plan Name — only visible when editing (header h2 shows it in read mode) */}
+            {isEditing && (
+              <div style={{ marginBottom: 20 }}>
+                <label style={labelStyle}>Plan Name</label>
+                <input
+                  type="text"
+                  value={planForm.plan_name}
+                  onChange={(e) => setPlanForm({ ...planForm, plan_name: e.target.value })}
+                  style={inputStyle}
+                  onFocus={focusInput}
+                  onBlur={blurInput}
+                />
               </div>
-            ) : (
-              <div
-                onClick={() => setExpandedPlanId(isExpanded ? null : plan.id)}
-                style={{ cursor: "pointer" }}
-              >
-                <p style={{ fontSize: 13, color: "#292524", fontFamily: "var(--font-mono)", margin: "0 0 16px 0" }}>
+            )}
+
+            {/* Dates — meta text (read) or date inputs (edit) */}
+            <div style={{ marginBottom: 16 }}>
+              {isEditing ? (
+                <div className="da-grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                  <div>
+                    <label style={labelStyle}>Start Date</label>
+                    <input
+                      type="date"
+                      value={planForm.start_date}
+                      onChange={(e) => setPlanForm({ ...planForm, start_date: e.target.value })}
+                      style={inputStyle}
+                      onFocus={focusInput}
+                      onBlur={blurInput}
+                    />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>End Date</label>
+                    <input
+                      type="date"
+                      value={planForm.end_date}
+                      onChange={(e) => setPlanForm({ ...planForm, end_date: e.target.value })}
+                      style={inputStyle}
+                      onFocus={focusInput}
+                      onBlur={blurInput}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <p style={{ fontSize: 13, color: "#292524", fontFamily: "var(--font-mono)", margin: 0 }}>
                   {formatDate(plan.start_date)} &rarr; {formatDate(plan.end_date)} &middot; {progress.totalDays} days
                   {(pStatus === "in_progress" || pStatus === "not_started") && <> &middot; {progress.daysRemaining} day{progress.daysRemaining !== 1 ? "s" : ""} remaining</>}
                 </p>
-              </div>
-            )}
-          </div>
-
-          {/* Progress bar — always visible */}
-          <div style={{ marginBottom: (plan.notes || isEditing) ? 16 : 0, marginTop: isEditing ? 20 : 0 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-              <span style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--color-stone-600)", textTransform: "uppercase", letterSpacing: "0.06em", fontWeight: 700 }}>
-                Progress
-              </span>
-              <span style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--color-stone-600)" }}>
-                {pStatus === "completed" ? "100" : progress.pct}%
-              </span>
-            </div>
-            <div style={{ width: "100%", height: 6, borderRadius: 3, background: "var(--color-stone-100)" }}>
-              <div
-                style={{
-                  width: `${pStatus === "completed" ? 100 : progress.pct}%`,
-                  height: "100%",
-                  borderRadius: 3,
-                  background: pStatus === "expired" ? "#EF4444" : "var(--color-green)",
-                  transition: "width 0.3s",
-                }}
-              />
-            </div>
-          </div>
-
-          {/* Notes — truncated markdown (read) or RichTextarea (edit) */}
-          {isEditing ? (
-            <div style={{ marginTop: 4 }}>
-              <label style={labelStyle}>Notes</label>
-              <RichTextarea
-                value={planForm.notes}
-                onChange={(v) => setPlanForm({ ...planForm, notes: v })}
-                placeholder="Any additional context about the plan"
-                style={textareaStyle}
-              />
-              {/* Linked Case (inline edit) */}
-              {cases.length > 0 && (
-                <div style={{ marginTop: 16 }}>
-                  <label style={labelStyle}>Linked Case</label>
-                  <select
-                    value={planForm.case_id}
-                    onChange={(e) => setPlanForm({ ...planForm, case_id: e.target.value })}
-                    style={{ ...inputStyle, cursor: "pointer" }}
-                    onFocus={focusInput}
-                    onBlur={blurInput}
-                  >
-                    <option value="">None</option>
-                    {cases.map((c) => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
-                    ))}
-                  </select>
-                </div>
               )}
             </div>
-          ) : (
-            plan.notes && (
-              <div style={{ borderTop: "1px solid #D6D3D1", paddingTop: 16 }}>
-                <p
-                  ref={(el) => { descRefs.current[plan.id] = el; }}
-                  className="da-plan-desc"
-                  style={{
-                    fontSize: 14,
-                    color: "#292524",
-                    fontFamily: "var(--font-sans)",
-                    lineHeight: 1.6,
-                    margin: 0,
-                    ...(!(showFullDesc[plan.id]) ? {
-                      display: "-webkit-box",
-                      WebkitLineClamp: 3,
-                      WebkitBoxOrient: "vertical" as never,
-                      overflow: "hidden",
-                    } : {}),
-                  }}
-                >
-                  {renderMarkdown(plan.notes!)}
-                </p>
-                {descOverflows[plan.id] && (
-                  <button
-                    onClick={() => setShowFullDesc((prev) => ({ ...prev, [plan.id]: !prev[plan.id] }))}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      padding: "4px 0 0",
-                      cursor: "pointer",
-                      fontSize: 13,
-                      fontWeight: 600,
-                      fontFamily: "var(--font-sans)",
-                      color: "#22C55E",
-                    }}
-                  >
-                    {showFullDesc[plan.id] ? "Show less \u2191" : "Show more \u2193"}
-                  </button>
-                )}
-              </div>
-            )
-          )}
 
-          {/* Action buttons — only when editing */}
-          {isEditing && (
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 20 }}>
-              <button
-                onClick={() => setConfirmDeletePlanId(plan.id)}
-                style={{
-                  padding: "8px 16px",
-                  borderRadius: 8,
-                  border: "none",
-                  background: "transparent",
-                  color: "#DC2626",
-                  fontSize: 13,
-                  fontWeight: 600,
-                  fontFamily: "var(--font-sans)",
-                  cursor: "pointer",
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = "#FEF2F2"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
-              >
-                Delete Plan
-              </button>
-              <div style={{ display: "flex", gap: 10 }}>
-                <button
-                  onClick={() => setEditingPlanId(null)}
-                  style={btnOutline}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={savePlan}
-                  disabled={saving || !planForm.start_date || !planForm.end_date}
+            {/* Progress bar */}
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                <span style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--color-stone-600)", textTransform: "uppercase", letterSpacing: "0.06em", fontWeight: 700 }}>
+                  Progress
+                </span>
+                <span style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--color-stone-600)" }}>
+                  {pStatus === "completed" ? "100" : progress.pct}%
+                </span>
+              </div>
+              <div style={{ width: "100%", height: 6, borderRadius: 3, background: "var(--color-stone-100)" }}>
+                <div
                   style={{
-                    ...btnGreen,
-                    opacity: saving || !planForm.start_date || !planForm.end_date ? 0.5 : 1,
+                    width: `${pStatus === "completed" ? 100 : progress.pct}%`,
+                    height: "100%",
+                    borderRadius: 3,
+                    background: pStatus === "expired" ? "#EF4444" : "var(--color-green)",
+                    transition: "width 0.3s",
                   }}
-                >
-                  {saving ? "Saving..." : "Update Plan"}
-                </button>
+                />
               </div>
             </div>
-          )}
 
-          {/* Expand/collapse trigger — always visible */}
-          <div
-            onClick={() => setExpandedPlanId(isExpanded ? null : plan.id)}
-            style={{
-              cursor: "pointer",
-              borderTop: "1px solid var(--color-stone-100)",
-              paddingTop: 12,
-              marginTop: isEditing ? 20 : (plan.notes ? 0 : 16),
-              textAlign: "center",
-            }}
-          >
-            <span style={{
-              fontSize: 13,
-              fontWeight: 600,
-              fontFamily: "var(--font-sans)",
-              color: "var(--color-stone-500)",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-            }}>
-              {isExpanded ? "Hide details" : "Show details"}
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                style={{ transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.15s" }}
-              >
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-            </span>
-          </div>
-        </div>
+            {/* Notes — truncated markdown (read) or RichTextarea (edit) */}
+            {isEditing ? (
+              <div style={{ marginBottom: 20 }}>
+                <label style={labelStyle}>Notes</label>
+                <RichTextarea
+                  value={planForm.notes}
+                  onChange={(v) => setPlanForm({ ...planForm, notes: v })}
+                  placeholder="Any additional context about the plan"
+                  style={textareaStyle}
+                />
+                {/* Linked Case (inline edit) */}
+                {cases.length > 0 && (
+                  <div style={{ marginTop: 16 }}>
+                    <label style={labelStyle}>Linked Case</label>
+                    <select
+                      value={planForm.case_id}
+                      onChange={(e) => setPlanForm({ ...planForm, case_id: e.target.value })}
+                      style={{ ...inputStyle, cursor: "pointer" }}
+                      onFocus={focusInput}
+                      onBlur={blurInput}
+                    >
+                      <option value="">None</option>
+                      {cases.map((c) => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
+            ) : (
+              plan.notes && (
+                <div style={{ marginBottom: 16 }}>
+                  <p
+                    ref={(el) => { descRefs.current[plan.id] = el; }}
+                    className="da-plan-desc"
+                    style={{
+                      fontSize: 14,
+                      color: "#292524",
+                      fontFamily: "var(--font-sans)",
+                      lineHeight: 1.6,
+                      margin: 0,
+                      ...(!(showFullDesc[plan.id]) ? {
+                        display: "-webkit-box",
+                        WebkitLineClamp: 3,
+                        WebkitBoxOrient: "vertical" as never,
+                        overflow: "hidden",
+                      } : {}),
+                    }}
+                  >
+                    {renderMarkdown(plan.notes!)}
+                  </p>
+                  {descOverflows[plan.id] && (
+                    <button
+                      onClick={() => setShowFullDesc((prev) => ({ ...prev, [plan.id]: !prev[plan.id] }))}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        padding: "4px 0 0",
+                        cursor: "pointer",
+                        fontSize: 13,
+                        fontWeight: 600,
+                        fontFamily: "var(--font-sans)",
+                        color: "#22C55E",
+                      }}
+                    >
+                      {showFullDesc[plan.id] ? "Show less \u2191" : "Show more \u2193"}
+                    </button>
+                  )}
+                </div>
+              )
+            )}
 
-        {/* ====== EXPANDED CONTENT ====== */}
-        {isExpanded && (
-          <div style={{ marginTop: 16 }}>
-            {/* GOALS SECTION */}
-            <div style={{ marginBottom: 32 }}>
+            {/* Action buttons — only when editing */}
+            {isEditing && (
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+                <button
+                  onClick={() => setConfirmDeletePlanId(plan.id)}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: 8,
+                    border: "none",
+                    background: "transparent",
+                    color: "#DC2626",
+                    fontSize: 13,
+                    fontWeight: 600,
+                    fontFamily: "var(--font-sans)",
+                    cursor: "pointer",
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "#FEF2F2"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+                >
+                  Delete Plan
+                </button>
+                <div style={{ display: "flex", gap: 10 }}>
+                  <button
+                    onClick={() => setEditingPlanId(null)}
+                    style={btnOutline}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={savePlan}
+                    disabled={saving || !planForm.start_date || !planForm.end_date}
+                    style={{
+                      ...btnGreen,
+                      opacity: saving || !planForm.start_date || !planForm.end_date ? 0.5 : 1,
+                    }}
+                  >
+                    {saving ? "Saving..." : "Update Plan"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ---- GOALS SECTION ---- */}
+            <div style={{ marginTop: 24, paddingTop: 24, borderTop: "1px solid var(--color-stone-100)" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
                 <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 18, fontWeight: 600, color: "#292524", margin: 0 }}>
                   Goals
@@ -1692,8 +1636,8 @@ export default function PlansPage() {
               )}
             </div>
 
-            {/* CHECK-INS SECTION */}
-            <div style={{ marginBottom: 32 }}>
+            {/* ---- CHECK-INS SECTION ---- */}
+            <div style={{ marginTop: 32, paddingTop: 24, borderTop: "1px solid var(--color-stone-100)" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
                 <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 18, fontWeight: 600, color: "#292524", margin: 0 }}>
                   Check-Ins
@@ -1915,8 +1859,8 @@ export default function PlansPage() {
               )}
             </div>
 
-            {/* GOALPOST TRACKER */}
-            <div style={{ marginBottom: 20 }}>
+            {/* ---- GOAL REVISION HISTORY ---- */}
+            <div style={{ marginTop: 32, paddingTop: 24, borderTop: "1px solid var(--color-stone-100)" }}>
               <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 18, fontWeight: 600, color: "#292524", marginBottom: 16 }}>
                 Goal Revision History
               </h2>
