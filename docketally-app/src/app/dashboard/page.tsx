@@ -230,7 +230,7 @@ export default function RecordPage() {
       .from("cases")
       .select("*")
       .eq("user_id", userId)
-      .order("created_at", { ascending: false });
+      .order("updated_at", { ascending: false });
     if (data) setCases(data);
   }, [userId, supabase]);
 

@@ -86,7 +86,7 @@ export default async function Home() {
           }}
         >
           The private workspace for employees to log workplace events, organize
-          evidence, and build professional case files — before you need a lawyer.
+          evidence, and build professional case files, before you need a lawyer.
         </p>
         <Link
           href="/login"

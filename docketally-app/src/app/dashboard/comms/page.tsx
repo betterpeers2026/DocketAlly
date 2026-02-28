@@ -604,7 +604,7 @@ I wanted to ask about the possibility of updating my title. My current title of 
 
 Day to day, I'm regularly [Description of Current Scope -- e.g., leading cross-functional projects, managing vendor relationships, owning client deliverables]. This aligns more closely with a [Proposed Title] role.
 
-I know titles aren't everything, but it would help with [Reason -- e.g., external stakeholder clarity, career development]. Happy to discuss whenever it makes sense.
+I know titles aren't everything, but it would help with [Reason -- e.g., working with external stakeholders, career development]. Happy to discuss whenever it makes sense.
 
 Thanks,
 [Your Name]`,
@@ -628,7 +628,7 @@ I wanted to follow up about the recent [Transfer, role change, or restructuring]
 - Is there a formal timeline for the transition?
 - Who should I reach out to if I have concerns during the process?
 
-I want to make sure I'm set up for success in the new structure. Appreciate any clarity you can provide.
+I want to make sure I'm set up for success in the new structure. Appreciate any details you can share.
 
 Thanks,
 [Your Name]`,
@@ -720,7 +720,7 @@ const TEMPLATE_TIPS: Record<string, string[]> = {
     "Offering to schedule check-ins shows you want to succeed",
   ],
   "pip-clarification": [
-    "Specific metrics protect both sides -- your manager will appreciate the clarity",
+    "Specific metrics protect both sides -- your manager will appreciate the directness",
     "Asking questions now prevents misunderstandings later",
     "Shorter is better -- keep it focused on what you need to know",
   ],
@@ -782,7 +782,7 @@ const TEMPLATE_TIPS: Record<string, string[]> = {
   "resignation-professional": [
     "Keep it brief and warm -- you may need these relationships later",
     "Offering to help with transition shows class and professionalism",
-    "Send via email so there's clarity on your last day and terms",
+    "Send via email so your last day and terms are in writing",
   ],
   "exit-interview-prep": [
     "Prepare talking points in advance so you stay on message",

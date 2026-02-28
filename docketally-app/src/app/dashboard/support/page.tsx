@@ -88,9 +88,9 @@ const ARTICLE_SECTIONS: ArticleSection[] = [
         content: (
           <>
             <Ap>Opening a new record takes less than two minutes, and those two minutes can make a real difference down the line. Head to the Record tab, click &ldquo;New Record,&rdquo; and start with the basics: what happened, when it happened, and who was there.</Ap>
-            <Ap>Pick the entry type that best fits the situation. If your manager pulled you into an unexpected meeting about performance, that might be a &ldquo;1:1 Meeting&rdquo; or a &ldquo;PIP Conversation&rdquo; depending on the content. If you received an email changing your responsibilities, that&apos;s &ldquo;Written Communication.&rdquo; Don&apos;t overthink the category &mdash; the important thing is getting it documented.</Ap>
+            <Ap>Pick the entry type that best fits the situation. If your manager pulled you into an unexpected meeting about performance, that might be a &ldquo;1:1 Meeting&rdquo; or a &ldquo;PIP Conversation&rdquo; depending on the content. If you received an email changing your responsibilities, that&apos;s &ldquo;Written Communication.&rdquo; Don&apos;t overthink the category, the important thing is getting it documented.</Ap>
             <Ap>Write your narrative the way you&apos;d explain it to a colleague: clearly and without embellishment. Stick to what happened, what was said, and what was decided. Skip the emotional reactions for now. You can always add context later, but you can&apos;t recover details you&apos;ve forgotten.</Ap>
-            <Callout>The best time to create a record is right after the event happens. Details fade fast &mdash; even waiting a day can cost you specifics that matter.</Callout>
+            <Callout>The best time to create a record is right after the event happens. Details fade fast. Even waiting a day can cost you specifics that matter.</Callout>
             <Ap>Your record is saved to your personal timeline the moment you submit it. Over time, these entries build into something much more powerful than any single note. <TabLink href="/dashboard" label="Go to Record" /></Ap>
           </>
         ),
@@ -101,11 +101,11 @@ const ARTICLE_SECTIONS: ArticleSection[] = [
         readTime: "3 min",
         content: (
           <>
-            <Ap>Entry types aren&apos;t just labels &mdash; they help DocketAlly identify patterns and organize your timeline. Choosing the right one makes your documentation more useful, both for you and for anyone who might review it later.</Ap>
-            <Ap>Use &ldquo;1:1 Meeting&rdquo; for regular check-ins, performance discussions, or any scheduled conversation with your manager. &ldquo;Written Communication&rdquo; is for emails, Slack messages, or letters you want on record &mdash; especially follow-ups where you&apos;re putting a verbal conversation into writing. &ldquo;Incident&rdquo; covers specific events that stand out: being excluded from a meeting, a policy applied inconsistently, or a confrontation.</Ap>
+            <Ap>Entry types aren&apos;t just labels. They help DocketAlly identify patterns and organize your timeline. Choosing the right one makes your documentation more useful, both for you and for anyone who might review it later.</Ap>
+            <Ap>Use &ldquo;1:1 Meeting&rdquo; for regular check-ins, performance discussions, or any scheduled conversation with your manager. &ldquo;Written Communication&rdquo; is for emails, Slack messages, or letters you want on record, especially follow-ups where you&apos;re putting a verbal conversation into writing. &ldquo;Incident&rdquo; covers specific events that stand out: being excluded from a meeting, a policy applied inconsistently, or a confrontation.</Ap>
             <Ap>&ldquo;PIP Conversation&rdquo; and &ldquo;HR Interaction&rdquo; are more targeted. Use PIP Conversation for anything directly tied to a performance improvement plan. Use HR Interaction any time human resources is involved, whether you reached out to them or they came to you.</Ap>
             <Callout>Don&apos;t overlook &ldquo;Positive Evidence.&rdquo; Documenting praise, strong reviews, and recognition creates a record of good performance that can become critical if your employer later claims otherwise.</Callout>
-            <Ap>&ldquo;Self-Documentation&rdquo; is your personal perspective on something that doesn&apos;t fit neatly elsewhere. &ldquo;Other&rdquo; works as a catch-all when nothing else fits. The most important thing is that you&apos;re documenting &mdash; the category is secondary. <TabLink href="/dashboard" label="Go to Record" /></Ap>
+            <Ap>&ldquo;Self-Documentation&rdquo; is your personal perspective on something that doesn&apos;t fit neatly elsewhere. &ldquo;Other&rdquo; works as a catch-all when nothing else fits. The most important thing is that you&apos;re documenting. The category is secondary. <TabLink href="/dashboard" label="Go to Record" /></Ap>
           </>
         ),
       },
@@ -115,11 +115,11 @@ const ARTICLE_SECTIONS: ArticleSection[] = [
         readTime: "3 min",
         content: (
           <>
-            <Ap>The most useful records read like a professional putting things in writing &mdash; not a diary entry. Focus on what happened, when, where, and who was present. Include direct quotes when you can remember them. Note any commitments, decisions, or follow-up items that came out of the conversation.</Ap>
+            <Ap>The most useful records read like a professional putting things in writing, not a diary entry. Focus on what happened, when, where, and who was present. Include direct quotes when you can remember them. Note any commitments, decisions, or follow-up items that came out of the conversation.</Ap>
             <Ap>What you leave out matters just as much. Skip emotional reactions, personal opinions about someone&apos;s character, and speculation about why someone did what they did. Instead of writing &ldquo;My manager was being unfair,&rdquo; try something like &ldquo;My manager assigned three additional projects on Friday afternoon with Monday deadlines, after I had already reported working 55 hours that week.&rdquo; The second version is specific, factual, and far more useful to anyone reviewing your records.</Ap>
             <Ap>Always fill in the People field with full names. This builds a record of who was present and who was involved, which becomes valuable if you ever need to reference these events formally. Think of it as creating a witness list that assembles itself over time.</Ap>
             <Callout>A good test: would you be comfortable with an attorney, an HR representative, or a judge reading this record? If yes, you&apos;ve struck the right tone.</Callout>
-            <Ap>The Facts and Follow-Up fields are optional but powerful. Use Facts for specific data points &mdash; numbers, dates, policy references. Use Follow-Up to note anything that was promised or needs to happen next. These small details add up.</Ap>
+            <Ap>The Facts and Follow-Up fields are optional but powerful. Use Facts for specific data points: numbers, dates, policy references. Use Follow-Up to note anything that was promised or needs to happen next. These small details add up.</Ap>
           </>
         ),
       },
@@ -135,11 +135,11 @@ const ARTICLE_SECTIONS: ArticleSection[] = [
         content: (
           <>
             <Ap>The strength of your documentation isn&apos;t just about how many records you have. It&apos;s about consistency, frequency, and coverage. Understanding these patterns helps you build a stronger position over time.</Ap>
-            <Ap><strong>Why consistency matters.</strong> Regular documentation &mdash; even just one or two records per week &mdash; creates a steady timeline that&apos;s hard to dismiss. When records are evenly spaced, they show someone who was diligently tracking events as they happened. Clusters of records all created on the same day look different &mdash; they suggest after-the-fact documentation, which is less credible even if the content is accurate.</Ap>
+            <Ap><strong>Why consistency matters.</strong> Regular documentation, even just one or two records per week, creates a steady timeline that&apos;s hard to dismiss. When records are evenly spaced, they show someone who was diligently tracking events as they happened. Clusters of records all created on the same day look different. They suggest after-the-fact documentation, which is less credible even if the content is accurate.</Ap>
             <Ap><strong>Gaps in documentation.</strong> Long periods with no records can signal several things: a quiet period at work, a time when you forgot to document, or a period when things were happening but you didn&apos;t capture them. If there&apos;s a gap in your timeline followed by a sudden burst of records, a reader might wonder what changed. The best way to avoid gaps is to make documentation a regular habit, not something you do only when things go wrong.</Ap>
-            <Ap><strong>Coverage across entry types.</strong> Strong documentation uses a variety of entry types. If all your records are &ldquo;Incident&rdquo; entries, it paints a one-dimensional picture. But a mix of 1:1 Meetings, Written Communications, HR Interactions, and Positive Evidence creates a fuller, more credible account. It shows you were documenting your work life &mdash; not just building a complaint.</Ap>
+            <Ap><strong>Coverage across entry types.</strong> Strong documentation uses a variety of entry types. If all your records are &ldquo;Incident&rdquo; entries, it paints a one-dimensional picture. But a mix of 1:1 Meetings, Written Communications, HR Interactions, and Positive Evidence creates a fuller, more credible account. It shows you were documenting your work life, not just building a complaint.</Ap>
             <Callout>Add Self-Documentation entries for your own observations and reflections. Follow up every HR interaction in writing, even if it&apos;s just a brief email confirming what was discussed. These habits fill gaps and strengthen your timeline.</Callout>
-            <Ap>Patterns emerge from consistent documentation. The more regularly you record events, the clearer the picture becomes &mdash; both for you and for anyone who reviews your case. <TabLink href="/dashboard" label="Start a new record" /></Ap>
+            <Ap>Patterns emerge from consistent documentation. The more regularly you record events, the clearer the picture becomes, both for you and for anyone who reviews your case. <TabLink href="/dashboard" label="Start a new record" /></Ap>
           </>
         ),
       },
@@ -150,9 +150,9 @@ const ARTICLE_SECTIONS: ArticleSection[] = [
         content: (
           <>
             <Ap>Not all records carry the same weight. Understanding what makes documentation strong helps you focus on what matters most.</Ap>
-            <Ap><strong>What positive evidence looks like.</strong> Positive evidence &mdash; strong performance reviews, emails with praise, promotions, awards, and recognition &mdash; is some of the most powerful documentation you can have. It establishes a baseline of good performance. If your employer later claims you were underperforming, your positive evidence directly contradicts that narrative.</Ap>
+            <Ap><strong>What positive evidence looks like.</strong> Positive evidence (strong performance reviews, emails with praise, promotions, awards, and recognition) is some of the most powerful documentation you can have. It establishes a baseline of good performance. If your employer later claims you were underperforming, your positive evidence directly contradicts that narrative.</Ap>
             <Ap><strong>Why contradictions strengthen cases.</strong> One of the most compelling patterns in employment cases is a contradiction between positive feedback and negative actions. A glowing performance review followed by a PIP two weeks later raises immediate questions. A promotion followed by sudden exclusion from meetings tells a story. These contradictions don&apos;t happen by accident, and documenting both sides makes the pattern visible.</Ap>
-            <Ap><strong>When to use each entry type.</strong> Use &ldquo;Written Communication&rdquo; when you have or can create a paper trail &mdash; emails, messages, letters. Use &ldquo;1:1 Meeting&rdquo; for conversations with your manager, even casual ones where something important was said. Use &ldquo;HR Interaction&rdquo; any time human resources is involved. Use &ldquo;Positive Evidence&rdquo; more than you think you should &mdash; it&apos;s the most commonly under-documented entry type.</Ap>
+            <Ap><strong>When to use each entry type.</strong> Use &ldquo;Written Communication&rdquo; when you have or can create a paper trail: emails, messages, letters. Use &ldquo;1:1 Meeting&rdquo; for conversations with your manager, even casual ones where something important was said. Use &ldquo;HR Interaction&rdquo; any time human resources is involved. Use &ldquo;Positive Evidence&rdquo; more than you think you should. It&apos;s the most commonly under-documented entry type.</Ap>
             <Callout>The most common mistake is only documenting negative events. Strong cases show the full picture: positive performance, negative treatment, and the contradiction between the two. Document the good as carefully as you document the bad.</Callout>
             <Ap>How patterns emerge from consistent documentation is what makes a case compelling. Individual records are data points. Together, they tell a story that speaks for itself. <TabLink href="/dashboard" label="Start a new record" /></Ap>
           </>
@@ -169,13 +169,13 @@ const ARTICLE_SECTIONS: ArticleSection[] = [
         readTime: "5 min",
         content: (
           <>
-            <Ap>Leaving a job &mdash; whether voluntarily or not &mdash; is one of the most consequential moments in an employment situation. Preparation isn&apos;t about pessimism. It&apos;s about making sure you&apos;re positioned well regardless of what happens next.</Ap>
-            <Ap><strong>Documentation readiness.</strong> The foundation of your position is your record. Five or more documented entries give you a meaningful timeline. More is better, but consistency matters more than volume. Your records should span enough time to show a pattern &mdash; ideally at least a week between your earliest and most recent entries. If you&apos;ve uploaded supporting documents to the Vault (offer letters, reviews, emails), those strengthen your position further.</Ap>
-            <Ap><strong>Case readiness.</strong> Your Case Info section should be filled in with your name, employer, role, and a summary of your situation. Key events in your timeline should be flagged &mdash; the ones you&apos;d want an attorney to see first. If DocketAlly has detected patterns in your documentation, review them to make sure they align with your understanding of the situation.</Ap>
+            <Ap>Leaving a job, whether voluntarily or not, is one of the most consequential moments in an employment situation. Preparation isn&apos;t about pessimism. It&apos;s about making sure you&apos;re positioned well regardless of what happens next.</Ap>
+            <Ap><strong>Documentation readiness.</strong> The foundation of your position is your record. Five or more documented entries give you a meaningful timeline. More is better, but consistency matters more than volume. Your records should span enough time to show a pattern, ideally at least a week between your earliest and most recent entries. If you&apos;ve uploaded supporting documents to the Vault (offer letters, reviews, emails), those strengthen your position further.</Ap>
+            <Ap><strong>Case readiness.</strong> Your Case Info section should be filled in with your name, employer, role, and a summary of your situation. Key events in your timeline should be flagged, the ones you&apos;d want an attorney to see first. If DocketAlly has detected patterns in your documentation, review them to make sure they align with your understanding of the situation.</Ap>
             <Ap><strong>Plan tracking.</strong> If you&apos;re on a PIP or formal performance plan, your goals, check-ins, and any revisions should be documented in the Plans tab. This is especially important if goals have changed since the plan started. A complete plan history shows exactly how you engaged with the process.</Ap>
             <Ap><strong>Personal readiness.</strong> Beyond DocketAlly, there are things you should do while you still have access. Save copies of your employment contract, recent performance reviews, and any emails that document commitments or praise. Review your company&apos;s severance and separation policies. Know what your non-compete and non-solicitation clauses say. Consider scheduling a consultation with an employment attorney before you need one urgently. Have a financial plan for the transition period.</Ap>
             <Callout>Don&apos;t wait until your last day to prepare. The best time to organize your documentation and personal files is while you still have access to information and while events are fresh.</Callout>
-            <Ap>Think of readiness as making sure your parachute is packed before you need it. Completing these steps doesn&apos;t mean you&apos;re planning to leave &mdash; it means you&apos;ll be ready if the situation changes. <TabLink href="/dashboard/home" label="Check your documentation strength" /></Ap>
+            <Ap>Think of readiness as making sure your parachute is packed before you need it. Completing these steps doesn&apos;t mean you&apos;re planning to leave. It means you&apos;ll be ready if the situation changes. <TabLink href="/dashboard/home" label="Check your documentation strength" /></Ap>
           </>
         ),
       },
@@ -185,12 +185,12 @@ const ARTICLE_SECTIONS: ArticleSection[] = [
         readTime: "5 min",
         content: (
           <>
-            <Ap><strong>What severance is.</strong> Severance pay is not required by law in most situations. It&apos;s a negotiated agreement between you and your employer, typically offered in exchange for a release of legal claims. The fact that it&apos;s offered at all usually means your employer sees value in a clean separation &mdash; which means you have leverage.</Ap>
-            <Ap><strong>What&apos;s typically included.</strong> A standard severance package may include a lump-sum payment (often based on tenure), continuation of health insurance through COBRA, payout of unused PTO, a reference agreement, and a non-disparagement clause. Some packages include outplacement services or extended access to company benefits. Read every section carefully &mdash; what&apos;s not included matters as much as what is.</Ap>
-            <Ap><strong>Negotiation.</strong> Everything in a severance agreement is negotiable. The first offer is a starting point, not a final answer. Common negotiation points include the payment amount, COBRA coverage duration, reference wording, non-compete scope, and the release language itself. If you&apos;ve been documenting workplace issues, that documentation gives the release real value &mdash; and the severance amount should reflect it.</Ap>
+            <Ap><strong>What severance is.</strong> Severance pay is not required by law in most situations. It&apos;s a negotiated agreement between you and your employer, typically offered in exchange for a release of legal claims. The fact that it&apos;s offered at all usually means your employer sees value in a clean separation, which means you have negotiating power.</Ap>
+            <Ap><strong>What&apos;s typically included.</strong> A standard severance package may include a lump-sum payment (often based on tenure), continuation of health insurance through COBRA, payout of unused PTO, a reference agreement, and a non-disparagement clause. Some packages include outplacement services or extended access to company benefits. Read every section carefully. What&apos;s not included matters as much as what is.</Ap>
+            <Ap><strong>Negotiation.</strong> Everything in a severance agreement is negotiable. The first offer is a starting point, not a final answer. Common negotiation points include the payment amount, COBRA coverage duration, reference wording, non-compete scope, and the release language itself. If you&apos;ve been documenting workplace issues, that documentation gives the release real value, and the severance amount should reflect it.</Ap>
             <Ap><strong>When to involve an attorney.</strong> If the severance amount is significant, if you&apos;re being asked to release discrimination or retaliation claims, or if you&apos;re unsure about any clause, consult an employment attorney before signing. Many offer free or low-cost initial consultations. The cost of a review is almost always worth it.</Ap>
             <Callout>If you&apos;re 40 or older, federal law (the Older Workers Benefit Protection Act) requires your employer to give you at least 21 days to review a severance agreement and 7 days to revoke your signature after signing. Don&apos;t let anyone rush you.</Callout>
-            <Ap><strong>What NOT to do.</strong> Don&apos;t sign immediately, even if you&apos;re pressured. Don&apos;t discuss the terms with coworkers (most agreements prohibit this). Don&apos;t stop documenting &mdash; events during the separation process matter too. And don&apos;t assume the first offer is the best you can get.</Ap>
+            <Ap><strong>What NOT to do.</strong> Don&apos;t sign immediately, even if you&apos;re pressured. Don&apos;t discuss the terms with coworkers (most agreements prohibit this). Don&apos;t stop documenting. Events during the separation process matter too. And don&apos;t assume the first offer is the best you can get.</Ap>
           </>
         ),
       },
@@ -201,24 +201,24 @@ const ARTICLE_SECTIONS: ArticleSection[] = [
         content: (
           <>
             <Ap><strong>What the EEOC is.</strong> The Equal Employment Opportunity Commission is the federal agency that enforces laws against workplace discrimination based on race, sex, age, disability, religion, national origin, and other protected characteristics. Filing a charge with the EEOC is often the first formal step in pursuing a discrimination claim.</Ap>
-            <Ap><strong>When to file.</strong> You generally have 180 days from the discriminatory act to file a charge. In states with their own anti-discrimination agencies (most states), that deadline extends to 300 days. These deadlines are strict &mdash; missing them can mean losing your right to pursue the claim entirely.</Ap>
+            <Ap><strong>When to file.</strong> You generally have 180 days from the discriminatory act to file a charge. In states with their own anti-discrimination agencies (most states), that deadline extends to 300 days. These deadlines are strict. Missing them can mean losing your right to pursue the claim entirely.</Ap>
             <Ap><strong>How to file.</strong> You can file online through the EEOC&apos;s public portal, in person at a local EEOC office, or by mail. The process starts with an intake questionnaire where you describe what happened. You don&apos;t need an attorney to file, though consulting one beforehand can help you frame the complaint effectively and identify all applicable claims.</Ap>
             <Ap><strong>What happens after filing.</strong> The EEOC notifies your employer within 10 days and may offer mediation as a voluntary first step. If mediation doesn&apos;t resolve the matter or either party declines, the EEOC moves to investigation. An investigator reviews evidence from both sides. This process can take several months to over a year.</Ap>
-            <Ap><strong>Right to Sue letter.</strong> At any point during the EEOC process, you can request a Right to Sue letter. This letter gives you 90 days to file a lawsuit in federal court. If the EEOC completes its investigation without resolving the matter, they&apos;ll issue this letter automatically. The 90-day window is firm &mdash; don&apos;t wait to find an attorney after receiving it.</Ap>
+            <Ap><strong>Right to Sue letter.</strong> At any point during the EEOC process, you can request a Right to Sue letter. This letter gives you 90 days to file a lawsuit in federal court. If the EEOC completes its investigation without resolving the matter, they&apos;ll issue this letter automatically. The 90-day window is firm. Don&apos;t wait to find an attorney after receiving it.</Ap>
             <Ap><strong>State agencies and dual filing.</strong> Many states have their own anti-discrimination agencies that work with the EEOC through worksharing agreements. Filing with one often counts as filing with both, but check your state&apos;s specific process. State agencies sometimes offer broader protections than federal law.</Ap>
             <Callout>The filing deadline is strict. If you&apos;re considering an EEOC complaint, check your state&apos;s specific deadline and don&apos;t wait until the last week. Start the process as soon as you&apos;re ready.</Callout>
-            <Ap>Your DocketAlly case file organizes exactly the kind of documentation the EEOC asks for &mdash; a chronological account of events, names and dates, supporting documents, and evidence of patterns. Having this organized before you file makes the process significantly smoother. <TabLink href="/dashboard/case" label="Generate your case file" /></Ap>
+            <Ap>Your DocketAlly case file organizes exactly the kind of documentation the EEOC asks for: a chronological account of events, names and dates, supporting documents, and evidence of patterns. Having this organized before you file makes the process significantly smoother. <TabLink href="/dashboard/case" label="Generate your case file" /></Ap>
           </>
         ),
       },
       {
-        title: "Leaving your job — what to document",
+        title: "Leaving your job: what to document",
         description: "What to save, request, and avoid before your last day.",
         readTime: "4 min",
         content: (
           <>
-            <Ap>The period between knowing you&apos;re leaving and actually walking out the door is critical. What you do &mdash; and don&apos;t do &mdash; during this window can significantly affect your position afterward.</Ap>
-            <Ap><strong>What to save before your last day.</strong> While you still have access, save copies of anything that documents your performance, contributions, and communications. This includes performance reviews, emails with praise or commitments, pay stubs, bonus documentation, project records, and any written communications about your role or responsibilities. Save these to a personal device or personal email &mdash; not your work computer.</Ap>
+            <Ap>The period between knowing you&apos;re leaving and actually walking out the door is critical. What you do, and don&apos;t do, during this window can significantly affect your position afterward.</Ap>
+            <Ap><strong>What to save before your last day.</strong> While you still have access, save copies of anything that documents your performance, contributions, and communications. This includes performance reviews, emails with praise or commitments, pay stubs, bonus documentation, project records, and any written communications about your role or responsibilities. Save these to a personal device or personal email, not your work computer.</Ap>
             <Ap><strong>How to request your personnel file.</strong> Many states give employees the right to request a copy of their personnel file. This typically includes performance reviews, disciplinary records, and hiring documents. Submit this request in writing before your last day. Keep a copy of the request itself.</Ap>
             <Ap><strong>What NOT to sign without review.</strong> Before your last day, you may be asked to sign separation agreements, non-compete agreements, or other documents. Do not sign anything without reading it carefully. If the document includes a release of claims, consult an employment attorney before signing. You are almost never required to sign on the spot.</Ap>
             <Ap><strong>How to document your separation.</strong> Create a record in DocketAlly for each significant event during the separation process. How were you told? Who was present? What was said about the reason? Were you given anything in writing? What was the timeline? These details matter and fade quickly.</Ap>
@@ -238,8 +238,8 @@ const ARTICLE_SECTIONS: ArticleSection[] = [
         readTime: "3 min",
         content: (
           <>
-            <Ap>You don&apos;t build a case in DocketAlly &mdash; your case builds itself as you document. The Case tab reads from your records and organizes them into a visual timeline. The more consistently you document, the more complete your case becomes.</Ap>
-            <Ap>The real power is in aggregation. A single record of being left off a meeting invite doesn&apos;t tell much of a story. But a dozen records over three months showing a pattern of exclusion &mdash; especially after you filed an HR complaint &mdash; that tells a very different story. The Case tab surfaces these connections so you can see them clearly.</Ap>
+            <Ap>You don&apos;t build a case in DocketAlly. Your case builds itself as you document. The Case tab reads from your records and organizes them into a visual timeline. The more consistently you document, the more complete your case becomes.</Ap>
+            <Ap>The real power is in aggregation. A single record of being left off a meeting invite doesn&apos;t tell much of a story. But a dozen records over three months showing a pattern of exclusion, especially after you filed an HR complaint, that tells a very different story. The Case tab surfaces these connections so you can see them clearly.</Ap>
             <Ap>Start by filling out the Case Info section with your name, company, role, and a brief summary of your situation. This becomes the header of your case file and helps anyone reading it understand the context immediately. You can update it anytime.</Ap>
             <Callout>You don&apos;t need a minimum number of records to use the Case tab. Even two or three entries start forming a timeline. Start early and let it grow.</Callout>
             <Ap>The pattern detection engine scans your records for trends like increasing frequency, shifting expectations, and performance contradictions. These observations appear automatically as your documentation grows. <TabLink href="/dashboard/case" label="Go to Case" /></Ap>
@@ -252,9 +252,9 @@ const ARTICLE_SECTIONS: ArticleSection[] = [
         readTime: "4 min",
         content: (
           <>
-            <Ap>DocketAlly scans your records and surfaces patterns that might be significant. These aren&apos;t legal conclusions &mdash; they&apos;re observations based on your documentation that help you and your attorney see the bigger picture.</Ap>
-            <Ap>Several types of patterns are tracked. Frequency analysis shows whether your documentation rate is increasing, which might indicate an escalating situation. Performance contradictions flag cases where positive feedback and negative actions occur close together &mdash; like receiving praise in a review but being placed on a PIP two weeks later. Exclusion patterns emerge when your records mention being removed from projects, meetings, or communication channels.</Ap>
-            <Ap>The pattern engine also tracks people across your records. If one manager&apos;s name appears in the majority of your negative entries, that&apos;s visible at a glance. Timeline gaps are flagged too &mdash; periods where you stopped documenting might represent missed opportunities or simply quieter times.</Ap>
+            <Ap>DocketAlly scans your records and surfaces patterns that might be significant. These aren&apos;t legal conclusions. They&apos;re observations based on your documentation that help you and your attorney see the bigger picture.</Ap>
+            <Ap>Several types of patterns are tracked. Frequency analysis shows whether your documentation rate is increasing, which might indicate an escalating situation. Performance contradictions flag cases where positive feedback and negative actions occur close together, like receiving praise in a review but being placed on a PIP two weeks later. Exclusion patterns emerge when your records mention being removed from projects, meetings, or communication channels.</Ap>
+            <Ap>The pattern engine also tracks people across your records. If one manager&apos;s name appears in the majority of your negative entries, that&apos;s visible at a glance. Timeline gaps are flagged too. Periods where you stopped documenting might represent missed opportunities or simply quieter times.</Ap>
             <Callout>Patterns are only as good as your records. Detailed, consistent entries with specific names, dates, and actions give the analysis more to work with. Vague records produce vague results.</Callout>
             <Ap>Think of pattern detection as a second pair of eyes on your documentation. It catches things you might miss when you&apos;re living through a situation day by day. <TabLink href="/dashboard/case" label="Go to Case" /></Ap>
           </>
@@ -266,11 +266,11 @@ const ARTICLE_SECTIONS: ArticleSection[] = [
         readTime: "2 min",
         content: (
           <>
-            <Ap>When you need to share your documentation with an attorney, HR, or for your own records, the Case tab generates a comprehensive PDF that organizes everything into a professional document.</Ap>
-            <Ap>The PDF includes your case information, a complete chronological timeline of all records, pattern analysis, key statistics, and a list of linked vault documents. It&apos;s structured to give a reader &mdash; especially an attorney seeing your situation for the first time &mdash; a clear, organized picture of what&apos;s been happening.</Ap>
+            <Ap>When you need to share your documentation with an attorney, HR, or for your own records, the Case tab generates a complete PDF that organizes everything into a professional document.</Ap>
+            <Ap>The PDF includes your case information, a complete chronological timeline of all records, pattern analysis, key statistics, and a list of linked vault documents. It&apos;s structured to give a reader (especially an attorney seeing your situation for the first time) a clear, organized picture of what&apos;s been happening.</Ap>
             <Ap>Click &ldquo;Generate PDF&rdquo; in the Case File view. The document is created entirely in your browser. Your data doesn&apos;t pass through any external service during generation. The filename includes today&apos;s date, so you can regenerate it over time and keep multiple versions.</Ap>
             <Callout>Before generating, make sure your Case Info section is filled out. It provides the context that makes the document immediately useful to a first-time reader.</Callout>
-            <Ap>You can regenerate the PDF as many times as you want, at no cost. There&apos;s no reason to wait until everything is perfect &mdash; generate an early version, share it if you need to, and create updated versions as you add more records. <TabLink href="/dashboard/case" label="Go to Case" /></Ap>
+            <Ap>You can regenerate the PDF as many times as you want, at no cost. There&apos;s no reason to wait until everything is perfect. Generate an early version, share it if you need to, and create updated versions as you add more records. <TabLink href="/dashboard/case" label="Go to Case" /></Ap>
           </>
         ),
       },
@@ -286,7 +286,7 @@ const ARTICLE_SECTIONS: ArticleSection[] = [
         content: (
           <>
             <Ap>Receiving a performance improvement plan can be stressful, but your first written response matters. The PIP Acknowledgment template in the Comms tab helps you respond professionally while protecting your position.</Ap>
-            <Ap>The key is acknowledging receipt without agreeing with the content. Your response should confirm you received the document, request specific and measurable criteria for each goal, ask about the resources and support available to you, and note any factual disagreements for the record. Sign to acknowledge receipt only &mdash; and say so explicitly.</Ap>
+            <Ap>The key is acknowledging receipt without agreeing with the content. Your response should confirm you received the document, request specific and measurable criteria for each goal, ask about the resources and support available to you, and note any factual disagreements for the record. Sign to acknowledge receipt only, and say so explicitly.</Ap>
             <Ap>Before responding, take time to review the PIP carefully. Compare it to your recent performance reviews and identify any inconsistencies. If you received a positive review two months ago and now you&apos;re on a PIP, that discrepancy is worth noting in your response and documenting separately.</Ap>
             <Callout>Don&apos;t rush your response. You typically have a few days to reply. Use that time to review, compare to past feedback, and write a thoughtful acknowledgment.</Callout>
             <Ap>The template gives you a professional starting point that you can customize to your situation. Edit it to match your specific circumstances, then send it. And after you send it, create a record in DocketAlly documenting that you responded and what you said. <TabLink href="/dashboard/comms" label="Go to Comms" /></Ap>
@@ -299,9 +299,9 @@ const ARTICLE_SECTIONS: ArticleSection[] = [
         readTime: "3 min",
         content: (
           <>
-            <Ap>One of the most powerful habits you can develop is sending a follow-up email after every important meeting. It turns a verbal conversation &mdash; which is your word against theirs &mdash; into a written record that both parties have seen.</Ap>
+            <Ap>One of the most powerful habits you can develop is sending a follow-up email after every important meeting. It turns a verbal conversation, which is your word against theirs, into a written record that both parties have seen.</Ap>
             <Ap>The Meeting Summary template helps you structure this naturally. Include the date, who was present, key discussion points, action items, and any agreements or commitments made. Close by inviting the other person to confirm your summary or correct anything you may have missed. If they don&apos;t respond, your summary stands as the record.</Ap>
-            <Ap>What makes this effective is consistency. Don&apos;t just send follow-ups during conflict &mdash; make it a regular professional practice after all significant meetings. When it&apos;s something you always do, it can&apos;t be characterized as adversarial behavior. It&apos;s just how you work.</Ap>
+            <Ap>What makes this effective is consistency. Don&apos;t just send follow-ups during conflict. Make it a regular professional practice after all significant meetings. When it&apos;s something you always do, it can&apos;t be characterized as adversarial behavior. It&apos;s just how you work.</Ap>
             <Callout>If someone says something important in a meeting but doesn&apos;t put it in writing, your follow-up email creates that written record for them. This is one of the simplest and most effective documentation strategies.</Callout>
             <Ap>After sending your follow-up, create a &ldquo;Written Communication&rdquo; record in DocketAlly with the key points. This ensures your timeline captures the conversation regardless of what happens to your email access later. <TabLink href="/dashboard/comms" label="Go to Comms" /></Ap>
           </>
@@ -314,9 +314,9 @@ const ARTICLE_SECTIONS: ArticleSection[] = [
         content: (
           <>
             <Ap>Escalating to HR is a significant step, and preparation matters. Before filing a formal complaint, make sure you have a documented trail showing that you attempted to address the issue through other channels first. This establishes that escalation was a measured decision, not an impulsive reaction.</Ap>
-            <Ap>The Formal HR Complaint template provides a professional structure for your escalation. Include specific incidents with dates, names, and what happened. Reference any prior attempts to resolve the matter informally &mdash; the meeting where you raised concerns, the email you sent, the follow-up that went unanswered. Be explicit about what you&apos;re requesting: an investigation, a response, protection from retaliation.</Ap>
+            <Ap>The Formal HR Complaint template provides a professional structure for your escalation. Include specific incidents with dates, names, and what happened. Reference any prior attempts to resolve the matter informally: the meeting where you raised concerns, the email you sent, the follow-up that went unanswered. Be explicit about what you&apos;re requesting: an investigation, a response, protection from retaliation.</Ap>
             <Ap>After submitting your complaint, document the submission itself. Note when you filed it, who received it, what they told you about next steps and timeline. If they promise to follow up by a certain date, write that down. If they miss that date, document that too.</Ap>
-            <Callout>The act of filing an HR complaint creates legal protections against retaliation in many jurisdictions. Document the filing carefully &mdash; it may become an important reference point in your timeline.</Callout>
+            <Callout>The act of filing an HR complaint creates legal protections against retaliation in many jurisdictions. Document the filing carefully. It may become an important reference point in your timeline.</Callout>
             <Ap>Keep in mind that HR works for the company, not for you. That doesn&apos;t mean they won&apos;t help, but it means your documentation needs to be thorough enough to speak for itself regardless of the outcome. <TabLink href="/dashboard/comms" label="Go to Comms" /></Ap>
           </>
         ),
@@ -333,10 +333,10 @@ const ARTICLE_SECTIONS: ArticleSection[] = [
         content: (
           <>
             <Ap>If you&apos;ve been placed on a performance improvement plan, the Plans tab gives you a structured way to track every aspect of it. Start by creating a new plan with the exact name, start date, and end date from your official PIP document.</Ap>
-            <Ap>Add each goal individually with its description and success criteria &mdash; exactly as they appear in the plan. This creates your baseline. If anything changes later, you&apos;ll have the original on record. Then, as you work through the PIP, log check-ins after each meeting with your manager about your progress.</Ap>
+            <Ap>Add each goal individually with its description and success criteria, exactly as they appear in the plan. This creates your baseline. If anything changes later, you&apos;ll have the original on record. Then, as you work through the PIP, log check-ins after each meeting with your manager about your progress.</Ap>
             <Ap>Check-ins capture what was discussed, what feedback was given, and any private observations you want to keep on record. You can link check-ins to specific records you&apos;ve created, connecting your formal plan tracking to your broader documentation.</Ap>
-            <Callout>The plan dashboard shows your progress at a glance &mdash; days remaining, goal status, and a complete check-in history. Review it before every meeting with your manager so you&apos;re always prepared.</Callout>
-            <Ap>The Plans tab isn&apos;t just for your own reference. The structured data it creates &mdash; goals with dates, check-in history, revision tracking &mdash; becomes part of your case documentation and can demonstrate exactly how you engaged with the process. <TabLink href="/dashboard/plans" label="Go to Plans" /></Ap>
+            <Callout>The plan dashboard shows your progress at a glance: days remaining, goal status, and a complete check-in history. Review it before every meeting with your manager so you&apos;re always prepared.</Callout>
+            <Ap>The Plans tab isn&apos;t just for your own reference. The structured data it creates (goals with dates, check-in history, revision tracking) becomes part of your case documentation and can demonstrate exactly how you engaged with the process. <TabLink href="/dashboard/plans" label="Go to Plans" /></Ap>
           </>
         ),
       },
@@ -361,8 +361,8 @@ const ARTICLE_SECTIONS: ArticleSection[] = [
         content: (
           <>
             <Ap>Check-ins are your record of every conversation with your manager about your performance plan. After each meeting, open the Plans tab, find your active plan, and log what was discussed. Capture the date, a summary of the conversation, any feedback your manager gave you, and your own private observations.</Ap>
-            <Ap>The summary field should reflect what actually happened in the meeting. Did your manager acknowledge progress? Did they raise new concerns that weren&apos;t in the original plan? Did they promise resources or support? Write it down while it&apos;s fresh. The manager feedback field captures their exact words as closely as you can recall &mdash; this becomes part of your documented record.</Ap>
-            <Ap>Private notes are for your eyes only. Use them to record things you noticed but didn&apos;t say out loud &mdash; a dismissive tone, contradictions with previous feedback, or the fact that a promised resource never materialized. These observations can reveal patterns over time that aren&apos;t obvious in any single meeting.</Ap>
+            <Ap>The summary field should reflect what actually happened in the meeting. Did your manager acknowledge progress? Did they raise new concerns that weren&apos;t in the original plan? Did they promise resources or support? Write it down while it&apos;s fresh. The manager feedback field captures their exact words as closely as you can recall. This becomes part of your documented record.</Ap>
+            <Ap>Private notes are for your eyes only. Use them to record things you noticed but didn&apos;t say out loud: a dismissive tone, contradictions with previous feedback, or the fact that a promised resource never materialized. These observations can reveal patterns over time that aren&apos;t obvious in any single meeting.</Ap>
             <Callout>Link each check-in to a Record entry when possible. This connects your plan tracking to your broader documentation timeline, making your case file more complete and easier to follow.</Callout>
             <Ap>Consistent check-in documentation does two things. It shows that you actively engaged with the improvement process, and it creates a paper trail if your employer&apos;s version of events later differs from yours. Both matter. <TabLink href="/dashboard/plans" label="Go to Plans" /></Ap>
           </>
@@ -380,10 +380,10 @@ const ARTICLE_SECTIONS: ArticleSection[] = [
         content: (
           <>
             <Ap>Only you. Your records are stored in a secure database with row-level security policies that enforce access at the database level. Your employer cannot see them. DocketAlly staff do not access user record content as part of normal operations.</Ap>
-            <Ap>The technical foundation is Supabase with PostgreSQL row-level security. This means access rules aren&apos;t just enforced by the application &mdash; they&apos;re enforced by the database itself. Even if someone gained access to the application code, they couldn&apos;t query another user&apos;s records without that user&apos;s authentication credentials.</Ap>
+            <Ap>The technical foundation is Supabase with PostgreSQL row-level security. This means access rules aren&apos;t just enforced by the application. They&apos;re enforced by the database itself. Even if someone gained access to the application code, they couldn&apos;t query another user&apos;s records without that user&apos;s authentication credentials.</Ap>
             <Ap>Your vault documents are stored with the same protections. Files you upload are associated with your account and accessible only through your authenticated session. They aren&apos;t shared, indexed, or accessible to anyone else.</Ap>
             <Callout>If your employer monitors your work computer or network, access DocketAlly from a personal device on a personal network. Your documentation is too important to risk having it discovered before you&apos;re ready.</Callout>
-            <Ap>We designed DocketAlly&apos;s security model around one principle: your workplace documentation is sensitive, and only you should control who sees it. That&apos;s not a feature &mdash; it&apos;s the foundation.</Ap>
+            <Ap>We designed DocketAlly&apos;s security model around one principle: your workplace documentation is sensitive, and only you should control who sees it. That&apos;s not a feature. It&apos;s the foundation.</Ap>
           </>
         ),
       },
@@ -393,9 +393,9 @@ const ARTICLE_SECTIONS: ArticleSection[] = [
         readTime: "2 min",
         content: (
           <>
-            <Ap>If you decide to remove all of your data from DocketAlly, you can delete your account through your profile settings. Deletion is permanent and removes everything &mdash; records, vault documents, plans, check-ins, goals, tickets, and all associated data.</Ap>
-            <Ap>Before deleting, generate a case file PDF from the Case tab and download any vault documents you want to keep. Once your account is deleted, your data cannot be recovered. This is by design &mdash; when you ask us to delete your data, we actually delete it.</Ap>
-            <Ap>If you&apos;re deleting because your workplace situation has been resolved, that&apos;s good news. But even then, consider keeping your documentation somewhere safe. Employment situations can resurface, and having records available &mdash; even offline &mdash; gives you options.</Ap>
+            <Ap>If you decide to remove all of your data from DocketAlly, you can delete your account through your profile settings. Deletion is permanent and removes everything: records, vault documents, plans, check-ins, goals, tickets, and all associated data.</Ap>
+            <Ap>Before deleting, generate a case file PDF from the Case tab and download any vault documents you want to keep. Once your account is deleted, your data cannot be recovered. This is by design. When you ask us to delete your data, we actually delete it.</Ap>
+            <Ap>If you&apos;re deleting because your workplace situation has been resolved, that&apos;s good news. But even then, consider keeping your documentation somewhere safe. Employment situations can resurface, and having records available, even offline, gives you options.</Ap>
             <Callout>Account deletion is immediate and irreversible. Download your case file PDF and vault documents before you delete. There is no recovery process.</Callout>
             <Ap>The deletion cascades through all related data. When your account goes, everything connected to it goes with it. No orphaned records, no lingering data, no exceptions.</Ap>
           </>
@@ -407,11 +407,11 @@ const ARTICLE_SECTIONS: ArticleSection[] = [
         readTime: "2 min",
         content: (
           <>
-            <Ap>You own your data, and you can take it with you at any time. The primary export method is the case file PDF, which generates a comprehensive document with your complete timeline, pattern analysis, statistics, and case information from the Case tab.</Ap>
-            <Ap>Vault documents can be downloaded individually whenever you need them. They&apos;re stored exactly as you uploaded them &mdash; no conversion, no compression, no modification. What you put in is what you get out.</Ap>
+            <Ap>You own your data, and you can take it with you at any time. The primary export method is the case file PDF, which generates a full document with your complete timeline, pattern analysis, statistics, and case information from the Case tab.</Ap>
+            <Ap>Vault documents can be downloaded individually whenever you need them. They&apos;re stored exactly as you uploaded them: no conversion, no compression, no modification. What you put in is what you get out.</Ap>
             <Ap>For your complete documentation, the case file PDF is designed to be the definitive export. It includes everything a reader would need to understand your situation: background information, chronological records, detected patterns, key people, and a document index.</Ap>
             <Callout>There are no restrictions on exporting, no paywalls on downloads, and no limits on how many times you can generate your case file. Your data is yours.</Callout>
-            <Ap>We recommend generating a fresh PDF periodically as you add records, and saving copies in a secure personal location. Cloud storage that your employer can&apos;t access &mdash; a personal Google Drive, Dropbox, or encrypted USB drive &mdash; works well. <TabLink href="/dashboard/case" label="Go to Case" /></Ap>
+            <Ap>We recommend generating a fresh PDF periodically as you add records, and saving copies in a secure personal location. Cloud storage that your employer can&apos;t access, such as a personal Google Drive, Dropbox, or encrypted USB drive, works well. <TabLink href="/dashboard/case" label="Go to Case" /></Ap>
           </>
         ),
       },

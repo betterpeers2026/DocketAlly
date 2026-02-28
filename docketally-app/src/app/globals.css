@@ -709,3 +709,52 @@
   80%  { opacity: 1; transform: translateX(-50%) translateY(0); }
   100% { opacity: 0; transform: translateX(-50%) translateY(-4px); }
 }
+
+/* ============================================================ */
+/*  PRINT                                                        */
+/* ============================================================ */
+@media print {
+  /* Hide everything by default */
+  body * {
+    visibility: hidden;
+  }
+
+  /* Show only the case file document */
+  .da-print-casefile,
+  .da-print-casefile * {
+    visibility: visible;
+  }
+
+  .da-print-casefile {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+    max-width: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Remove fixed/sticky elements */
+  .da-sidebar,
+  .da-bottom-nav,
+  .da-casefile-panel,
+  .da-topbar,
+  .da-hamburger {
+    display: none !important;
+  }
+
+  /* Allow content to flow across pages */
+  .da-print-casefile {
+    height: auto !important;
+    overflow: visible !important;
+    max-height: none !important;
+  }
+
+  /* Prevent page breaks inside timeline entries */
+  .da-print-casefile > div > div {
+    page-break-inside: avoid;
+  }
+}

@@ -531,8 +531,9 @@ function CaseFileDocPreview({ records, vaultDocs, patterns, contradictions, link
   const today = new Date();
   const genDate = today.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
   const genTime = today.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
-  const firstDate = records.length > 0 ? records[0].date : null;
-  const lastDate = records.length > 0 ? records[records.length - 1].date : null;
+  const sortedDates = records.map((r) => r.date).sort();
+  const firstDate = sortedDates.length > 0 ? sortedDates[0] : null;
+  const lastDate = sortedDates.length > 0 ? sortedDates[sortedDates.length - 1] : null;
   const daySpan = firstDate && lastDate ? Math.round((new Date(lastDate + "T00:00:00").getTime() - new Date(firstDate + "T00:00:00").getTime()) / 86400000) : 0;
   const linkedDocs = vaultDocs.filter((d) => d.linked_record_id);
 
@@ -1038,11 +1039,11 @@ export default function CaseDetailPage() {
   /* ---------------------------------------------------------------- */
 
   async function saveCaseInfo() {
-    if (!caseData) return;
+    if (!caseData || !userId) return;
     setSavingCaseInfo(true);
     const typesToSave = editForm.case_types.length > 0 ? editForm.case_types : ["General"];
     const classesToSave = typesToSave.some((t) => DISCRIMINATION_TYPES.includes(t)) ? editForm.protected_classes : [];
-    const { error } = await supabase.from("cases").update({
+    const raw: Record<string, unknown> = {
       employer: editForm.employer || null,
       role: editForm.role || null,
       department: editForm.department || null,
@@ -1053,13 +1054,24 @@ export default function CaseDetailPage() {
       case_types: typesToSave,
       case_type: typesToSave[0],
       protected_classes: classesToSave,
-    }).eq("id", caseId);
-    if (!error) {
-      setCaseData({ ...caseData, ...editForm, employer: editForm.employer || null, role: editForm.role || null, department: editForm.department || null, location: editForm.location || null, key_people: editForm.key_people || null, description: editForm.description || null, start_date: editForm.start_date || null, case_types: typesToSave, case_type: typesToSave[0], protected_classes: classesToSave });
-      setEditingCaseInfo(false);
-      setShowToast(true);
-      setTimeout(() => setShowToast(false), 3000);
+    };
+    const updates = Object.fromEntries(Object.entries(raw).filter(([, v]) => v !== undefined));
+    console.log('SAVE DEBUG:', {
+      caseId,
+      userId,
+      updates: JSON.stringify(updates, null, 2)
+    });
+    const { error, data, status, statusText } = await supabase.from("cases").update(updates).eq("id", caseId).select();
+    console.log('SAVE RESULT:', { error, data, status, statusText });
+    if (error) {
+      console.error("Failed to save case info:", error);
+      setSavingCaseInfo(false);
+      return;
     }
+    await fetchCase();
+    setEditingCaseInfo(false);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
     setSavingCaseInfo(false);
   }
 
@@ -1213,14 +1225,17 @@ export default function CaseDetailPage() {
     const el = caseFileRef.current;
     if (!el) return;
     setGeneratingPdf(true);
-    const wasHidden = caseFileView === "interactive" || activeTab !== "casefile";
-    if (wasHidden) {
-      el.style.position = "fixed"; el.style.left = "0"; el.style.top = "0"; el.style.width = "720px"; el.style.zIndex = "-1"; el.style.opacity = "0";
-      el.offsetHeight;
-    }
+    // Save current inline style so we can restore it after capture
+    const prevStyle = el.getAttribute("style") || "";
+    // Force element visible and positioned for html2canvas (handles both
+    // the display:none case in document-view and the off-screen case)
+    el.style.cssText = "position:fixed;left:0;top:0;width:720px;z-index:-1;opacity:0;display:block;background:#fff;";
+    el.offsetHeight; // force reflow
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const html2pdf = (await import("html2pdf.js")).default as any;
+      const mod = await import("html2pdf.js");
+      const html2pdf = ((mod as any).default || mod) as any;
+      if (typeof html2pdf !== "function") throw new Error("html2pdf.js failed to load");
       const today = new Date().toISOString().split("T")[0];
       const safeName = (caseData?.name || "Case").replace(/[^a-zA-Z0-9]/g, "-");
       await html2pdf().set({
@@ -1231,10 +1246,12 @@ export default function CaseDetailPage() {
         jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
         pagebreak: { mode: ["avoid-all", "css", "legacy"] },
       }).from(el).save();
-    } catch (err) { console.error("PDF generation error:", err); }
-    if (wasHidden) {
-      el.style.position = "absolute"; el.style.left = "-9999px"; el.style.top = "0"; el.style.width = "720px"; el.style.zIndex = ""; el.style.opacity = "";
+    } catch (err) {
+      console.error("PDF generation error:", err);
+      window.alert("PDF generation failed. Please use the Print button instead.");
     }
+    // Restore original inline style
+    el.setAttribute("style", prevStyle);
     setGeneratingPdf(false);
   }
 
@@ -1880,7 +1897,7 @@ export default function CaseDetailPage() {
 
               {/* Document Preview (visible when document view) */}
               {caseFileView === "document" && (
-                <div style={{ maxWidth: 720, margin: "0 auto", background: "#fff", border: "1px solid #D6D3D1", borderRadius: 3, boxShadow: "0 2px 16px rgba(0,0,0,0.06)", overflow: "hidden" }}>
+                <div className="da-print-casefile" style={{ maxWidth: 720, margin: "0 auto", background: "#fff", border: "1px solid #D6D3D1", borderRadius: 3, boxShadow: "0 2px 16px rgba(0,0,0,0.06)", overflow: "hidden" }}>
                   {/* Inline document preview content */}
                   <CaseFileDocPreview records={records} vaultDocs={vaultDocs} patterns={patterns} contradictions={contradictions} linkedDocsMap={linkedDocsMap} caseData={caseData} starredIds={starredIds} keyDates={keyDates} />
                 </div>

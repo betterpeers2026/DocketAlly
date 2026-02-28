@@ -65,13 +65,13 @@ interface DocketRecord {
 /* ------------------------------------------------------------------ */
 
 const PLAN_TYPES = [
+  { value: "development", label: "Development Plan", shortLabel: "Development", description: "Professional development or growth plan with milestones", defaultName: "Development Plan" },
+  { value: "role_transition", label: "Role Transition", shortLabel: "Transition", description: "Role change, transfer, or new responsibilities plan", defaultName: "Role Transition Plan" },
+  { value: "accommodation", label: "Reasonable Accommodation", shortLabel: "Accommodation", description: "ADA or workplace accommodation agreement and tracking", defaultName: "Reasonable Accommodation Plan" },
+  { value: "return_to_work", label: "Return-to-Work", shortLabel: "RTW", description: "Plan for returning after leave, accommodation, or suspension", defaultName: "Return-to-Work Plan" },
   { value: "pip", label: "Performance Improvement Plan", shortLabel: "PIP", description: "Formal performance improvement plan with measurable goals and deadlines", defaultName: "Performance Improvement Plan" },
   { value: "corrective", label: "Corrective Action", shortLabel: "Corrective", description: "Formal corrective action for policy or conduct issues", defaultName: "Corrective Action Plan" },
   { value: "probation", label: "Probationary Period", shortLabel: "Probation", description: "New hire or extended probationary review period", defaultName: "Probationary Period" },
-  { value: "return_to_work", label: "Return-to-Work", shortLabel: "RTW", description: "Plan for returning after leave, accommodation, or suspension", defaultName: "Return-to-Work Plan" },
-  { value: "accommodation", label: "Reasonable Accommodation", shortLabel: "Accommodation", description: "ADA or workplace accommodation agreement and tracking", defaultName: "Reasonable Accommodation Plan" },
-  { value: "role_transition", label: "Role Transition", shortLabel: "Transition", description: "Role change, transfer, or demotion transition plan", defaultName: "Role Transition Plan" },
-  { value: "development", label: "Development Plan", shortLabel: "Development", description: "Professional development or growth plan with milestones", defaultName: "Development Plan" },
 ] as const;
 
 function getTypeInfo(planType: string) {
@@ -892,20 +892,20 @@ export default function PlansPage() {
             </svg>
           </div>
           <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 22, fontWeight: 600, color: "#292524", marginBottom: 10 }}>
-            No plans yet
+            Stay ahead of workplace changes
           </h2>
           <p style={{ fontSize: 14, color: "var(--color-stone-600)", lineHeight: 1.6, fontFamily: "var(--font-sans)", marginBottom: 24 }}>
-            Track any formal workplace plan including PIPs, corrective actions, probation periods, accommodations, and more. Log goals, deadlines, and check-ins. Flag when expectations shift.
+            Track action items, goals, and commitments from meetings with your manager. Whether it is a development plan, new responsibilities, or performance targets, keeping a record helps you stay aligned and show your progress.
           </p>
           <button
             onClick={() => {
-              setPlanForm({ plan_type: "pip", plan_name: "Performance Improvement Plan", start_date: todayStr(), end_date: "", notes: "" });
+              setPlanForm({ plan_type: "development", plan_name: "Development Plan", start_date: todayStr(), end_date: "", notes: "" });
               setEditingPlanId(null);
               setShowPlanForm(true);
             }}
             style={btnGreen}
           >
-            Add a Plan
+            + New Plan
           </button>
         </div>
       </div>

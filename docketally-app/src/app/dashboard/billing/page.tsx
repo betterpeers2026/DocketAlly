@@ -484,7 +484,7 @@ export default function BillingPage() {
                     marginBottom: 24,
                   }}
                 >
-                  $10/mo — save 17%
+                  $10/mo (save 17%)
                 </div>
               </div>
               <button
@@ -556,7 +556,7 @@ export default function BillingPage() {
                     marginBottom: 24,
                   }}
                 >
-                  $8/mo — save 33%
+                  $8/mo (save 33%)
                 </div>
               </div>
               <button

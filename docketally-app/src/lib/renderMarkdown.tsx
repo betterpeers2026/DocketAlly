@@ -3,6 +3,7 @@ import React from "react";
 /**
  * Lightweight markdown renderer for record fields.
  * Handles: **bold**, bullet lists (- ), numbered lists (1. )
+ * Consecutive lines are joined into paragraphs; blank lines create paragraph breaks.
  */
 export function renderMarkdown(text: string): React.ReactNode {
   if (!text) return null;
@@ -48,19 +49,28 @@ export function renderMarkdown(text: string): React.ReactNode {
       continue;
     }
 
-    // Regular line
+    // Empty line — skip (serves as paragraph separator)
     if (line.trim() === "") {
-      elements.push(<br key={`br-${i}`} />);
-    } else {
-      const needsBreak = i < lines.length - 1 && !/^\s*[-\d]/.test(lines[i + 1] || "");
-      elements.push(
-        <span key={`p-${i}`}>
-          {inlineBold(line)}
-          {needsBreak ? <br /> : null}
-        </span>
-      );
+      i++;
+      continue;
     }
-    i++;
+
+    // Collect consecutive non-empty, non-list lines into a single paragraph
+    const paragraphLines: string[] = [];
+    while (
+      i < lines.length &&
+      lines[i].trim() !== "" &&
+      !/^\s*- /.test(lines[i]) &&
+      !/^\s*\d+\.\s/.test(lines[i])
+    ) {
+      paragraphLines.push(lines[i]);
+      i++;
+    }
+    elements.push(
+      <p key={`p-${i}`} style={{ margin: "0 0 8px" }}>
+        {inlineBold(paragraphLines.join(" "))}
+      </p>
+    );
   }
 
   return <>{elements}</>;

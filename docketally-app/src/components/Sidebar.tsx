@@ -439,7 +439,7 @@ export default function Sidebar({ user, subscription }: { user: User; subscripti
             <button
               onClick={() => {
                 if (canCreate) {
-                  router.push("/dashboard");
+                  router.push("/dashboard?action=new");
                 } else {
                   router.push("/dashboard/billing");
                 }
