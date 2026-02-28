@@ -32,6 +32,7 @@ interface CaseData {
   location: string | null;
   key_people: string | null;
   protected_classes: string[];
+  impact_statement: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -850,8 +851,8 @@ export default function CaseFilePanel({
                             width: 18,
                             height: 18,
                             borderRadius: "50%",
-                            background: "#A8A29E",
-                            color: "#fff",
+                            background: "#1c1917",
+                            color: "#22C55E",
                             fontSize: 7,
                             fontWeight: 700,
                             display: "flex",
@@ -973,6 +974,13 @@ export default function CaseFilePanel({
       infoRows.push({
         label: "Description",
         value: caseData.description,
+      });
+    }
+
+    if (caseData.impact_statement) {
+      infoRows.push({
+        label: "Impact Statement",
+        value: caseData.impact_statement,
       });
     }
 

@@ -46,6 +46,21 @@ interface CaseBasic {
   case_types?: string[];
 }
 
+interface VaultFile {
+  id: string;
+  file_name: string;
+  category: string;
+}
+
+interface RecordExhibit {
+  id: string;
+  record_id: string;
+  file_id: string;
+  exhibit_label: string | null;
+  created_at: string;
+  file_name: string;
+}
+
 interface FormData {
   entry_type: string;
   title: string;
@@ -109,7 +124,7 @@ function getInitials(name: string): string {
   return name.trim().slice(0, 2).toUpperCase();
 }
 
-const AVATAR_COLOR = "#A8A29E";
+const AVATAR_COLOR = "#1c1917";
 
 function todayStr(): string {
   return new Date().toISOString().split("T")[0];
@@ -203,6 +218,16 @@ export default function RecordPage() {
   const [files, setFiles] = useState<File[]>([]);
   const [formError, setFormError] = useState("");
 
+  // Exhibit linking
+  const [vaultFiles, setVaultFiles] = useState<VaultFile[]>([]);
+  const [recordExhibits, setRecordExhibits] = useState<{
+    [recordId: string]: RecordExhibit[];
+  }>({});
+  const [linkFileDropdown, setLinkFileDropdown] = useState<string | null>(null);
+  const [linkFileLabel, setLinkFileLabel] = useState("");
+  const [linkFileSearch, setLinkFileSearch] = useState("");
+  const linkFileRef = useRef<HTMLDivElement>(null);
+
   /* ---------------------------------------------------------------- */
   /*  Data fetching                                                    */
   /* ---------------------------------------------------------------- */
@@ -253,6 +278,41 @@ export default function RecordPage() {
     setRecordCaseMap(map);
   }, [userId, supabase]);
 
+  const fetchVaultFiles = useCallback(async () => {
+    if (!userId) return;
+    const { data } = await supabase
+      .from("vault_documents")
+      .select("id, file_name, category")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false });
+    if (data) setVaultFiles(data);
+  }, [userId, supabase]);
+
+  const fetchAllExhibits = useCallback(async () => {
+    if (!userId) return;
+    const { data } = await supabase
+      .from("record_exhibits")
+      .select("id, record_id, file_id, exhibit_label, created_at, vault_documents(file_name)")
+      .order("created_at", { ascending: true });
+    if (!data) return;
+
+    const map: { [recordId: string]: RecordExhibit[] } = {};
+    data.forEach((row: { id: string; record_id: string; file_id: string; exhibit_label: string | null; created_at: string; vault_documents: { file_name: string } | { file_name: string }[] | null }) => {
+      const vd = Array.isArray(row.vault_documents) ? row.vault_documents[0] : row.vault_documents;
+      const exhibit: RecordExhibit = {
+        id: row.id,
+        record_id: row.record_id,
+        file_id: row.file_id,
+        exhibit_label: row.exhibit_label,
+        created_at: row.created_at,
+        file_name: vd?.file_name || "Unknown file",
+      };
+      if (!map[row.record_id]) map[row.record_id] = [];
+      map[row.record_id].push(exhibit);
+    });
+    setRecordExhibits(map);
+  }, [userId, supabase]);
+
   useEffect(() => {
     async function init() {
       const {
@@ -268,8 +328,10 @@ export default function RecordPage() {
       fetchRecords();
       fetchCases();
       fetchRecordCaseMap();
+      fetchVaultFiles();
+      fetchAllExhibits();
     }
-  }, [userId, fetchRecords, fetchCases, fetchRecordCaseMap]);
+  }, [userId, fetchRecords, fetchCases, fetchRecordCaseMap, fetchVaultFiles, fetchAllExhibits]);
 
   /* ---------------------------------------------------------------- */
   /*  Helpers                                                          */
@@ -403,12 +465,17 @@ export default function RecordPage() {
       if (cardCaseRef.current && !cardCaseRef.current.contains(e.target as Node)) {
         setCardCaseDropdown(null);
       }
+      if (linkFileRef.current && !linkFileRef.current.contains(e.target as Node)) {
+        setLinkFileDropdown(null);
+        setLinkFileLabel("");
+        setLinkFileSearch("");
+      }
     }
-    if (addCaseDropdown || cardCaseDropdown) {
+    if (addCaseDropdown || cardCaseDropdown || linkFileDropdown) {
       document.addEventListener("mousedown", handleClickOutside);
       return () => document.removeEventListener("mousedown", handleClickOutside);
     }
-  }, [addCaseDropdown, cardCaseDropdown]);
+  }, [addCaseDropdown, cardCaseDropdown, linkFileDropdown]);
 
   async function addRecordToCase(recordId: string, caseId: string) {
     if (!userId) return;
@@ -437,6 +504,37 @@ export default function RecordPage() {
     setRecordCaseMap((prev) => ({
       ...prev,
       [recordId]: (prev[recordId] || []).filter((x) => x.id !== caseId),
+    }));
+  }
+
+  async function linkExhibit(recordId: string, fileId: string, label: string) {
+    const { data, error } = await supabase
+      .from("record_exhibits")
+      .insert({ record_id: recordId, file_id: fileId, exhibit_label: label.trim() || null })
+      .select("id, record_id, file_id, exhibit_label, created_at")
+      .single();
+
+    if (error || !data) return;
+
+    const vf = vaultFiles.find((f) => f.id === fileId);
+    const exhibit: RecordExhibit = {
+      ...data,
+      file_name: vf?.file_name || "Unknown file",
+    };
+    setRecordExhibits((prev) => ({
+      ...prev,
+      [recordId]: [...(prev[recordId] || []), exhibit],
+    }));
+    setLinkFileDropdown(null);
+    setLinkFileLabel("");
+    setLinkFileSearch("");
+  }
+
+  async function unlinkExhibit(recordId: string, exhibitId: string) {
+    await supabase.from("record_exhibits").delete().eq("id", exhibitId);
+    setRecordExhibits((prev) => ({
+      ...prev,
+      [recordId]: (prev[recordId] || []).filter((e) => e.id !== exhibitId),
     }));
   }
 
@@ -1395,10 +1493,39 @@ export default function RecordPage() {
                           <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14 }}>
                             {people.map((person, i) => (
                               <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 7, padding: "4px 12px 4px 4px", borderRadius: 20, background: "#FAFAF9", border: "1px solid #E7E5E4", fontSize: 12.5, color: "#44403C", fontFamily: "var(--font-sans)", fontWeight: 500 }}>
-                                <span style={{ width: 24, height: 24, borderRadius: "50%", background: AVATAR_COLOR, color: "#fff", fontSize: 9, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-mono)", boxShadow: "0 1px 2px rgba(0,0,0,0.1)" }}>
+                                <span style={{ width: 24, height: 24, borderRadius: "50%", background: AVATAR_COLOR, color: "#22C55E", fontSize: 9, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-mono)", boxShadow: "0 1px 2px rgba(0,0,0,0.1)" }}>
                                   {getInitials(person)}
                                 </span>
                                 {person}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Exhibit chips (collapsed) */}
+                        {!isExpanded && (recordExhibits[record.id] || []).length > 0 && (
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14 }}>
+                            {(recordExhibits[record.id] || []).map((ex) => (
+                              <span
+                                key={ex.id}
+                                style={{
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: 5,
+                                  padding: "3px 10px",
+                                  borderRadius: 6,
+                                  background: "#F5F5F4",
+                                  border: "1px solid #E7E5E4",
+                                  fontSize: 11,
+                                  color: "#57534E",
+                                  fontFamily: "var(--font-sans)",
+                                  fontWeight: 500,
+                                }}
+                              >
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#A8A29E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                                  <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" />
+                                </svg>
+                                {ex.exhibit_label || ex.file_name}
                               </span>
                             ))}
                           </div>
@@ -1500,7 +1627,7 @@ export default function RecordPage() {
                               <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                                 {people.map((person, i) => (
                                   <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 7, padding: "4px 12px 4px 4px", borderRadius: 20, background: "#FAFAF9", border: "1px solid #E7E5E4", fontSize: 12.5, color: "#44403C", fontFamily: "var(--font-sans)", fontWeight: 500 }}>
-                                    <span style={{ width: 24, height: 24, borderRadius: "50%", background: AVATAR_COLOR, color: "#fff", fontSize: 9, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-mono)", boxShadow: "0 1px 2px rgba(0,0,0,0.1)" }}>
+                                    <span style={{ width: 24, height: 24, borderRadius: "50%", background: AVATAR_COLOR, color: "#22C55E", fontSize: 9, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-mono)", boxShadow: "0 1px 2px rgba(0,0,0,0.1)" }}>
                                       {getInitials(person)}
                                     </span>
                                     {person}
@@ -1636,6 +1763,205 @@ export default function RecordPage() {
                               </div>
                             </div>
                           )}
+
+                          {/* Linked exhibits (expanded) */}
+                          <div style={{ marginBottom: 16 }}>
+                            <label style={labelStyle}>Linked Files</label>
+                            {(recordExhibits[record.id] || []).length > 0 && (
+                              <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
+                                {(recordExhibits[record.id] || []).map((ex) => (
+                                  <div
+                                    key={ex.id}
+                                    style={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: 8,
+                                      padding: "6px 10px",
+                                      borderRadius: 8,
+                                      background: "#F5F5F4",
+                                      border: "1px solid #E7E5E4",
+                                    }}
+                                  >
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#A8A29E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                                      <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" />
+                                    </svg>
+                                    <span style={{ flex: 1, fontSize: 12.5, color: "#44403C", fontFamily: "var(--font-sans)", fontWeight: 500 }}>
+                                      {ex.exhibit_label || ex.file_name}
+                                      {ex.exhibit_label && (
+                                        <span style={{ color: "#A8A29E", fontWeight: 400, marginLeft: 6 }}>({ex.file_name})</span>
+                                      )}
+                                    </span>
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); unlinkExhibit(record.id, ex.id); }}
+                                      title="Remove link"
+                                      style={{
+                                        background: "none",
+                                        border: "none",
+                                        cursor: "pointer",
+                                        padding: 0,
+                                        color: "#A8A29E",
+                                        fontSize: 14,
+                                        lineHeight: 1,
+                                        display: "flex",
+                                        alignItems: "center",
+                                      }}
+                                      onMouseEnter={(e) => { e.currentTarget.style.color = "#78716C"; }}
+                                      onMouseLeave={(e) => { e.currentTarget.style.color = "#A8A29E"; }}
+                                    >
+                                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                        <line x1="18" y1="6" x2="6" y2="18" />
+                                        <line x1="6" y1="6" x2="18" y2="18" />
+                                      </svg>
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            {/* Link File dropdown */}
+                            <div style={{ position: "relative" }} ref={linkFileDropdown === record.id ? linkFileRef : undefined}>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (linkFileDropdown === record.id) {
+                                    setLinkFileDropdown(null);
+                                    setLinkFileLabel("");
+                                    setLinkFileSearch("");
+                                  } else {
+                                    setLinkFileDropdown(record.id);
+                                    setLinkFileLabel("");
+                                    setLinkFileSearch("");
+                                  }
+                                }}
+                                style={{
+                                  background: "none",
+                                  border: "1px dashed #D6D3D1",
+                                  borderRadius: 6,
+                                  cursor: "pointer",
+                                  padding: "5px 12px",
+                                  fontSize: 11,
+                                  fontFamily: "var(--font-sans)",
+                                  color: "#78716C",
+                                  fontWeight: 600,
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: 5,
+                                }}
+                                onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#22C55E"; e.currentTarget.style.color = "#22C55E"; }}
+                                onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#D6D3D1"; e.currentTarget.style.color = "#78716C"; }}
+                              >
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" />
+                                </svg>
+                                Link a file from Vault
+                              </button>
+                              {linkFileDropdown === record.id && (
+                                <div
+                                  onClick={(e) => e.stopPropagation()}
+                                  style={{
+                                    position: "absolute",
+                                    top: "100%",
+                                    left: 0,
+                                    marginTop: 6,
+                                    background: "#fff",
+                                    borderRadius: 12,
+                                    border: "1px solid #E7E5E4",
+                                    boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
+                                    zIndex: 20,
+                                    width: 320,
+                                    padding: 0,
+                                    overflow: "hidden",
+                                  }}
+                                >
+                                  {/* Label input */}
+                                  <div style={{ padding: "12px 14px 0" }}>
+                                    <input
+                                      type="text"
+                                      value={linkFileLabel}
+                                      onChange={(e) => setLinkFileLabel(e.target.value)}
+                                      placeholder="What is this file?"
+                                      style={{
+                                        width: "100%",
+                                        padding: "8px 10px",
+                                        borderRadius: 6,
+                                        border: "1px solid #E7E5E4",
+                                        fontSize: 12,
+                                        fontFamily: "var(--font-sans)",
+                                        color: "#292524",
+                                        outline: "none",
+                                        background: "#FAFAF9",
+                                      }}
+                                    />
+                                  </div>
+                                  {/* Search input */}
+                                  <div style={{ padding: "8px 14px" }}>
+                                    <input
+                                      type="text"
+                                      value={linkFileSearch}
+                                      onChange={(e) => setLinkFileSearch(e.target.value)}
+                                      placeholder="Search vault files..."
+                                      style={{
+                                        width: "100%",
+                                        padding: "8px 10px",
+                                        borderRadius: 6,
+                                        border: "1px solid #E7E5E4",
+                                        fontSize: 12,
+                                        fontFamily: "var(--font-sans)",
+                                        color: "#292524",
+                                        outline: "none",
+                                        background: "#fff",
+                                      }}
+                                    />
+                                  </div>
+                                  {/* File list */}
+                                  <div style={{ maxHeight: 200, overflow: "auto", borderTop: "1px solid #F5F5F4" }}>
+                                    {(() => {
+                                      const existingFileIds = new Set((recordExhibits[record.id] || []).map((e) => e.file_id));
+                                      const searchLower = linkFileSearch.toLowerCase();
+                                      const filtered = vaultFiles.filter(
+                                        (f) => !existingFileIds.has(f.id) && (!searchLower || f.file_name.toLowerCase().includes(searchLower))
+                                      );
+                                      if (filtered.length === 0) {
+                                        return (
+                                          <div style={{ padding: "16px 14px", textAlign: "center", fontSize: 12, color: "#A8A29E", fontFamily: "var(--font-sans)" }}>
+                                            {vaultFiles.length === 0 ? "No files in your Vault yet" : "No matching files"}
+                                          </div>
+                                        );
+                                      }
+                                      return filtered.map((f) => (
+                                        <button
+                                          key={f.id}
+                                          onClick={() => linkExhibit(record.id, f.id, linkFileLabel)}
+                                          style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: 8,
+                                            width: "100%",
+                                            padding: "9px 14px",
+                                            background: "none",
+                                            border: "none",
+                                            fontSize: 12.5,
+                                            fontFamily: "var(--font-sans)",
+                                            color: "#44403C",
+                                            cursor: "pointer",
+                                            textAlign: "left",
+                                          }}
+                                          onMouseEnter={(e) => { e.currentTarget.style.background = "#FAFAF9"; }}
+                                          onMouseLeave={(e) => { e.currentTarget.style.background = "none"; }}
+                                        >
+                                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#A8A29E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                                            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                                            <polyline points="14 2 14 8 20 8" />
+                                          </svg>
+                                          <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{f.file_name}</span>
+                                          <span style={{ fontSize: 9, fontFamily: "var(--font-mono)", color: "#A8A29E", textTransform: "uppercase", flexShrink: 0 }}>{f.category}</span>
+                                        </button>
+                                      ));
+                                    })()}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
 
                           {/* Cases (expanded) */}
                           {cases.length > 0 && (

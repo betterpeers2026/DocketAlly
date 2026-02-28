@@ -1126,14 +1126,14 @@ export default function CaseViewPage() {
                                     width: 26,
                                     height: 26,
                                     borderRadius: "50%",
-                                    background: "#A8A29E",
+                                    background: "#1c1917",
                                     display: "flex",
                                     alignItems: "center",
                                     justifyContent: "center",
                                     fontSize: 10,
                                     fontWeight: 700,
                                     fontFamily: "var(--font-mono)",
-                                    color: "#FFFFFF",
+                                    color: "#22C55E",
                                     boxShadow: "0 1px 2px rgba(0,0,0,0.08)",
                                   }}
                                 >

@@ -27,6 +27,7 @@ interface CaseData {
   location: string | null;
   key_people: string | null;
   protected_classes: string[];
+  impact_statement: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -271,7 +272,7 @@ function getInitials(name: string): string {
   return name.trim().slice(0, 2).toUpperCase();
 }
 
-const AVATAR_COLOR = "#A8A29E";
+const AVATAR_COLOR = "#1c1917";
 
 function getPlanBadgeStyle(): React.CSSProperties {
   return {
@@ -818,7 +819,7 @@ export default function CaseDetailPage() {
 
   // Case info edit
   const [editingCaseInfo, setEditingCaseInfo] = useState(false);
-  const [editForm, setEditForm] = useState({ employer: "", role: "", department: "", location: "", key_people: "", description: "", start_date: "", case_types: [] as string[], protected_classes: [] as string[] });
+  const [editForm, setEditForm] = useState({ employer: "", role: "", department: "", location: "", key_people: "", description: "", start_date: "", case_types: [] as string[], protected_classes: [] as string[], impact_statement: "" });
   const [savingCaseInfo, setSavingCaseInfo] = useState(false);
   const [showToast, setShowToast] = useState(false);
 
@@ -1050,6 +1051,7 @@ export default function CaseDetailPage() {
       location: editForm.location || null,
       key_people: editForm.key_people || null,
       description: editForm.description || null,
+      impact_statement: editForm.impact_statement || null,
       start_date: editForm.start_date || null,
       case_types: typesToSave,
       case_type: typesToSave[0],
@@ -1087,6 +1089,7 @@ export default function CaseDetailPage() {
       start_date: caseData.start_date || "",
       case_types: resolveTypes(caseData),
       protected_classes: caseData.protected_classes || [],
+      impact_statement: caseData.impact_statement || "",
     });
     setEditingCaseInfo(true);
   }
@@ -1540,7 +1543,7 @@ export default function CaseDetailPage() {
                                   <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 8 }}>
                                     {people.map((person, i) => (
                                       <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "4px 14px 4px 4px", borderRadius: 100, background: "#F5F5F4", border: "1px solid #E7E5E4", fontSize: 13, color: "#44403C", fontFamily: "var(--font-sans)", fontWeight: 500 }}>
-                                        <span style={{ width: 28, height: 28, borderRadius: "50%", background: AVATAR_COLOR, color: "#fff", fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-mono)" }}>{getInitials(person)}</span>
+                                        <span style={{ width: 28, height: 28, borderRadius: "50%", background: AVATAR_COLOR, color: "#22C55E", fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-mono)" }}>{getInitials(person)}</span>
                                         {person}
                                       </span>
                                     ))}
@@ -1567,7 +1570,7 @@ export default function CaseDetailPage() {
                                       <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                                         {people.map((person, i) => (
                                           <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "4px 14px 4px 4px", borderRadius: 100, background: "#F5F5F4", border: "1px solid #E7E5E4", fontSize: 13, color: "#44403C", fontFamily: "var(--font-sans)", fontWeight: 500 }}>
-                                            <span style={{ width: 28, height: 28, borderRadius: "50%", background: AVATAR_COLOR, color: "#fff", fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-mono)" }}>{getInitials(person)}</span>
+                                            <span style={{ width: 28, height: 28, borderRadius: "50%", background: AVATAR_COLOR, color: "#22C55E", fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-mono)" }}>{getInitials(person)}</span>
                                             {person}
                                           </span>
                                         ))}
@@ -1746,6 +1749,11 @@ export default function CaseDetailPage() {
                     <label style={labelStyle}>Brief Summary</label>
                     <textarea value={editForm.description} onChange={(e) => setEditForm((prev) => ({ ...prev, description: e.target.value }))} placeholder="2-3 sentence overview of your situation" rows={3} style={{ ...inputStyle, resize: "vertical" }} />
                   </div>
+                  <div style={{ marginBottom: 24 }}>
+                    <label style={labelStyle}>Impact Statement</label>
+                    <p style={{ fontSize: 12.5, color: "#78716C", fontFamily: "var(--font-sans)", lineHeight: 1.5, margin: "0 0 10px" }}>In your own words, describe how these events have affected your work, career, health, or wellbeing.</p>
+                    <textarea value={editForm.impact_statement} onChange={(e) => setEditForm((prev) => ({ ...prev, impact_statement: e.target.value }))} placeholder="How has this affected you professionally or personally?" rows={4} style={{ ...inputStyle, resize: "vertical" }} />
+                  </div>
                   <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
                     <button onClick={() => setEditingCaseInfo(false)} style={{ padding: "12px 20px", borderRadius: 10, border: "1px solid #D6D3D1", background: "#fff", color: "#292524", fontSize: 14, fontWeight: 600, fontFamily: "var(--font-sans)", cursor: "pointer" }}>Cancel</button>
                     <button onClick={saveCaseInfo} disabled={savingCaseInfo} style={{ padding: "12px 20px", borderRadius: 10, border: "none", background: "var(--color-green)", color: "#fff", fontSize: 14, fontWeight: 600, fontFamily: "var(--font-sans)", cursor: savingCaseInfo ? "not-allowed" : "pointer", opacity: savingCaseInfo ? 0.6 : 1 }}>{savingCaseInfo ? "Saving..." : "Save Info"}</button>
@@ -1821,7 +1829,7 @@ export default function CaseDetailPage() {
                         <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                           {people.map((person, i) => (
                             <div key={person} style={{ display: "flex", alignItems: "center", gap: 8, background: "#F5F5F4", borderRadius: 20, padding: "6px 14px 6px 6px" }}>
-                              <span style={{ width: 28, height: 28, borderRadius: "50%", background: AVATAR_COLOR, color: "#fff", fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-mono)" }}>{getInitials(person)}</span>
+                              <span style={{ width: 28, height: 28, borderRadius: "50%", background: AVATAR_COLOR, color: "#22C55E", fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-mono)" }}>{getInitials(person)}</span>
                               <span style={{ fontSize: 13, fontWeight: 500, color: "#292524", fontFamily: "var(--font-sans)" }}>{person}</span>
                             </div>
                           ))}
@@ -1842,6 +1850,13 @@ export default function CaseDetailPage() {
                       <div style={{ fontSize: 15, fontFamily: "var(--font-sans)", color: "#78716C" }}>-</div>
                     )}
                   </div>
+                  {/* Impact Statement — full width */}
+                  {caseData?.impact_statement && (
+                    <div style={{ marginTop: 20, paddingTop: 20, borderTop: "1px solid #F5F5F4" }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, fontFamily: "var(--font-mono)", color: "#78716C", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>Impact Statement</div>
+                      <p style={{ fontSize: 14, fontFamily: "var(--font-sans)", lineHeight: 1.6, color: "#292524", whiteSpace: "pre-wrap", margin: 0 }}>{caseData.impact_statement}</p>
+                    </div>
+                  )}
                   {!caseData?.employer && !caseData?.role && !caseData?.description && (
                     <div style={{ marginTop: 20, background: "var(--color-green-soft)", borderRadius: 10, border: "1px solid var(--color-green-border)", padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                       <div>
