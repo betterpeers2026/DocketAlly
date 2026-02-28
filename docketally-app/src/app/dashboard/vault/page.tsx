@@ -1729,6 +1729,13 @@ export default function VaultPage() {
           </div>
         </div>
       )}
+
+      {/* Attorney packet note */}
+      {documents.length > 0 && (
+        <p style={{ textAlign: "center", fontSize: 12, color: "var(--color-stone-400)", fontFamily: "var(--font-sans)", marginTop: 40, lineHeight: 1.6 }}>
+          Your files can be included in an attorney packet. Download from any case&apos;s Case File tab.
+        </p>
+      )}
     </div>
   );
 }
