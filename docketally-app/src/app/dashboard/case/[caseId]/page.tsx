@@ -1255,10 +1255,17 @@ export default function CaseDetailPage() {
     setGeneratingPdf(true);
     // Save current inline style so we can restore it after capture
     const prevStyle = el.getAttribute("style") || "";
-    // Force element visible and positioned for html2canvas (handles both
-    // the display:none case in document-view and the off-screen case)
-    el.style.cssText = "position:fixed;left:0;top:0;width:720px;z-index:-1;opacity:0;display:block;background:#fff;";
-    el.offsetHeight; // force reflow
+    // Position element off-screen but fully rendered (NOT opacity:0, which
+    // html2canvas respects and produces a blank capture). Using absolute
+    // positioning off-viewport keeps it invisible to the user while
+    // html2canvas can still read computed styles and paint the canvas.
+    el.style.cssText = "position:absolute;left:-9999px;top:0;width:720px;display:block;background:#fff;";
+    // Force layout, then wait for the browser to finish painting the full
+    // component tree (display:none -> display:block needs a paint cycle).
+    el.offsetHeight;
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => { setTimeout(resolve, 500); });
+    });
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const mod = await import("html2pdf.js");
@@ -1270,7 +1277,7 @@ export default function CaseDetailPage() {
         margin: [15, 15, 15, 15],
         filename: `DocketAlly-${safeName}-${today}.pdf`,
         image: { type: "jpeg", quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+        html2canvas: { scale: 2, useCORS: true, scrollY: 0, windowWidth: 720 },
         jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
         pagebreak: { mode: ["avoid-all", "css", "legacy"] },
       }).from(el).save();

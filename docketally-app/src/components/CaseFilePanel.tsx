@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { renderMarkdown } from "@/lib/renderMarkdown";
 import type { SubscriptionInfo } from "@/lib/subscription";
+import CaseFileDocument from "@/components/CaseFileDocument";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
