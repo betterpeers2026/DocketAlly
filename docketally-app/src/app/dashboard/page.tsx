@@ -18,12 +18,15 @@ interface DocketRecord {
   user_id: string;
   title: string;
   entry_type: string;
+  event_type: string | null;
   date: string;
   time: string | null;
   narrative: string;
   people: string | null;
   facts: string | null;
   follow_up: string | null;
+  employer_stated_reason: string | null;
+  my_response: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -63,6 +66,7 @@ interface RecordExhibit {
 
 interface FormData {
   entry_type: string;
+  event_type: string;
   title: string;
   date: string;
   time: string;
@@ -70,6 +74,8 @@ interface FormData {
   people: string;
   facts: string;
   follow_up: string;
+  employer_stated_reason: string;
+  my_response: string;
   case_ids: string[];
 }
 
@@ -130,8 +136,28 @@ function todayStr(): string {
   return new Date().toISOString().split("T")[0];
 }
 
+const EVENT_TYPES = [
+  "internal_report",
+  "policy_concern",
+  "escalation",
+  "response",
+  "adverse_action",
+  "evidence_created",
+];
+
+const EVENT_TYPE_LABELS: Record<string, string> = {
+  internal_report: "Internal Report",
+  policy_concern: "Policy Concern",
+  escalation: "Escalation",
+  response: "Response",
+  adverse_action: "Adverse Action",
+  evidence_created: "Evidence Created",
+  protected_activity: "Protected Activity",
+};
+
 const EMPTY_FORM: FormData = {
   entry_type: "",
+  event_type: "",
   title: "",
   date: todayStr(),
   time: "",
@@ -139,6 +165,8 @@ const EMPTY_FORM: FormData = {
   people: "",
   facts: "",
   follow_up: "",
+  employer_stated_reason: "",
+  my_response: "",
   case_ids: [],
 };
 
@@ -350,6 +378,7 @@ export default function RecordPage() {
     const recordCases = recordCaseMap[record.id] || [];
     setFormData({
       entry_type: record.entry_type,
+      event_type: record.event_type || "",
       title: record.title,
       date: record.date,
       time: record.time || "",
@@ -357,6 +386,8 @@ export default function RecordPage() {
       people: record.people || "",
       facts: record.facts || "",
       follow_up: record.follow_up || "",
+      employer_stated_reason: record.employer_stated_reason || "",
+      my_response: record.my_response || "",
       case_ids: recordCases.map((c) => c.id),
     });
     setFiles([]);
@@ -553,12 +584,15 @@ export default function RecordPage() {
         user_id: userId,
         title: formData.title.trim(),
         entry_type: formData.entry_type,
+        event_type: formData.event_type || null,
         date: formData.date,
         time: formData.time || nowTimeStr(),
         narrative: formData.narrative.trim(),
         people: formData.people.trim() || null,
         facts: formData.facts.trim() || null,
         follow_up: formData.follow_up.trim() || null,
+        employer_stated_reason: formData.employer_stated_reason.trim() || null,
+        my_response: formData.my_response.trim() || null,
       })
       .select()
       .single();
@@ -606,12 +640,15 @@ export default function RecordPage() {
       .update({
         title: formData.title.trim(),
         entry_type: formData.entry_type,
+        event_type: formData.event_type || null,
         date: formData.date,
         time: formData.time || null,
         narrative: formData.narrative.trim(),
         people: formData.people.trim() || null,
         facts: formData.facts.trim() || null,
         follow_up: formData.follow_up.trim() || null,
+        employer_stated_reason: formData.employer_stated_reason.trim() || null,
+        my_response: formData.my_response.trim() || null,
       })
       .eq("id", editingRecord.id)
       .select()
@@ -932,6 +969,111 @@ export default function RecordPage() {
               style={{ ...inputStyle, resize: "vertical" }}
             />
           </div>
+
+          {/* Event Type */}
+          <div style={{ marginBottom: 20 }}>
+            <label style={labelStyle}>Event Type</label>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {EVENT_TYPES.map((et) => {
+                const isSelected = formData.event_type === et;
+                return (
+                  <button
+                    key={et}
+                    type="button"
+                    onClick={() =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        event_type: prev.event_type === et ? "" : et,
+                      }))
+                    }
+                    style={{
+                      padding: "5px 12px",
+                      borderRadius: 6,
+                      border: isSelected
+                        ? "1.5px solid #22C55E"
+                        : "1px solid #D6D3D1",
+                      background: isSelected ? "#F0FDF4" : "#fff",
+                      color: isSelected ? "#15803D" : "#57534E",
+                      fontSize: 12,
+                      fontWeight: 600,
+                      fontFamily: "var(--font-mono)",
+                      cursor: "pointer",
+                      transition: "all 0.15s",
+                    }}
+                  >
+                    {EVENT_TYPE_LABELS[et]}
+                  </button>
+                );
+              })}
+              {/* Protected Activity - opt-in purple chip */}
+              {(() => {
+                const isPA = formData.event_type === "protected_activity";
+                return (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        event_type:
+                          prev.event_type === "protected_activity"
+                            ? ""
+                            : "protected_activity",
+                      }))
+                    }
+                    style={{
+                      padding: "5px 12px",
+                      borderRadius: 6,
+                      border: isPA
+                        ? "1.5px solid #A855F7"
+                        : "1px solid #D6D3D1",
+                      background: isPA ? "#FAF5FF" : "#fff",
+                      color: isPA ? "#7E22CE" : "#57534E",
+                      fontSize: 12,
+                      fontWeight: 600,
+                      fontFamily: "var(--font-mono)",
+                      cursor: "pointer",
+                      transition: "all 0.15s",
+                    }}
+                  >
+                    Protected Activity
+                  </button>
+                );
+              })()}
+            </div>
+          </div>
+
+          {/* Employer Stated Reason - only visible when event_type is adverse_action */}
+          {formData.event_type === "adverse_action" && (
+            <div style={{ marginBottom: 20 }}>
+              <label style={labelStyle}>Employer Stated Reason</label>
+              <RichTextarea
+                value={formData.employer_stated_reason}
+                onChange={(v) =>
+                  setFormData((prev) => ({ ...prev, employer_stated_reason: v }))
+                }
+                placeholder="What reason did the employer give for this action?"
+                rows={3}
+                style={{ ...inputStyle, resize: "vertical" }}
+              />
+            </div>
+          )}
+
+          {/* My Response - only visible when employer_stated_reason has content */}
+          {formData.event_type === "adverse_action" &&
+            formData.employer_stated_reason.trim().length > 0 && (
+              <div style={{ marginBottom: 20 }}>
+                <label style={labelStyle}>My Response</label>
+                <RichTextarea
+                  value={formData.my_response}
+                  onChange={(v) =>
+                    setFormData((prev) => ({ ...prev, my_response: v }))
+                  }
+                  placeholder="Your perspective or response to the employer's stated reason"
+                  rows={3}
+                  style={{ ...inputStyle, resize: "vertical" }}
+                />
+              </div>
+            )}
 
           {/* People Involved */}
           <div style={{ marginBottom: 20 }}>
@@ -1470,6 +1612,32 @@ export default function RecordPage() {
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                             <span style={getBadgeStyle(record.entry_type)}>{record.entry_type}</span>
+                            {record.event_type && (
+                              <span
+                                style={{
+                                  display: "inline-block",
+                                  padding: "2px 8px",
+                                  borderRadius: 4,
+                                  border:
+                                    record.event_type === "protected_activity"
+                                      ? "1px solid #D8B4FE"
+                                      : "1px solid #E7E5E4",
+                                  background:
+                                    record.event_type === "protected_activity"
+                                      ? "#FAF5FF"
+                                      : "#FAFAF9",
+                                  color:
+                                    record.event_type === "protected_activity"
+                                      ? "#7E22CE"
+                                      : "#78716C",
+                                  fontSize: 10,
+                                  fontWeight: 600,
+                                  fontFamily: "var(--font-mono)",
+                                }}
+                              >
+                                {EVENT_TYPE_LABELS[record.event_type] || record.event_type}
+                              </span>
+                            )}
                             <span style={{ fontSize: 11, color: "#A8A29E", fontFamily: "var(--font-mono)", whiteSpace: "nowrap" }}>
                               {formatDatetime(record)}
                             </span>
@@ -1619,6 +1787,69 @@ export default function RecordPage() {
                               {renderMarkdown(record.narrative)}
                             </div>
                           </div>
+
+                          {/* Event Type */}
+                          {record.event_type && (
+                            <div style={{ marginBottom: 16 }}>
+                              <label style={labelStyle}>Event Type</label>
+                              <span
+                                style={{
+                                  display: "inline-block",
+                                  padding: "4px 12px",
+                                  borderRadius: 6,
+                                  border:
+                                    record.event_type === "protected_activity"
+                                      ? "1px solid #D8B4FE"
+                                      : "1px solid #BBF7D0",
+                                  background:
+                                    record.event_type === "protected_activity"
+                                      ? "#FAF5FF"
+                                      : "#F0FDF4",
+                                  color:
+                                    record.event_type === "protected_activity"
+                                      ? "#7E22CE"
+                                      : "#15803D",
+                                  fontSize: 12,
+                                  fontWeight: 600,
+                                  fontFamily: "var(--font-mono)",
+                                }}
+                              >
+                                {EVENT_TYPE_LABELS[record.event_type] || record.event_type}
+                              </span>
+                            </div>
+                          )}
+
+                          {/* Employer Stated Reason */}
+                          {record.employer_stated_reason && (
+                            <div style={{ marginBottom: 16 }}>
+                              <label style={labelStyle}>Employer Stated Reason</label>
+                              <div
+                                style={{
+                                  fontSize: 14,
+                                  color: "var(--color-stone-800)",
+                                  lineHeight: 1.7,
+                                }}
+                              >
+                                {renderMarkdown(record.employer_stated_reason)}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* My Response */}
+                          {record.my_response && (
+                            <div style={{ marginBottom: 16 }}>
+                              <label style={labelStyle}>My Response</label>
+                              <div
+                                style={{
+                                  fontSize: 14,
+                                  color: "var(--color-stone-800)",
+                                  lineHeight: 1.7,
+                                }}
+                              >
+                                {renderMarkdown(record.my_response)}
+                              </div>
+                            </div>
+                          )}
 
                           {/* People (expanded: show pills) */}
                           {people.length > 0 && (

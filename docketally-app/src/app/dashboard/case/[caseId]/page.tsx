@@ -7,6 +7,7 @@ import { renderMarkdown } from "@/lib/renderMarkdown";
 import { useSubscription } from "@/components/SubscriptionProvider";
 import { hasActiveAccess } from "@/lib/subscription";
 import ProGate from "@/components/ProGate";
+import CaseFileDocument from "@/components/CaseFileDocument";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -21,6 +22,7 @@ interface CaseData {
   status: string;
   description: string | null;
   start_date: string | null;
+  employment_end_date: string | null;
   employer: string | null;
   role: string | null;
   department: string | null;
@@ -28,6 +30,12 @@ interface CaseData {
   key_people: string | null;
   protected_classes: string[];
   impact_statement: string | null;
+  case_theory_protected_activity: string | null;
+  case_theory_employer_response: string | null;
+  case_theory_connection: string | null;
+  case_theory_outcome: string | null;
+  case_status: string | null;
+  open_questions: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -37,12 +45,15 @@ interface DocketRecord {
   user_id: string;
   title: string;
   entry_type: string;
+  event_type: string | null;
   date: string;
   time: string | null;
   narrative: string;
   people: string | null;
   facts: string | null;
   follow_up: string | null;
+  employer_stated_reason: string | null;
+  my_response: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -819,7 +830,7 @@ export default function CaseDetailPage() {
 
   // Case info edit
   const [editingCaseInfo, setEditingCaseInfo] = useState(false);
-  const [editForm, setEditForm] = useState({ employer: "", role: "", department: "", location: "", key_people: "", description: "", start_date: "", case_types: [] as string[], protected_classes: [] as string[], impact_statement: "" });
+  const [editForm, setEditForm] = useState({ employer: "", role: "", department: "", location: "", key_people: "", description: "", start_date: "", employment_end_date: "", case_types: [] as string[], protected_classes: [] as string[], impact_statement: "", case_theory_protected_activity: "", case_theory_employer_response: "", case_theory_connection: "", case_theory_outcome: "", case_status: "", open_questions: "" });
   const [savingCaseInfo, setSavingCaseInfo] = useState(false);
   const [showToast, setShowToast] = useState(false);
 
@@ -1053,9 +1064,16 @@ export default function CaseDetailPage() {
       description: editForm.description || null,
       impact_statement: editForm.impact_statement || null,
       start_date: editForm.start_date || null,
+      employment_end_date: editForm.employment_end_date || null,
       case_types: typesToSave,
       case_type: typesToSave[0],
       protected_classes: classesToSave,
+      case_theory_protected_activity: editForm.case_theory_protected_activity || null,
+      case_theory_employer_response: editForm.case_theory_employer_response || null,
+      case_theory_connection: editForm.case_theory_connection || null,
+      case_theory_outcome: editForm.case_theory_outcome || null,
+      case_status: editForm.case_status || null,
+      open_questions: editForm.open_questions || null,
     };
     const updates = Object.fromEntries(Object.entries(raw).filter(([, v]) => v !== undefined));
     console.log('SAVE DEBUG:', {
@@ -1087,9 +1105,16 @@ export default function CaseDetailPage() {
       key_people: caseData.key_people || "",
       description: caseData.description || "",
       start_date: caseData.start_date || "",
+      employment_end_date: caseData.employment_end_date || "",
       case_types: resolveTypes(caseData),
       protected_classes: caseData.protected_classes || [],
       impact_statement: caseData.impact_statement || "",
+      case_theory_protected_activity: caseData.case_theory_protected_activity || "",
+      case_theory_employer_response: caseData.case_theory_employer_response || "",
+      case_theory_connection: caseData.case_theory_connection || "",
+      case_theory_outcome: caseData.case_theory_outcome || "",
+      case_status: caseData.case_status || "",
+      open_questions: caseData.open_questions || "",
     });
     setEditingCaseInfo(true);
   }
@@ -1754,6 +1779,58 @@ export default function CaseDetailPage() {
                     <p style={{ fontSize: 12.5, color: "#78716C", fontFamily: "var(--font-sans)", lineHeight: 1.5, margin: "0 0 10px" }}>In your own words, describe how these events have affected your work, career, health, or wellbeing.</p>
                     <textarea value={editForm.impact_statement} onChange={(e) => setEditForm((prev) => ({ ...prev, impact_statement: e.target.value }))} placeholder="How has this affected you professionally or personally?" rows={4} style={{ ...inputStyle, resize: "vertical" }} />
                   </div>
+
+                  {/* Employment End Date + Case Status */}
+                  <div className="da-grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 24 }}>
+                    <div>
+                      <label style={labelStyle}>Employment End Date</label>
+                      <input type="date" value={editForm.employment_end_date} onChange={(e) => setEditForm((prev) => ({ ...prev, employment_end_date: e.target.value }))} style={inputStyle} />
+                      <p style={{ fontSize: 11, color: "#A8A29E", fontFamily: "var(--font-sans)", marginTop: 4 }}>Leave blank if still employed</p>
+                    </div>
+                    <div>
+                      <label style={labelStyle}>Case Status</label>
+                      <select value={editForm.case_status} onChange={(e) => setEditForm((prev) => ({ ...prev, case_status: e.target.value }))} style={{ ...inputStyle, cursor: "pointer" }}>
+                        <option value="">Select status</option>
+                        <option value="Active documentation">Active documentation</option>
+                        <option value="Under review">Under review</option>
+                        <option value="Preparing attorney packet">Preparing attorney packet</option>
+                        <option value="Referred to attorney">Referred to attorney</option>
+                        <option value="Resolved">Resolved</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Case Theory Section */}
+                  <div style={{ marginBottom: 24, padding: 20, borderRadius: 12, border: "1px solid #BBF7D0", background: "#F0FDF4" }}>
+                    <label style={{ ...labelStyle, color: "#15803D", marginBottom: 4 }}>Case Theory</label>
+                    <p style={{ fontSize: 12.5, color: "#78716C", fontFamily: "var(--font-sans)", lineHeight: 1.5, margin: "0 0 16px" }}>In your own words, describe the connection between your experience and the actions taken.</p>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                      <div>
+                        <label style={{ ...labelStyle, fontSize: 9, color: "#44403C" }}>What I did that was protected or relevant</label>
+                        <textarea value={editForm.case_theory_protected_activity} onChange={(e) => setEditForm((prev) => ({ ...prev, case_theory_protected_activity: e.target.value }))} placeholder="Describe what you did or what happened to you" rows={2} style={{ ...inputStyle, resize: "vertical" }} />
+                      </div>
+                      <div>
+                        <label style={{ ...labelStyle, fontSize: 9, color: "#44403C" }}>What the employer did next</label>
+                        <textarea value={editForm.case_theory_employer_response} onChange={(e) => setEditForm((prev) => ({ ...prev, case_theory_employer_response: e.target.value }))} placeholder="What actions did the employer take?" rows={2} style={{ ...inputStyle, resize: "vertical" }} />
+                      </div>
+                      <div>
+                        <label style={{ ...labelStyle, fontSize: 9, color: "#44403C" }}>Why I believe it is connected</label>
+                        <textarea value={editForm.case_theory_connection} onChange={(e) => setEditForm((prev) => ({ ...prev, case_theory_connection: e.target.value }))} placeholder="What makes you think these events are related?" rows={2} style={{ ...inputStyle, resize: "vertical" }} />
+                      </div>
+                      <div>
+                        <label style={{ ...labelStyle, fontSize: 9, color: "#44403C" }}>What outcome occurred</label>
+                        <textarea value={editForm.case_theory_outcome} onChange={(e) => setEditForm((prev) => ({ ...prev, case_theory_outcome: e.target.value }))} placeholder="What happened as a result?" rows={2} style={{ ...inputStyle, resize: "vertical" }} />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Open Questions */}
+                  <div style={{ marginBottom: 24 }}>
+                    <label style={labelStyle}>Open Questions and Next Steps</label>
+                    <p style={{ fontSize: 12.5, color: "#78716C", fontFamily: "var(--font-sans)", lineHeight: 1.5, margin: "0 0 10px" }}>What documentation would strengthen your records? What conversations or decisions are coming up?</p>
+                    <textarea value={editForm.open_questions} onChange={(e) => setEditForm((prev) => ({ ...prev, open_questions: e.target.value }))} placeholder="Notes on what to document next, follow-ups pending, upcoming deadlines..." rows={4} style={{ ...inputStyle, resize: "vertical" }} />
+                  </div>
+
                   <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
                     <button onClick={() => setEditingCaseInfo(false)} style={{ padding: "12px 20px", borderRadius: 10, border: "1px solid #D6D3D1", background: "#fff", color: "#292524", fontSize: 14, fontWeight: 600, fontFamily: "var(--font-sans)", cursor: "pointer" }}>Cancel</button>
                     <button onClick={saveCaseInfo} disabled={savingCaseInfo} style={{ padding: "12px 20px", borderRadius: 10, border: "none", background: "var(--color-green)", color: "#fff", fontSize: 14, fontWeight: 600, fontFamily: "var(--font-sans)", cursor: savingCaseInfo ? "not-allowed" : "pointer", opacity: savingCaseInfo ? 0.6 : 1 }}>{savingCaseInfo ? "Saving..." : "Save Info"}</button>
@@ -1913,8 +1990,7 @@ export default function CaseDetailPage() {
               {/* Document Preview (visible when document view) */}
               {caseFileView === "document" && (
                 <div className="da-print-casefile" style={{ maxWidth: 720, margin: "0 auto", background: "#fff", border: "1px solid #D6D3D1", borderRadius: 3, boxShadow: "0 2px 16px rgba(0,0,0,0.06)", overflow: "hidden" }}>
-                  {/* Inline document preview content */}
-                  <CaseFileDocPreview records={records} vaultDocs={vaultDocs} patterns={patterns} contradictions={contradictions} linkedDocsMap={linkedDocsMap} caseData={caseData} starredIds={starredIds} keyDates={keyDates} />
+                  <CaseFileDocument records={records} vaultDocs={vaultDocs} patterns={patterns} contradictions={contradictions} linkedDocsMap={linkedDocsMap} caseData={caseData} starredIds={starredIds} keyDates={keyDates} plans={plans} planGoals={planGoals} planCheckins={planCheckins} />
                 </div>
               )}
 
@@ -2078,7 +2154,7 @@ export default function CaseDetailPage() {
 
       {/* Document Preview — always rendered off-screen for PDF generation */}
       <div ref={caseFileRef} className="da-doc-preview" style={activeTab === "casefile" && caseFileView === "document" ? { display: "none" } : { position: "absolute", left: "-9999px", top: 0, width: 720, background: "#fff" }}>
-        <CaseFileDocPreview records={records} vaultDocs={vaultDocs} patterns={patterns} contradictions={contradictions} linkedDocsMap={linkedDocsMap} caseData={caseData} starredIds={starredIds} keyDates={keyDates} />
+        <CaseFileDocument records={records} vaultDocs={vaultDocs} patterns={patterns} contradictions={contradictions} linkedDocsMap={linkedDocsMap} caseData={caseData} starredIds={starredIds} keyDates={keyDates} plans={plans} planGoals={planGoals} planCheckins={planCheckins} />
       </div>
 
       {/* ============================================================ */}

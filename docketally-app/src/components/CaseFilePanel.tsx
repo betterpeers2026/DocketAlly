@@ -33,6 +33,13 @@ interface CaseData {
   key_people: string | null;
   protected_classes: string[];
   impact_statement: string | null;
+  case_theory_protected_activity: string | null;
+  case_theory_employer_response: string | null;
+  case_theory_connection: string | null;
+  case_theory_outcome: string | null;
+  case_status: string | null;
+  employment_end_date: string | null;
+  open_questions: string | null;
   created_at: string;
   updated_at: string;
 }
