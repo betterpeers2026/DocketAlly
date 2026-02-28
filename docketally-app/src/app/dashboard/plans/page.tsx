@@ -453,8 +453,12 @@ export default function PlansPage() {
       });
     }
 
-    setShowPlanForm(false);
-    setEditingPlanId(null);
+    if (showPlanForm) {
+      /* Modal save (new plan) — close everything */
+      setShowPlanForm(false);
+      setEditingPlanId(null);
+    }
+    /* Inline save — keep card expanded and editable */
     setSaving(false);
     await fetchAll();
   }
@@ -922,7 +926,6 @@ export default function PlansPage() {
     const typeInfo = getTypeInfo(plan.plan_type);
     const typeBadge = getTypeBadge();
     const isExpanded = expandedPlanId === plan.id;
-    const isEditing = editingPlanId === plan.id;
 
     const start = new Date(plan.start_date + "T00:00:00");
     const end = new Date(plan.end_date + "T00:00:00");
@@ -944,7 +947,27 @@ export default function PlansPage() {
       }}>
         {/* ===== SUMMARY HEADER - always visible, click to expand/collapse ===== */}
         <div
-          onClick={() => setExpandedPlanId(isExpanded ? null : plan.id)}
+          onClick={() => {
+            if (isExpanded) {
+              /* Auto-save on collapse if form changed */
+              const dirty =
+                editingPlanId === plan.id &&
+                (planForm.plan_name !== plan.plan_name ||
+                  planForm.plan_type !== plan.plan_type ||
+                  planForm.start_date !== plan.start_date ||
+                  planForm.end_date !== plan.end_date ||
+                  planForm.notes !== (plan.notes || "") ||
+                  planForm.case_id !== (plan.case_id || ""));
+              if (dirty) {
+                savePlan();
+              } else {
+                setEditingPlanId(null);
+              }
+              setExpandedPlanId(null);
+            } else {
+              openEditPlan(plan);
+            }
+          }}
           style={{ padding: "16px 20px", cursor: "pointer" }}
         >
           <div className="da-plan-header" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
@@ -1019,50 +1042,10 @@ export default function PlansPage() {
         {/* ===== EXPANDED CONTENT - only when expanded ===== */}
         {isExpanded && (
           <div style={{ borderTop: "1px solid var(--color-stone-100)", padding: "20px" }}>
-            {/* Action buttons row */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 8, marginBottom: 16 }}>
-              {isEditing ? (
-                <button onClick={() => setEditingPlanId(null)} style={{ ...btnOutline, color: "var(--color-stone-500)" }}>
-                  Cancel Edit
-                </button>
-              ) : (
-                <button
-                  onClick={() => openEditPlan(plan)}
-                  title="Edit Plan"
-                  style={{
-                    padding: 6,
-                    borderRadius: 6,
-                    border: "1px solid var(--color-stone-300)",
-                    background: "transparent",
-                    color: "var(--color-stone-500)",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = "var(--color-stone-50)"; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 114 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
-                </button>
-              )}
-              {(pStatus === "in_progress" || pStatus === "not_started") && (
-                <button
-                  onClick={() => markPlanComplete(plan.id)}
-                  disabled={saving}
-                  style={{ ...btnOutline, color: "#15803D", borderColor: "#BBF7D0" }}
-                >
-                  {saving ? "..." : "Mark Complete"}
-                </button>
-              )}
-            </div>
 
-            {/* Edit-mode accent */}
-            {isEditing && <div style={{ borderTop: "2px solid var(--color-green)", marginBottom: 16 }} />}
-
-            {/* Plan Name — only visible when editing (header h2 shows it in read mode) */}
-            {isEditing && (
-              <div style={{ marginBottom: 20 }}>
+            {/* Plan Name + Type */}
+            <div className="da-grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
+              <div>
                 <label style={labelStyle}>Plan Name</label>
                 <input
                   type="text"
@@ -1073,41 +1056,48 @@ export default function PlansPage() {
                   onBlur={blurInput}
                 />
               </div>
-            )}
+              <div>
+                <label style={labelStyle}>Plan Type</label>
+                <select
+                  value={planForm.plan_type}
+                  onChange={(e) => setPlanForm({ ...planForm, plan_type: e.target.value })}
+                  style={{ ...inputStyle, cursor: "pointer" }}
+                  onFocus={focusInput}
+                  onBlur={blurInput}
+                >
+                  {PLAN_TYPES.map((t) => (
+                    <option key={t.value} value={t.value}>{t.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
 
-            {/* Dates — meta text (read) or date inputs (edit) */}
+            {/* Dates */}
             <div style={{ marginBottom: 16 }}>
-              {isEditing ? (
-                <div className="da-grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                  <div>
-                    <label style={labelStyle}>Start Date</label>
-                    <input
-                      type="date"
-                      value={planForm.start_date}
-                      onChange={(e) => setPlanForm({ ...planForm, start_date: e.target.value })}
-                      style={inputStyle}
-                      onFocus={focusInput}
-                      onBlur={blurInput}
-                    />
-                  </div>
-                  <div>
-                    <label style={labelStyle}>End Date</label>
-                    <input
-                      type="date"
-                      value={planForm.end_date}
-                      onChange={(e) => setPlanForm({ ...planForm, end_date: e.target.value })}
-                      style={inputStyle}
-                      onFocus={focusInput}
-                      onBlur={blurInput}
-                    />
-                  </div>
+              <div className="da-grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                <div>
+                  <label style={labelStyle}>Start Date</label>
+                  <input
+                    type="date"
+                    value={planForm.start_date}
+                    onChange={(e) => setPlanForm({ ...planForm, start_date: e.target.value })}
+                    style={inputStyle}
+                    onFocus={focusInput}
+                    onBlur={blurInput}
+                  />
                 </div>
-              ) : (
-                <p style={{ fontSize: 13, color: "#292524", fontFamily: "var(--font-mono)", margin: 0 }}>
-                  {formatDate(plan.start_date)} &rarr; {formatDate(plan.end_date)} &middot; {progress.totalDays} days
-                  {(pStatus === "in_progress" || pStatus === "not_started") && <> &middot; {progress.daysRemaining} day{progress.daysRemaining !== 1 ? "s" : ""} remaining</>}
-                </p>
-              )}
+                <div>
+                  <label style={labelStyle}>End Date</label>
+                  <input
+                    type="date"
+                    value={planForm.end_date}
+                    onChange={(e) => setPlanForm({ ...planForm, end_date: e.target.value })}
+                    style={inputStyle}
+                    onFocus={focusInput}
+                    onBlur={blurInput}
+                  />
+                </div>
+              </div>
             </div>
 
             {/* Progress bar */}
@@ -1133,119 +1123,77 @@ export default function PlansPage() {
               </div>
             </div>
 
-            {/* Notes — truncated markdown (read) or RichTextarea (edit) */}
-            {isEditing ? (
-              <div style={{ marginBottom: 20 }}>
-                <label style={labelStyle}>Notes</label>
-                <RichTextarea
-                  value={planForm.notes}
-                  onChange={(v) => setPlanForm({ ...planForm, notes: v })}
-                  placeholder="Any additional context about the plan"
-                  style={textareaStyle}
-                />
-                {/* Linked Case (inline edit) */}
-                {cases.length > 0 && (
-                  <div style={{ marginTop: 16 }}>
-                    <label style={labelStyle}>Linked Case</label>
-                    <select
-                      value={planForm.case_id}
-                      onChange={(e) => setPlanForm({ ...planForm, case_id: e.target.value })}
-                      style={{ ...inputStyle, cursor: "pointer" }}
-                      onFocus={focusInput}
-                      onBlur={blurInput}
-                    >
-                      <option value="">None</option>
-                      {cases.map((c) => (
-                        <option key={c.id} value={c.id}>{c.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-              </div>
-            ) : (
-              plan.notes && (
-                <div style={{ marginBottom: 16 }}>
-                  <p
-                    ref={(el) => { descRefs.current[plan.id] = el; }}
-                    className="da-plan-desc"
-                    style={{
-                      fontSize: 14,
-                      color: "#292524",
-                      fontFamily: "var(--font-sans)",
-                      lineHeight: 1.6,
-                      margin: 0,
-                      ...(!(showFullDesc[plan.id]) ? {
-                        display: "-webkit-box",
-                        WebkitLineClamp: 3,
-                        WebkitBoxOrient: "vertical" as never,
-                        overflow: "hidden",
-                      } : {}),
-                    }}
+            {/* Notes */}
+            <div style={{ marginBottom: 20 }}>
+              <label style={labelStyle}>Notes</label>
+              <RichTextarea
+                value={planForm.notes}
+                onChange={(v) => setPlanForm({ ...planForm, notes: v })}
+                placeholder="Any additional context about the plan"
+                style={textareaStyle}
+              />
+              {/* Linked Case */}
+              {cases.length > 0 && (
+                <div style={{ marginTop: 16 }}>
+                  <label style={labelStyle}>Linked Case</label>
+                  <select
+                    value={planForm.case_id}
+                    onChange={(e) => setPlanForm({ ...planForm, case_id: e.target.value })}
+                    style={{ ...inputStyle, cursor: "pointer" }}
+                    onFocus={focusInput}
+                    onBlur={blurInput}
                   >
-                    {renderMarkdown(plan.notes!)}
-                  </p>
-                  {descOverflows[plan.id] && (
-                    <button
-                      onClick={() => setShowFullDesc((prev) => ({ ...prev, [plan.id]: !prev[plan.id] }))}
-                      style={{
-                        background: "none",
-                        border: "none",
-                        padding: "4px 0 0",
-                        cursor: "pointer",
-                        fontSize: 13,
-                        fontWeight: 600,
-                        fontFamily: "var(--font-sans)",
-                        color: "#22C55E",
-                      }}
-                    >
-                      {showFullDesc[plan.id] ? "Show less \u2191" : "Show more \u2193"}
-                    </button>
-                  )}
+                    <option value="">None</option>
+                    {cases.map((c) => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
                 </div>
-              )
-            )}
+              )}
+            </div>
 
-            {/* Action buttons — only when editing */}
-            {isEditing && (
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+            {/* Action buttons */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <button
+                onClick={() => setConfirmDeletePlanId(plan.id)}
+                style={{
+                  padding: "8px 16px",
+                  borderRadius: 8,
+                  border: "none",
+                  background: "transparent",
+                  color: "#DC2626",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  fontFamily: "var(--font-sans)",
+                  cursor: "pointer",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = "#FEF2F2"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+              >
+                Delete Plan
+              </button>
+              <div style={{ display: "flex", gap: 10 }}>
+                {(pStatus === "in_progress" || pStatus === "not_started") && (
+                  <button
+                    onClick={() => markPlanComplete(plan.id)}
+                    disabled={saving}
+                    style={{ ...btnOutline, color: "#15803D", borderColor: "#BBF7D0" }}
+                  >
+                    {saving ? "..." : "Mark Complete"}
+                  </button>
+                )}
                 <button
-                  onClick={() => setConfirmDeletePlanId(plan.id)}
+                  onClick={savePlan}
+                  disabled={saving || !planForm.start_date || !planForm.end_date}
                   style={{
-                    padding: "8px 16px",
-                    borderRadius: 8,
-                    border: "none",
-                    background: "transparent",
-                    color: "#DC2626",
-                    fontSize: 13,
-                    fontWeight: 600,
-                    fontFamily: "var(--font-sans)",
-                    cursor: "pointer",
+                    ...btnGreen,
+                    opacity: saving || !planForm.start_date || !planForm.end_date ? 0.5 : 1,
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = "#FEF2F2"; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
                 >
-                  Delete Plan
+                  {saving ? "Saving..." : "Save Changes"}
                 </button>
-                <div style={{ display: "flex", gap: 10 }}>
-                  <button
-                    onClick={() => setEditingPlanId(null)}
-                    style={btnOutline}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={savePlan}
-                    disabled={saving || !planForm.start_date || !planForm.end_date}
-                    style={{
-                      ...btnGreen,
-                      opacity: saving || !planForm.start_date || !planForm.end_date ? 0.5 : 1,
-                    }}
-                  >
-                    {saving ? "Saving..." : "Update Plan"}
-                  </button>
-                </div>
               </div>
-            )}
+            </div>
 
             {/* ---- GOALS SECTION ---- */}
             <div style={{ marginTop: 24, paddingTop: 24, borderTop: "1px solid var(--color-stone-100)" }}>
