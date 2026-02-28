@@ -1479,14 +1479,14 @@ export default function CaseFileDocument({
 
                           {/* Revision block */}
                           {isRevised && goal.original_description && (
-                            <div style={{ borderRadius: 8, overflow: "hidden", border: "1px solid #44403C", marginBottom: goal.success_criteria ? 12 : 0 }}>
-                              {/* Dark header bar */}
-                              <div style={{ padding: "8px 14px", background: "#292524", display: "flex", alignItems: "center", gap: 8 }}>
-                                <span style={{ fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.04em", color: "#D97706" }}>
+                            <div style={{ borderRadius: 8, overflow: "hidden", border: "1px solid #E7E5E4", borderLeft: "3px solid #22C55E", marginBottom: goal.success_criteria ? 12 : 0 }}>
+                              {/* Revision header */}
+                              <div style={{ padding: "8px 14px", background: "#fff", borderBottom: "1px solid #E7E5E4", display: "flex", alignItems: "center", gap: 8 }}>
+                                <span style={{ fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.04em", color: "#16A34A" }}>
                                   Revision
                                 </span>
                                 {goal.revised_date && (
-                                  <span style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: "#A8A29E" }}>
+                                  <span style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: "#78716C" }}>
                                     {formatDate(goal.revised_date)}
                                   </span>
                                 )}
@@ -1495,7 +1495,7 @@ export default function CaseFileDocument({
                               <div style={{ padding: "12px 14px 14px", background: "#fff" }}>
                                 {/* Revision note */}
                                 {goal.revision_notes && (
-                                  <p style={{ fontSize: 13, lineHeight: 1.6, margin: "0 0 12px", fontFamily: "var(--font-sans)", fontStyle: "italic", color: "#57534E" }}>
+                                  <p style={{ fontSize: 13, lineHeight: 1.6, margin: "0 0 12px", fontFamily: "var(--font-sans)", fontStyle: "italic", color: "#44403C" }}>
                                     &ldquo;{goal.revision_notes}&rdquo;
                                   </p>
                                 )}
@@ -1514,7 +1514,7 @@ export default function CaseFileDocument({
 
                                 {/* Identical text note */}
                                 {goal.original_description === goal.description && (
-                                  <p style={{ fontSize: 11, color: "#A8A29E", fontFamily: "var(--font-sans)", fontStyle: "italic", marginTop: 8, marginBottom: 0, lineHeight: 1.5 }}>
+                                  <p style={{ fontSize: 11, color: "#A8A29E", fontFamily: "var(--font-sans)", fontStyle: "italic", marginTop: 8, marginBottom: 0, lineHeight: 1.5, background: "none" }}>
                                     No text changes detected. Revision may reflect updated deadlines, criteria, or expectations.
                                   </p>
                                 )}
@@ -1544,8 +1544,9 @@ export default function CaseFileDocument({
 
                 {/* Revision summary */}
                 {revisedGoals.length > 0 && (
-                  <div style={{ padding: "10px 14px", borderRadius: 8, background: "#FFFBEB", border: "1px solid #FDE68A", marginBottom: 16 }}>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: "#D97706" }}>
+                  <div style={{ padding: "10px 14px", borderRadius: 8, background: "#fff", border: "1px solid #E7E5E4", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#16A34A", flexShrink: 0 }} />
+                    <span style={{ fontSize: 12, fontWeight: 600, color: "#16A34A" }}>
                       {revisedGoals.length} goal{revisedGoals.length !== 1 ? "s" : ""} revised during this plan
                     </span>
                   </div>
