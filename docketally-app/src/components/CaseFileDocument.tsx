@@ -1407,25 +1407,12 @@ export default function CaseFileDocument({
 
                 {/* Type + Status + date range */}
                 <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12, flexWrap: "wrap" }}>
-                  {(() => {
-                    const tc = (() => {
-                      switch (plan.plan_type) {
-                        case "pip": case "corrective": return { color: "#DC2626", bg: "#FEF2F2", border: "#FECACA" };
-                        case "development": return { color: "#2563EB", bg: "#EFF6FF", border: "#BFDBFE" };
-                        case "role_transition": return { color: "#9333EA", bg: "#FAF5FF", border: "#E9D5FF" };
-                        case "probation": case "return_to_work": case "accommodation": return { color: "#D97706", bg: "#FFFBEB", border: "#FDE68A" };
-                        default: return { color: "#57534E", bg: "#F5F5F4", border: "#D6D3D1" };
-                      }
-                    })();
-                    return (
-                      <span style={{
-                        fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.04em",
-                        padding: "3px 10px", borderRadius: 5, background: tc.bg, border: `1px solid ${tc.border}`, color: tc.color,
-                      }}>
-                        {plan.plan_type ? plan.plan_type.replace(/_/g, " ") : "plan"}
-                      </span>
-                    );
-                  })()}
+                  <span style={{
+                    fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.04em",
+                    padding: "3px 10px", borderRadius: 5, background: "#1c1917", border: "none", color: "#22C55E",
+                  }}>
+                    {plan.plan_type ? plan.plan_type.replace(/_/g, " ") : "plan"}
+                  </span>
                   <span style={{
                     fontSize: 10,
                     fontWeight: 700,

@@ -88,22 +88,8 @@ function getTypeInfo(planType: string) {
   return PLAN_TYPES.find((t) => t.value === planType) ?? PLAN_TYPES[0];
 }
 
-function getTypeBadge(planType: string): { color: string; bg: string; border: string } {
-  switch (planType) {
-    case "pip":
-    case "corrective":
-      return { color: "#DC2626", bg: "#FEF2F2", border: "#FECACA" };
-    case "development":
-      return { color: "#2563EB", bg: "#EFF6FF", border: "#BFDBFE" };
-    case "role_transition":
-      return { color: "#9333EA", bg: "#FAF5FF", border: "#E9D5FF" };
-    case "probation":
-    case "return_to_work":
-    case "accommodation":
-      return { color: "#D97706", bg: "#FFFBEB", border: "#FDE68A" };
-    default:
-      return { color: "#57534E", bg: "#F5F5F4", border: "#D6D3D1" };
-  }
+function getTypeBadge(): { color: string; bg: string; border: string } {
+  return { color: "#22C55E", bg: "#1c1917", border: "transparent" };
 }
 
 /* ------------------------------------------------------------------ */
@@ -735,9 +721,9 @@ export default function PlansPage() {
                           fontFamily: "var(--font-mono)",
                           letterSpacing: "0.04em",
                           textTransform: "uppercase",
-                          color: getTypeBadge(type.value).color,
-                          background: getTypeBadge(type.value).bg,
-                          border: `1px solid ${getTypeBadge(type.value).border}`,
+                          color: getTypeBadge().color,
+                          background: getTypeBadge().bg,
+                          border: `1px solid ${getTypeBadge().border}`,
                         }}
                       >
                         {type.shortLabel}
@@ -934,7 +920,7 @@ export default function PlansPage() {
     const pStatus = getPlanStatus(plan, planGoals, planCheckins);
     const revisions = getRevisions(planGoals);
     const typeInfo = getTypeInfo(plan.plan_type);
-    const typeBadge = getTypeBadge(plan.plan_type);
+    const typeBadge = getTypeBadge();
     const isExpanded = expandedPlanId === plan.id;
     const isEditing = editingPlanId === plan.id;
 

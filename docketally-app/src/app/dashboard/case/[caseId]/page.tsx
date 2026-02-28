@@ -287,23 +287,7 @@ function getInitials(name: string): string {
 
 const AVATAR_COLOR = "#1c1917";
 
-function getPlanBadgeStyle(planType?: string): React.CSSProperties {
-  let color = "#D97706";
-  let bg = "#FFFBEB";
-  let border = "#FDE68A";
-  switch (planType) {
-    case "pip":
-    case "corrective":
-      color = "#DC2626"; bg = "#FEF2F2"; border = "#FECACA"; break;
-    case "development":
-      color = "#2563EB"; bg = "#EFF6FF"; border = "#BFDBFE"; break;
-    case "role_transition":
-      color = "#9333EA"; bg = "#FAF5FF"; border = "#E9D5FF"; break;
-    case "probation":
-    case "return_to_work":
-    case "accommodation":
-      color = "#D97706"; bg = "#FFFBEB"; border = "#FDE68A"; break;
-  }
+function getPlanBadgeStyle(): React.CSSProperties {
   return {
     display: "inline-block",
     padding: "3px 10px",
@@ -314,9 +298,9 @@ function getPlanBadgeStyle(planType?: string): React.CSSProperties {
     letterSpacing: "0.02em",
     whiteSpace: "nowrap",
     textTransform: "uppercase",
-    color,
-    background: bg,
-    border: `1px solid ${border}`,
+    color: "#22C55E",
+    background: "#1c1917",
+    border: "none",
   };
 }
 
@@ -1779,11 +1763,10 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
                     }
                     /* Plan event cards */
                     const planEventKey = item.kind === "plan-start" ? `plan-start-${item.plan.id}` : item.kind === "plan-end" ? `plan-end-${item.plan.id}` : item.kind === "checkin" ? `checkin-${item.checkin.id}` : `goal-revised-${item.goal.id}`;
-                    const eventPlanType = (item.kind === "plan-start" || item.kind === "plan-end") ? item.plan.plan_type : item.planType;
                     const badgeLabel = item.kind === "plan-start" ? "PLAN STARTED" : item.kind === "plan-end" ? "PLAN ENDED" : item.kind === "checkin" ? "CHECK-IN" : "GOAL REVISED";
                     const title = item.kind === "plan-start" ? item.plan.name : item.kind === "plan-end" ? item.plan.name : item.kind === "checkin" ? `${item.planName}: Check-in` : `${item.planName}: Goal Updated`;
                     const subtitle = item.kind === "plan-start" ? `${item.goals.length} goal${item.goals.length !== 1 ? "s" : ""} assigned${item.plan.end_date ? ` \u00b7 Target end: ${formatDate(item.plan.end_date)}` : ""}` : item.kind === "plan-end" ? `Plan ${item.plan.status}` : item.kind === "checkin" ? item.checkin.summary : item.goal.description;
-                    const planBadge = getPlanBadgeStyle(eventPlanType);
+                    const planBadge = getPlanBadgeStyle();
                     const dotBg = planBadge.background as string;
                     const dotBorder = (planBadge.color as string) || "#F59E0B";
                     return (
