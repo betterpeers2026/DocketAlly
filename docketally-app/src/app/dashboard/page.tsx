@@ -242,6 +242,10 @@ export default function RecordPage() {
   const [welcomeBanner, setWelcomeBanner] = useState(false);
   const [welcomeName, setWelcomeName] = useState("");
 
+  // Nudge banner (7+ day inactivity)
+  const [showNudge, setShowNudge] = useState(false);
+  const [nudgeDaysAgo, setNudgeDaysAgo] = useState(0);
+
   // Search & filter
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState("");
@@ -365,6 +369,58 @@ export default function RecordPage() {
       fetchAllExhibits();
     }
   }, [userId, fetchRecords, fetchCases, fetchRecordCaseMap, fetchVaultFiles, fetchAllExhibits]);
+
+  // Nudge banner: show if 7+ days since last record and not recently dismissed
+  useEffect(() => {
+    if (!userId || records.length === 0 || loading) return;
+
+    async function checkNudge() {
+      // Find the most recent record by created_at
+      const sorted = [...records].sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+      const lastCreated = new Date(sorted[0].created_at).getTime();
+      const daysSince = Math.floor((Date.now() - lastCreated) / 86400000);
+
+      if (daysSince < 7) {
+        setShowNudge(false);
+        return;
+      }
+
+      // Check if user dismissed recently
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("nudge_dismissed_at")
+        .eq("id", userId)
+        .single();
+
+      const dismissedAt = profile?.nudge_dismissed_at
+        ? new Date(profile.nudge_dismissed_at).getTime()
+        : 0;
+
+      // Nudge reappears if another 7+ day gap after dismissal
+      if (dismissedAt > lastCreated) {
+        const daysSinceDismissal = Math.floor((Date.now() - dismissedAt) / 86400000);
+        if (daysSinceDismissal < 7) {
+          setShowNudge(false);
+          return;
+        }
+      }
+
+      setNudgeDaysAgo(daysSince);
+      setShowNudge(true);
+    }
+    checkNudge();
+  }, [userId, records, loading, supabase]);
+
+  async function dismissNudge() {
+    setShowNudge(false);
+    if (!userId) return;
+    await supabase
+      .from("profiles")
+      .update({ nudge_dismissed_at: new Date().toISOString() })
+      .eq("id", userId);
+  }
 
   /* ---------------------------------------------------------------- */
   /*  Helpers                                                          */
@@ -856,6 +912,89 @@ export default function RecordPage() {
         steps={["Write what happened", "Add details later if needed", "Your timeline builds over time"]}
         userId={userId}
       />
+
+      {/* ---- NUDGE BANNER (7+ day inactivity) ---- */}
+      {showNudge && (
+        <div
+          style={{
+            background: "#1C1917",
+            borderRadius: 10,
+            padding: "16px 20px",
+            marginBottom: 24,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 16,
+            animation: "fadeUp 0.4s ease both",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 14, flex: 1, minWidth: 0 }}>
+            {/* Icon */}
+            <div style={{
+              width: 36,
+              height: 36,
+              borderRadius: "50%",
+              background: "rgba(34,197,94,0.1)",
+              border: "1px solid rgba(34,197,94,0.2)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+            </div>
+            {/* Text */}
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontFamily: "var(--font-sans)", fontSize: 14, fontWeight: 500, color: "#fff", lineHeight: 1.4 }}>
+                It&apos;s been a while. Anything worth writing down?
+              </div>
+              <div style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "#A8A29E", marginTop: 2 }}>
+                Your last record was {nudgeDaysAgo} days ago.
+              </div>
+            </div>
+          </div>
+          {/* Buttons */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+            <button
+              onClick={openNewForm}
+              style={{
+                padding: "8px 14px",
+                borderRadius: 7,
+                border: "none",
+                background: "#22C55E",
+                color: "#fff",
+                fontSize: 13,
+                fontWeight: 600,
+                fontFamily: "var(--font-sans)",
+                cursor: "pointer",
+                whiteSpace: "nowrap",
+              }}
+            >
+              + New Record
+            </button>
+            <button
+              onClick={dismissNudge}
+              style={{
+                padding: "8px 14px",
+                borderRadius: 7,
+                border: "1px solid rgba(255,255,255,0.1)",
+                background: "transparent",
+                color: "#A8A29E",
+                fontSize: 13,
+                fontWeight: 500,
+                fontFamily: "var(--font-sans)",
+                cursor: "pointer",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ---- FORM VIEW ---- */}
       {showForm ? (
