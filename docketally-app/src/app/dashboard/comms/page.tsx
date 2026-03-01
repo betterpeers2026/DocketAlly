@@ -100,7 +100,7 @@ const TEMPLATES: Template[] = [
       "Acknowledge receipt of a PIP while asking the right clarifying questions to set yourself up for success.",
     category: "Responding to a PIP",
     tag: "Critical",
-    body: `Subject: PIP Follow-Up -- Next Steps
+    body: `Subject: PIP Follow-Up, Next Steps
 
 Hi [Manager Name],
 
@@ -128,7 +128,7 @@ Best,
 
 Hi [Manager Name],
 
-I've been reviewing the improvement plan and want to make sure I'm focused on the right things. A couple of the goals feel broad -- could we define specific, measurable benchmarks so I can track my own progress?
+I've been reviewing the improvement plan and want to make sure I'm focused on the right things. A couple of the goals feel broad. Could we define specific, measurable benchmarks so I can track my own progress?
 
 For example, for [Specific Goal], would success mean [Possible Metric A] or [Possible Metric B]?
 
@@ -154,7 +154,7 @@ I appreciate the feedback in the improvement plan and I'm taking it seriously. I
 - [Specific example of positive feedback received, with dates]
 - [Specific example of challenges outside your control, factually stated]
 
-I'm not looking to dispute the process -- I want to make sure we have the full picture so the plan reflects where I actually need to improve. I'm happy to discuss any of this in person.
+I'm not looking to dispute the process. I want to make sure we have the full picture so the plan reflects where I actually need to improve. I'm happy to discuss any of this in person.
 
 Thanks for your time,
 [Your Name]`,
@@ -166,7 +166,7 @@ Thanks for your time,
       "Send a proactive update on your improvement plan progress to show engagement and accountability.",
     category: "Responding to a PIP",
     tag: "Strategic",
-    body: `Subject: Progress Update -- Week [Week Number]
+    body: `Subject: Progress Update, Week [Week Number]
 
 Hi [Manager Name],
 
@@ -190,7 +190,7 @@ Best,
       "Capture what was discussed and agreed upon so everyone stays aligned on next steps.",
     category: "Meeting Follow-Ups",
     tag: "Weekly",
-    body: `Subject: Summary from Our [Meeting Type] -- [Date]
+    body: `Subject: Summary from Our [Meeting Type], [Date]
 
 Hi [Attendee Names],
 
@@ -238,7 +238,7 @@ Best,
       "Confirm your understanding of feedback received and show you're already taking action to address it.",
     category: "Meeting Follow-Ups",
     tag: "Critical",
-    body: `Subject: Following Up on Our Conversation -- Want to Make Sure I'm on Track
+    body: `Subject: Following Up on Our Conversation
 
 Hi [Manager Name],
 
@@ -250,7 +250,7 @@ Thanks for being direct with me today. I want to make sure I understood the feed
 
 I've already started [Specific action you're taking], and I plan to [Additional step]. If there's anything else I should be doing differently, I'm open to hearing it.
 
-I appreciate you bringing this to my attention directly -- I'd rather know and fix it than not know.
+I appreciate you bringing this to my attention directly. I'd rather know and fix it than not know.
 
 Thanks,
 [Your Name]`,
@@ -271,11 +271,11 @@ Hi [HR Representative Name],
 I'm reaching out because I'd like your help with a situation I've been trying to work through on my own.
 
 Here's a quick summary:
-- [Factual description of the issue -- dates, what happened, who was involved]
-- I've already tried to address this by [What you did -- spoke to manager, raised it in 1:1, sent follow-up email, etc.]
-- Unfortunately, [What happened -- nothing changed, it continued, it got worse, I didn't receive a response]
+- [Factual description of the issue: dates, what happened, who was involved]
+- I've already tried to address this by [What you did: spoke to manager, raised it in 1:1, sent follow-up email, etc.]
+- Unfortunately, [What happened: nothing changed, it continued, it got worse, I didn't receive a response]
 
-I want to resolve this the right way, and I'd appreciate your guidance on what options are available. I'm not looking to create problems -- I genuinely want to find a solution that works for everyone.
+I want to resolve this the right way, and I'd appreciate your guidance on what options are available. I'm not looking to create problems. I genuinely want to find a solution that works for everyone.
 
 Could we set up a time to talk? I'm flexible on scheduling.
 
@@ -293,7 +293,7 @@ Thank you,
 
 Hi [HR Representative Name],
 
-I'd like to request a confidential conversation about some experiences I've been having at work. I've taken some time to reflect on this and have tried to address it through [Previous steps -- e.g., conversations with my manager, raising it in team settings], but I believe it may need additional attention.
+I'd like to request a confidential conversation about some experiences I've been having at work. I've taken some time to reflect on this and have tried to address it through [Previous steps, e.g., conversations with my manager, raising it in team settings], but I believe it may need additional attention.
 
 I want to handle this appropriately and would appreciate your guidance on the right approach. Could we find time to meet this week? I can walk you through the specifics in person.
 
@@ -313,7 +313,7 @@ Hi [HR Representative Name],
 
 I need to discuss something that's been affecting my work. I've been trying to manage it on my own, but I've reached a point where I think it's important to involve someone who can help.
 
-I've previously [Steps taken -- e.g., asked the person to stop, raised it with my manager, tried to avoid the situation], and I want to make sure I'm handling next steps correctly.
+I've previously [Steps taken, e.g., asked the person to stop, raised it with my manager, tried to avoid the situation], and I want to make sure I'm handling next steps correctly.
 
 Could we schedule 30 minutes this week? I'd prefer to discuss details in person.
 
@@ -333,7 +333,7 @@ Hi [Senior Leader Name],
 
 I hope you're doing well. I wanted to reach out because I'd value your perspective on something I've been working through.
 
-I've raised [Brief description of issue] with [Manager Name] on [Date] and followed up on [Date], but I haven't been able to make progress. I don't want to create unnecessary noise -- I just want to make sure I'm approaching this the right way.
+I've raised [Brief description of issue] with [Manager Name] on [Date] and followed up on [Date], but I haven't been able to make progress. I don't want to create unnecessary noise. I just want to make sure I'm approaching this the right way.
 
 Could I get 15 minutes of your time to talk it through? I appreciate your leadership and would value your guidance.
 
@@ -347,7 +347,7 @@ Thanks for your time,
       "Flag changes in your treatment following a complaint or protected activity so they can be addressed early.",
     category: "Escalation & HR",
     tag: "Critical",
-    body: `Subject: Following Up -- Wanted to Flag Something
+    body: `Subject: Following Up on a Previous Conversation
 
 Hi [HR Representative Name],
 
@@ -355,9 +355,9 @@ I hope you're well. I wanted to follow up on our previous conversation from [Dat
 
 Since then, I've noticed some changes that I want to mention, in case they're relevant:
 
-- [Specific factual change 1 -- e.g., removed from project on Date]
-- [Specific factual change 2 -- e.g., meeting invites stopped on Date]
-- [Specific factual change 3 -- e.g., shift in responsibilities on Date]
+- [Specific factual change 1, e.g., removed from project on Date]
+- [Specific factual change 2, e.g., meeting invites stopped on Date]
+- [Specific factual change 3, e.g., shift in responsibilities on Date]
 
 There may be a perfectly reasonable explanation for each of these, and I don't want to jump to conclusions. But given the timing, I thought it was worth mentioning so we can address it early if needed.
 
@@ -382,7 +382,7 @@ Hi [HR Representative Name],
 Thank you for the conversation about my transition. I've reviewed the initial terms and I have a few questions:
 
 - Could you clarify [Specific term or timeline]?
-- Is there flexibility on [Specific item -- e.g., extended benefits, reference letter]?
+- Is there flexibility on [Specific item, e.g., extended benefits, reference letter]?
 - What is the timeline for finalizing the agreement?
 
 I want to make sure I fully understand everything before moving forward. Happy to schedule a call if that's easier.
@@ -397,7 +397,7 @@ Thank you,
       "Resign from your position with a clear, professional tone and a commitment to a smooth transition.",
     category: "Severance & Exit",
     tag: "Strategic",
-    body: `Subject: Resignation -- [Your Name]
+    body: `Subject: Resignation, [Your Name]
 
 Dear [Manager Name],
 
@@ -428,12 +428,12 @@ What to say:
 - I've valued my time here and learned a lot, especially [Specific Positive Experience]
 - The strongest parts of my experience were [Positive Aspect 1] and [Positive Aspect 2]
 - One suggestion: [Constructive, Non-Inflammatory Suggestion]
-- Reason for leaving: [Prepared Statement -- e.g., I found an opportunity that aligns with my long-term goals]
+- Reason for leaving: [Prepared Statement, e.g., I found an opportunity that aligns with my long-term goals]
 
 What to keep to yourself:
-- [Sensitive Item 1 -- e.g., details of any ongoing HR matters]
-- [Sensitive Item 2 -- e.g., specifics about interpersonal conflicts]
-- [Sensitive Item 3 -- e.g., anything you wouldn't want quoted back to you]
+- [Sensitive Item 1, e.g., details of any ongoing HR matters]
+- [Sensitive Item 2, e.g., specifics about interpersonal conflicts]
+- [Sensitive Item 3, e.g., anything you wouldn't want quoted back to you]
 
 Questions to ask:
 - Will I receive a written summary of this conversation?
@@ -463,7 +463,7 @@ Thank you for the review and the feedback. I appreciate the recognition of [Posi
 
 I wanted to share a few thoughts:
 
-- Regarding [Area of Growth]: I've actually been working on this -- [Specific example]. I'd welcome any suggestions on how to improve further.
+- Regarding [Area of Growth]: I've actually been working on this. [Specific example]. I'd welcome any suggestions on how to improve further.
 - I'd also love to discuss opportunities for [Professional development, expanded responsibilities, etc.]
 
 Could we schedule a follow-up to talk through a development plan? I want to keep building on the momentum.
@@ -478,13 +478,13 @@ Best,
       "Ask your manager to send a quick written recap of verbal feedback so you can stay on track.",
     category: "Feedback & Reviews",
     tag: "Strategic",
-    body: `Subject: Quick Request -- Written Recap of Feedback
+    body: `Subject: Quick Request, Written Recap of Feedback
 
 Hi [Manager Name],
 
 Thanks for the feedback in our [Meeting or 1:1] today. Would you mind sending me a quick written summary of the key points? It helps me track what I'm working on and make sure I don't miss anything.
 
-No need for anything formal -- even a few bullet points would be great. Appreciate it.
+No need for anything formal, even a few bullet points would be great. Appreciate it.
 
 Thanks,
 [Your Name]`,
@@ -533,13 +533,13 @@ Hi [Manager Name],
 I wanted to touch base about the scope of my role. Over the past [Time Period], I've taken on a few additional responsibilities and I want to make sure we're aligned on expectations.
 
 Here's what I'm currently handling beyond my original scope:
-- [New Responsibility 1] -- started around [Date or Timeframe]
-- [New Responsibility 2] -- picked up when [Context]
-- [New Responsibility 3] -- ongoing since [Date or Timeframe]
+- [New Responsibility 1], started around [Date or Timeframe]
+- [New Responsibility 2], picked up when [Context]
+- [New Responsibility 3], ongoing since [Date or Timeframe]
 
-I'm happy to keep contributing at this level -- I enjoy the work. I just want to make sure my role reflects what I'm actually doing, so we can have a conversation about it when the time is right.
+I'm happy to keep contributing at this level. I enjoy the work. I just want to make sure my role reflects what I'm actually doing, so we can have a conversation about it when the time is right.
 
-No rush -- just wanted to plant the seed. Happy to discuss whenever works.
+No rush, just wanted to plant the seed. Happy to discuss whenever works.
 
 Thanks,
 [Your Name]`,
@@ -562,7 +562,7 @@ Over the past [Time Period], I've focused on:
 - [Accomplishment 2]
 - [Area Where You're Already Operating at Next Level]
 
-I'd value your candid feedback on where I stand and what you'd need to see from me to make that next step. I'm open to whatever timeline makes sense -- I just want to be proactive about my growth.
+I'd value your candid feedback on where I stand and what you'd need to see from me to make that next step. I'm open to whatever timeline makes sense. I just want to be proactive about my growth.
 
 Thanks for your support,
 [Your Name]`,
@@ -584,7 +584,7 @@ Since my last adjustment on [Date], my role has expanded to include [New Respons
 
 Based on what I'm seeing in the market for [Role Title] in [Location or Industry], the typical range is [Salary Range]. I'd like to discuss whether an adjustment is possible to reflect the expanded scope and current benchmarks.
 
-I'm flexible on timing and structure -- I just want to make sure we're on the same page. Would any time in the next couple weeks work?
+I'm flexible on timing and structure. I just want to make sure we're on the same page. Would any time in the next couple weeks work?
 
 Thanks,
 [Your Name]`,
@@ -602,9 +602,9 @@ Hi [Manager Name],
 
 I wanted to ask about the possibility of updating my title. My current title of [Current Title] was accurate when I started, but the work I'm doing now looks quite different.
 
-Day to day, I'm regularly [Description of Current Scope -- e.g., leading cross-functional projects, managing vendor relationships, owning client deliverables]. This aligns more closely with a [Proposed Title] role.
+Day to day, I'm regularly [Description of Current Scope, e.g., leading cross-functional projects, managing vendor relationships, owning client deliverables]. This aligns more closely with a [Proposed Title] role.
 
-I know titles aren't everything, but it would help with [Reason -- e.g., working with external stakeholders, career development]. Happy to discuss whenever it makes sense.
+I know titles aren't everything, but it would help with [Reason, e.g., working with external stakeholders, career development]. Happy to discuss whenever it makes sense.
 
 Thanks,
 [Your Name]`,
@@ -646,7 +646,7 @@ Hi [Manager Name],
 
 I'd like to discuss the possibility of a [Remote, hybrid, or adjusted schedule] arrangement. I think it would help me do my best work while still meeting all team expectations.
 
-The reason: [Brief professional reason -- e.g., a long commute affecting productivity, a personal situation, a health-related need].
+The reason: [Brief professional reason, e.g., a long commute affecting productivity, a personal situation, a health-related need].
 
 To put your mind at ease, during [Previous remote period or example], I [Specific deliverable or result]. I'm committed to full availability during core hours, attending all meetings, and hitting every deadline.
 
@@ -668,13 +668,13 @@ Hi [Manager Name],
 
 I wanted to get your input on how to prioritize my workload. Right now I'm working on:
 
-- [Assignment 1] -- due [Date]
-- [Assignment 2] -- due [Date]
-- [Assignment 3] -- due [Date]
+- [Assignment 1], due [Date]
+- [Assignment 2], due [Date]
+- [Assignment 3], due [Date]
 
 I want to deliver quality work on all of these, and a few of the timelines overlap. Could you help me rank these in order of importance? That way I can make sure the highest-priority items get my best attention first.
 
-If everything needs to land on time, I'm happy to discuss what trade-offs might help -- whether that's adjusted deadlines, additional support, or narrowing scope on one of them. I just want to set realistic expectations rather than quietly let something slip.
+If everything needs to land on time, I'm happy to discuss what trade-offs might help, whether that's adjusted deadlines, additional support, or narrowing scope on one of them. I just want to set realistic expectations rather than quietly let something slip.
 
 Happy to discuss whenever works for you.
 
@@ -692,9 +692,9 @@ Thanks,
 
 Hi [HR Representative Name],
 
-I'd like to request a workplace accommodation related to [General description -- e.g., a medical condition, disability]. I can provide documentation from my healthcare provider if needed.
+I'd like to request a workplace accommodation related to [General description, e.g., a medical condition, disability]. I can provide documentation from my healthcare provider if needed.
 
-The accommodation I'm requesting is [Specific accommodation -- e.g., modified schedule, ergonomic equipment, remote work arrangement]. I believe this would allow me to continue performing my role effectively.
+The accommodation I'm requesting is [Specific accommodation, e.g., modified schedule, ergonomic equipment, remote work arrangement]. I believe this would allow me to continue performing my role effectively.
 
 Could we schedule a time to discuss the process?
 
@@ -715,24 +715,24 @@ const PLACEHOLDER_RE = /(\[[A-Z][^\[\]]*\])/g;
 
 const TEMPLATE_TIPS: Record<string, string[]> = {
   "pip-acknowledgment": [
-    "Send within 24 hours -- it shows you're taking it seriously",
+    "Send within 24 hours. It shows you're taking it seriously",
     "Asking clarifying questions signals engagement, not pushback",
     "Offering to schedule check-ins shows you want to succeed",
   ],
   "pip-clarification": [
-    "Specific metrics protect both sides -- your manager will appreciate the directness",
+    "Specific metrics protect both sides. Your manager will appreciate the directness",
     "Asking questions now prevents misunderstandings later",
-    "Shorter is better -- keep it focused on what you need to know",
+    "Shorter is better. Keep it focused on what you need to know",
   ],
   "pip-rebuttal": [
     "Lead with what you agree with before sharing additional context",
-    "Use specific dates and results -- accuracy shows professionalism",
-    "Offer to discuss in person -- it shows you're collaborative, not combative",
+    "Use specific dates and results. Accuracy shows professionalism",
+    "Offer to discuss in person. It shows you're collaborative, not combative",
   ],
   "pip-progress-update": [
-    "Send these proactively -- don't wait to be asked",
+    "Send these proactively. Don't wait to be asked",
     "Include specific results, not just activities",
-    "Ask if you're on track -- it shows you care about the outcome",
+    "Ask if you're on track. It shows you care about the outcome",
   ],
   "meeting-summary": [
     "Send within 24 hours while details are fresh and accurate",
@@ -741,53 +741,53 @@ const TEMPLATE_TIPS: Record<string, string[]> = {
   ],
   "one-on-one-followup": [
     "Send the same day while the conversation is fresh",
-    "Include any verbal commitments -- it helps both of you stay aligned",
-    "Keep it brief -- a quick recap is more likely to be read",
+    "Include any verbal commitments. It helps both of you stay aligned",
+    "Keep it brief. A quick recap is more likely to be read",
   ],
   "verbal-warning-followup": [
     "Frame it as wanting to get it right, not as defending yourself",
-    "Mention what you're already doing to address it -- action speaks loudest",
+    "Mention what you're already doing to address it. Action speaks loudest",
     "Thanking them for directness disarms the situation",
   ],
   "hr-complaint": [
-    "Reference what you've already tried -- it shows you're not jumping to escalation",
+    "Reference what you've already tried. It shows you're not jumping to escalation",
     "Asking for guidance rather than demanding action sets a collaborative tone",
-    "Always offer to meet -- it shows you want resolution",
+    "Always offer to meet. It shows you want resolution",
   ],
   "discrimination-concern": [
     "Requesting a confidential conversation gives HR the chance to help before it escalates",
-    "Mention previous steps you've taken -- it shows patience and good faith",
-    "Keep the email short -- details are better shared in person",
+    "Mention previous steps you've taken. It shows patience and good faith",
+    "Keep the email short. Details are better shared in person",
   ],
   "harassment-report": [
-    "Mention that you've tried to handle it yourself first -- it shows reasonableness",
+    "Mention that you've tried to handle it yourself first. It shows reasonableness",
     "Requesting an in-person meeting keeps sensitive details out of email",
-    "Keep the tone measured -- calm emails carry more weight",
+    "Keep the tone measured. Calm emails carry more weight",
   ],
   "skip-level-escalation": [
     "Only reach out after you've genuinely tried to resolve it directly",
-    "Be specific about what you've already tried -- it shows you're not skipping steps",
+    "Be specific about what you've already tried. It shows you're not skipping steps",
     "Frame it as wanting guidance, not as going over your manager's head",
   ],
   "retaliation-concern": [
-    "Acknowledge there may be a reasonable explanation -- it shows fairness",
-    "Include specific dates and changes -- accuracy builds credibility",
+    "Acknowledge there may be a reasonable explanation. It shows fairness",
+    "Include specific dates and changes. Accuracy builds credibility",
     "Framing it as 'flagging early' rather than accusing keeps the door open",
   ],
   "severance-negotiation": [
-    "Never accept or sign anything on the spot -- asking questions is expected",
+    "Never accept or sign anything on the spot. Asking questions is expected",
     "Framing requests as questions keeps the negotiation collaborative",
-    "Take your time -- you usually have at least 21 days to review",
+    "Take your time. You usually have at least 21 days to review",
   ],
   "resignation-professional": [
-    "Keep it brief and warm -- you may need these relationships later",
+    "Keep it brief and warm. You may need these relationships later",
     "Offering to help with transition shows class and professionalism",
     "Send via email so your last day and terms are in writing",
   ],
   "exit-interview-prep": [
     "Prepare talking points in advance so you stay on message",
-    "Be positive and constructive -- what you say here can follow you",
-    "Don't volunteer more than you're asked -- keep it professional",
+    "Be positive and constructive. What you say here can follow you",
+    "Don't volunteer more than you're asked. Keep it professional",
   ],
   "performance-review-response": [
     "Start with what you agree with before sharing your perspective",
@@ -800,7 +800,7 @@ const TEMPLATE_TIPS: Record<string, string[]> = {
     "Follow up once if you don't hear back, then let it go",
   ],
   "self-assessment-submission": [
-    "Quantify results wherever possible -- numbers speak louder than narratives",
+    "Quantify results wherever possible. Numbers speak louder than narratives",
     "Include feedback from others to show broader impact",
     "Submitting early gives your manager time to prepare thoughtfully",
   ],
@@ -816,23 +816,23 @@ const TEMPLATE_TIPS: Record<string, string[]> = {
   ],
   "compensation-adjustment-request": [
     "Sharing context in advance gives your manager time to advocate internally",
-    "Market data makes the case -- focus on benchmarks, not personal needs",
+    "Market data makes the case. Focus on benchmarks, not personal needs",
     "Being flexible on timing shows maturity and patience",
   ],
   "title-change-request": [
-    "Titles are often easier to change than compensation -- start here if relevant",
+    "Titles are often easier to change than compensation. Start here if relevant",
     "Reference how you're already being introduced externally",
-    "Keep the ask casual -- a light touch goes further than a formal demand",
+    "Keep the ask casual. A light touch goes further than a formal demand",
   ],
   "transfer-concerns": [
-    "Ask clarifying questions -- it shows you're engaged, not resistant",
+    "Ask clarifying questions. It shows you're engaged, not resistant",
     "Understanding the rationale helps you adapt faster",
     "Following up in writing prevents misunderstandings during transitions",
   ],
   "remote-hybrid-accommodation": [
     "Offering a trial period reduces perceived risk for your manager",
-    "Reference past productivity during flexible work -- results matter",
-    "Keep it professional -- personal reasons don't need to be detailed",
+    "Reference past productivity during flexible work. Results matter",
+    "Keep it professional. Personal reasons don't need to be detailed",
   ],
   "workload-concern": [
     "Asking for priorities shows initiative, not weakness",
@@ -842,7 +842,7 @@ const TEMPLATE_TIPS: Record<string, string[]> = {
   "reasonable-accommodation": [
     "You don't need to share your specific diagnosis",
     "Your employer is legally required to engage in a conversation about accommodations",
-    "Keep the email brief -- details can be discussed in person",
+    "Keep the email brief. Details can be discussed in person",
   ],
 };
 

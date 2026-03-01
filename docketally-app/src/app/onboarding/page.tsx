@@ -11,7 +11,7 @@ import { createClient } from "@/lib/supabase/client";
 const REASONS = [
   "Performance Improvement Plan (PIP)",
   "Discrimination or bias",
-  "Starting a new role -- documenting proactively",
+  "Starting a new role, documenting proactively",
   "Retaliation after speaking up",
   "Building a record of my contributions",
   "Hostile work environment",
@@ -22,7 +22,7 @@ const REASONS = [
 const REASON_TO_CASE_TYPE: Record<string, string> = {
   "Performance Improvement Plan (PIP)": "PIP Dispute",
   "Discrimination or bias": "Discrimination",
-  "Starting a new role -- documenting proactively": "General",
+  "Starting a new role, documenting proactively": "General",
   "Retaliation after speaking up": "Retaliation",
   "Building a record of my contributions": "General",
   "Hostile work environment": "Hostile Work Environment",

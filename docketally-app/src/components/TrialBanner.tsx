@@ -30,7 +30,7 @@ export default function TrialBanner() {
       }}
     >
       <span>
-        Free trial — {days} day{days !== 1 ? "s" : ""} left
+        Free trial: {days} day{days !== 1 ? "s" : ""} left
       </span>
       <Link
         href="/dashboard/billing"

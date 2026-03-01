@@ -1458,7 +1458,7 @@ export default function RecordPage() {
                 }}
               >
                 Each record captures what happened, who was involved, and when.
-                Your records automatically build into a case file -- a structured
+                Your records automatically build into a case file, a structured
                 document for your own records and for an attorney.
               </p>
               <button

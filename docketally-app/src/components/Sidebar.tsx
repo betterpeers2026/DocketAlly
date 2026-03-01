@@ -523,7 +523,7 @@ export default function Sidebar({ user, subscription }: { user: User; subscripti
                   marginTop: 2,
                   letterSpacing: "0.04em",
                 }}>
-                  Trial — {days} {days === 1 ? "day" : "days"}
+                  Trial: {days} {days === 1 ? "day" : "days"}
                 </div>
               );
             }
