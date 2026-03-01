@@ -89,7 +89,7 @@ function getTypeInfo(planType: string) {
 }
 
 function getTypeBadge(): { color: string; bg: string; border: string } {
-  return { color: "#22C55E", bg: "#1c1917", border: "transparent" };
+  return { color: "#16A34A", bg: "transparent", border: "transparent" };
 }
 
 /* ------------------------------------------------------------------ */
@@ -717,17 +717,12 @@ export default function PlansPage() {
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <span
                         style={{
-                          display: "inline-block",
-                          padding: "3px 10px",
-                          borderRadius: 20,
                           fontSize: 10,
                           fontWeight: 700,
                           fontFamily: "var(--font-mono)",
                           letterSpacing: "0.04em",
                           textTransform: "uppercase",
-                          color: getTypeBadge().color,
-                          background: getTypeBadge().bg,
-                          border: `1px solid ${getTypeBadge().border}`,
+                          color: "#16A34A",
                         }}
                       >
                         {type.shortLabel}
@@ -972,20 +967,15 @@ export default function PlansPage() {
         >
           <div className="da-plan-header" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0, flexWrap: "wrap" }}>
-              {/* Type badge */}
+              {/* Type label */}
               <span
                 style={{
-                  display: "inline-block",
-                  padding: "3px 10px",
-                  borderRadius: 20,
                   fontSize: 10,
                   fontWeight: 700,
                   fontFamily: "var(--font-mono)",
                   letterSpacing: "0.02em",
                   textTransform: "uppercase",
-                  color: typeBadge.color,
-                  background: typeBadge.bg,
-                  border: `1px solid ${typeBadge.border}`,
+                  color: "#16A34A",
                 }}
               >
                 {typeInfo.shortLabel}

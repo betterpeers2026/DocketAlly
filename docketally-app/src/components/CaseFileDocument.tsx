@@ -1409,7 +1409,7 @@ export default function CaseFileDocument({
                 <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12, flexWrap: "wrap" }}>
                   <span style={{
                     fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.04em",
-                    padding: "3px 10px", borderRadius: 5, background: "#1c1917", border: "none", color: "#22C55E",
+                    color: "#16A34A",
                   }}>
                     {plan.plan_type ? plan.plan_type.replace(/_/g, " ") : "plan"}
                   </span>

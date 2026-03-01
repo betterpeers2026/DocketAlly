@@ -289,18 +289,13 @@ const AVATAR_COLOR = "#1c1917";
 
 function getPlanBadgeStyle(): React.CSSProperties {
   return {
-    display: "inline-block",
-    padding: "3px 10px",
-    borderRadius: 20,
     fontSize: 10,
     fontWeight: 700,
     fontFamily: "var(--font-mono)",
     letterSpacing: "0.02em",
     whiteSpace: "nowrap",
     textTransform: "uppercase",
-    color: "#22C55E",
-    background: "#1c1917",
-    border: "none",
+    color: "#16A34A",
   };
 }
 
@@ -1767,8 +1762,8 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
                     const title = item.kind === "plan-start" ? item.plan.name : item.kind === "plan-end" ? item.plan.name : item.kind === "checkin" ? `${item.planName}: Check-in` : `${item.planName}: Goal Updated`;
                     const subtitle = item.kind === "plan-start" ? `${item.goals.length} goal${item.goals.length !== 1 ? "s" : ""} assigned${item.plan.end_date ? ` \u00b7 Target end: ${formatDate(item.plan.end_date)}` : ""}` : item.kind === "plan-end" ? `Plan ${item.plan.status}` : item.kind === "checkin" ? item.checkin.summary : item.goal.description;
                     const planBadge = getPlanBadgeStyle();
-                    const dotBg = planBadge.background as string;
-                    const dotBorder = (planBadge.color as string) || "#F59E0B";
+                    const dotBg = "#F0FDF4";
+                    const dotBorder = "#16A34A";
                     return (
                       <div key={planEventKey} style={{ position: "relative", marginBottom: 20 }}>
                         <div style={{ position: "absolute", left: -29, top: 8, width: 12, height: 12, borderRadius: "50%", background: dotBg, border: `2px solid ${dotBorder}`, zIndex: 1 }} />
