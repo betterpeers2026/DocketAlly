@@ -1636,7 +1636,7 @@ export default function RecordPage() {
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              style={{ height: 42, borderRadius: 10, border: "1px solid #E7E5E4", fontSize: 13, fontFamily: "var(--font-sans)", color: "#78716C", outline: "none", background: "#fff", cursor: "pointer", boxShadow: "0 1px 2px rgba(0,0,0,0.02)", padding: "0 36px 0 14px" }}
+              style={{ height: 42, borderRadius: 10, border: "1px solid #E7E5E4", fontSize: 13, fontFamily: "var(--font-sans)", color: filterType ? "#292524" : "#78716C", outline: "none", background: "#fff", cursor: "pointer", boxShadow: "0 1px 2px rgba(0,0,0,0.02)", padding: "0 36px 0 14px" }}
             >
               <option value="">All Types</option>
               {ENTRY_TYPES.map((et) => (
