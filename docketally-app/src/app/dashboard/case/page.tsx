@@ -172,6 +172,8 @@ export default function CaseViewPage() {
   const [editingCase, setEditingCase] = useState<Case | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
+  const [showToast, setShowToast] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
 
   // Search
@@ -370,6 +372,7 @@ export default function CaseViewPage() {
   }
 
   async function handleDelete(caseId: string) {
+    setDeleting(true);
     const { error } = await supabase
       .from("cases")
       .delete()
@@ -379,7 +382,10 @@ export default function CaseViewPage() {
       setCases((prev) => prev.filter((c) => c.id !== caseId));
       setDeleteConfirm(null);
       setMenuOpen(null);
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
     }
+    setDeleting(false);
   }
 
   async function handleArchive(caseId: string) {
@@ -1234,8 +1240,7 @@ export default function CaseViewPage() {
                 marginBottom: 24,
               }}
             >
-              This action cannot be undone. The case will be permanently
-              removed.
+              This will permanently delete <strong>{cases.find((c) => c.id === deleteConfirm)?.name || "this case"}</strong> and remove all record associations. Your records will not be deleted, but they will no longer be linked to this case. This cannot be undone.
             </p>
             <div
               style={{
@@ -1262,6 +1267,7 @@ export default function CaseViewPage() {
               </button>
               <button
                 onClick={() => handleDelete(deleteConfirm)}
+                disabled={deleting}
                 style={{
                   padding: "10px 20px",
                   borderRadius: 8,
@@ -1271,13 +1277,22 @@ export default function CaseViewPage() {
                   fontSize: 14,
                   fontWeight: 600,
                   fontFamily: "var(--font-sans)",
-                  cursor: "pointer",
+                  cursor: deleting ? "not-allowed" : "pointer",
+                  opacity: deleting ? 0.7 : 1,
                 }}
               >
-                Delete
+                {deleting ? "Deleting..." : "Delete Case"}
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Success toast */}
+      {showToast && (
+        <div style={{ position: "fixed", bottom: 32, left: "50%", transform: "translateX(-50%)", background: "#166534", color: "#fff", padding: "12px 24px", borderRadius: 10, fontSize: 14, fontWeight: 600, fontFamily: "var(--font-sans)", boxShadow: "0 4px 20px rgba(0,0,0,0.15)", zIndex: 1000, display: "flex", alignItems: "center", gap: 8 }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
+          Case deleted
         </div>
       )}
     </div>

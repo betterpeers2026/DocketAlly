@@ -832,6 +832,12 @@ export default function CaseDetailPage() {
   const [savingCaseInfo, setSavingCaseInfo] = useState(false);
   const [showToast, setShowToast] = useState(false);
 
+  // Delete case
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [caseMenuOpen, setCaseMenuOpen] = useState(false);
+  const caseMenuRef = useRef<HTMLDivElement>(null);
+
   // Inline name edit
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState("");
@@ -972,6 +978,7 @@ export default function CaseDetailPage() {
     function handleClick(e: MouseEvent) {
       if (statusRef.current && !statusRef.current.contains(e.target as Node)) setStatusOpen(false);
       if (caseTypeRef.current && !caseTypeRef.current.contains(e.target as Node)) setCaseTypeOpen(false);
+      if (caseMenuRef.current && !caseMenuRef.current.contains(e.target as Node)) setCaseMenuOpen(false);
     }
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
@@ -1021,6 +1028,15 @@ export default function CaseDetailPage() {
     const { error } = await supabase.from("cases").update({ status: newStatus }).eq("id", caseId);
     if (!error) setCaseData({ ...caseData, status: newStatus });
     setStatusOpen(false);
+  }
+
+  async function handleDeleteCase() {
+    setDeleting(true);
+    const { error } = await supabase.from("cases").delete().eq("id", caseId);
+    if (!error) {
+      router.push("/dashboard/case");
+    }
+    setDeleting(false);
   }
 
   async function updateCaseTypes(newTypes: string[]) {
@@ -1554,6 +1570,30 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
             </div>
           )}
           <button onClick={() => { fetchAllRecords(); setShowAddRecords(true); }} style={{ marginLeft: "auto", padding: "8px 18px", borderRadius: 10, border: "1px solid #22C55E", background: "#fff", color: "#22C55E", fontSize: 13, fontWeight: 600, fontFamily: "var(--font-sans)", cursor: "pointer" }}>+ Add Records</button>
+
+          {/* Case actions menu */}
+          <div ref={caseMenuRef} style={{ position: "relative" }}>
+            <button
+              onClick={() => setCaseMenuOpen(!caseMenuOpen)}
+              style={{ width: 36, height: 36, borderRadius: 8, border: "1px solid var(--color-stone-200)", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-stone-500)" strokeWidth="2.5" strokeLinecap="round">
+                <circle cx="12" cy="5" r="1" /><circle cx="12" cy="12" r="1" /><circle cx="12" cy="19" r="1" />
+              </svg>
+            </button>
+            {caseMenuOpen && (
+              <div style={{ position: "absolute", top: "100%", right: 0, marginTop: 4, background: "#fff", border: "1px solid var(--color-stone-200)", borderRadius: 10, boxShadow: "0 4px 12px rgba(0,0,0,0.1)", zIndex: 50, overflow: "hidden", minWidth: 160 }}>
+                <button
+                  onClick={() => { setCaseMenuOpen(false); setDeleteConfirm(true); }}
+                  style={{ display: "block", width: "100%", padding: "10px 16px", background: "none", border: "none", fontSize: 13, fontWeight: 500, fontFamily: "var(--font-sans)", color: "#EF4444", cursor: "pointer", textAlign: "left" }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "#FEF2F2"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "none"; }}
+                >
+                  Delete Case
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -2507,6 +2547,41 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
             {/* Modal footer */}
             <div style={{ padding: "16px 24px", borderTop: "1px solid #E7E5E4", display: "flex", justifyContent: "flex-end", flexShrink: 0 }}>
               <button onClick={closeAddRecordsModal} style={{ padding: "10px 24px", borderRadius: 10, border: "none", background: "var(--color-green)", color: "#fff", fontSize: 14, fontWeight: 600, fontFamily: "var(--font-sans)", cursor: "pointer" }}>Done</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete confirmation modal */}
+      {deleteConfirm && (
+        <div
+          style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}
+          onClick={() => setDeleteConfirm(false)}
+        >
+          <div
+            style={{ background: "#fff", borderRadius: 16, padding: "32px 28px", maxWidth: 400, width: "90%", border: "1px solid var(--color-stone-300)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ fontFamily: "var(--font-sans)", fontSize: 18, fontWeight: 600, color: "var(--color-stone-900)", marginBottom: 10 }}>
+              Delete this case?
+            </h3>
+            <p style={{ fontSize: 14, color: "var(--color-stone-600)", lineHeight: 1.6, marginBottom: 24 }}>
+              This will permanently delete <strong>{caseData?.name || "this case"}</strong> and remove all record associations. Your records will not be deleted, but they will no longer be linked to this case. This cannot be undone.
+            </p>
+            <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
+              <button
+                onClick={() => setDeleteConfirm(false)}
+                style={{ padding: "10px 20px", borderRadius: 8, border: "1px solid var(--color-stone-300)", background: "#fff", color: "var(--color-stone-700)", fontSize: 14, fontWeight: 600, fontFamily: "var(--font-sans)", cursor: "pointer" }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteCase}
+                disabled={deleting}
+                style={{ padding: "10px 20px", borderRadius: 8, border: "none", background: "#EF4444", color: "#fff", fontSize: 14, fontWeight: 600, fontFamily: "var(--font-sans)", cursor: deleting ? "not-allowed" : "pointer", opacity: deleting ? 0.7 : 1 }}
+              >
+                {deleting ? "Deleting..." : "Delete Case"}
+              </button>
             </div>
           </div>
         </div>
