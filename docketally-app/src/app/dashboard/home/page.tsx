@@ -112,7 +112,7 @@ export default function HomePage() {
   const [vaultDocs, setVaultDocs] = useState<VaultRow[]>([]);
   const [cases, setCases] = useState<CaseRow[]>([]);
   const [caseRecordLinks, setCaseRecordLinks] = useState<CaseRecordLink[]>([]);
-  const [hasActivePlan, setHasActivePlan] = useState(false);
+
 
   /* ----- Fetch ----- */
   useEffect(() => {
@@ -121,12 +121,11 @@ export default function HomePage() {
       if (!user) { setLoading(false); return; }
       const uid = user.id;
 
-      const [profileRes, recordsRes, vaultRes, casesRes, plansRes, caseRecordsRes] = await Promise.all([
+      const [profileRes, recordsRes, vaultRes, casesRes, caseRecordsRes] = await Promise.all([
         supabase.from("profiles").select("full_name").eq("id", uid).single(),
         supabase.from("records").select("id, title, date, entry_type, created_at").eq("user_id", uid).order("date", { ascending: true }),
         supabase.from("vault_documents").select("id, file_name, created_at").eq("user_id", uid).order("created_at", { ascending: false }),
         supabase.from("cases").select("id, name, case_type, case_types, status, case_status, employer, role, description, created_at").eq("user_id", uid),
-        supabase.from("plans").select("id").eq("user_id", uid).eq("status", "active").limit(1),
         supabase.from("case_records").select("case_id, record_id").eq("user_id", uid),
       ]);
 
@@ -135,93 +134,11 @@ export default function HomePage() {
       setVaultDocs(vaultRes.data ?? []);
       setCases(casesRes.data ?? []);
       setCaseRecordLinks(caseRecordsRes.data ?? []);
-      setHasActivePlan((plansRes.data ?? []).length > 0);
       setLoading(false);
     }
     fetchData();
   }, [supabase]);
 
-  /* ----- Computed: Pillars ----- */
-  const pillars = useMemo(() => {
-    const recordCount = records.length;
-    const vaultCount = vaultDocs.length;
-
-    // Records
-    const recordsStatus: "green" | "amber" | "gray" =
-      recordCount >= 5 ? "green" : recordCount >= 1 ? "amber" : "gray";
-    const recordsLabel = recordCount === 0
-      ? "No records yet"
-      : `${recordCount} record${recordCount !== 1 ? "s" : ""} documented`;
-
-    // Evidence
-    const evidenceStatus: "green" | "amber" | "gray" =
-      vaultCount >= 3 ? "green" : vaultCount >= 1 ? "amber" : "gray";
-    const evidenceLabel = vaultCount === 0
-      ? "No evidence uploaded"
-      : `${vaultCount} file${vaultCount !== 1 ? "s" : ""} in vault`;
-
-    // Case Info — only check active cases, focus on employer & role
-    const activeCases = cases.filter((c) => c.status.toLowerCase() === "active");
-    const hasAll = activeCases.some((c) => c.employer && c.role);
-    const hasPartial = activeCases.some((c) => c.employer || c.role);
-    const caseInfoStatus: "green" | "amber" | "gray" =
-      hasAll ? "green" : hasPartial ? "amber" : "gray";
-    const caseInfoLabel = hasAll
-      ? "Case details complete"
-      : hasPartial ? "Partially filled" : "No case info";
-
-    // Timeline span
-    let daySpan = 0;
-    if (records.length >= 2) {
-      const first = new Date(records[0].date + "T00:00:00").getTime();
-      const last = new Date(records[records.length - 1].date + "T00:00:00").getTime();
-      daySpan = Math.round((last - first) / 86400000);
-    }
-    const timelineStatus: "green" | "amber" | "gray" =
-      daySpan >= 14 ? "green" : daySpan >= 3 ? "amber" : "gray";
-    const timelineLabel = daySpan >= 14
-      ? `${daySpan} days documented`
-      : daySpan >= 3 ? `${daySpan} days covered` : "Just getting started";
-
-    return [
-      { key: "records", label: recordsLabel, status: recordsStatus },
-      { key: "evidence", label: evidenceLabel, status: evidenceStatus },
-      { key: "caseinfo", label: caseInfoLabel, status: caseInfoStatus },
-      { key: "timeline", label: timelineLabel, status: timelineStatus },
-    ] as const;
-  }, [records, vaultDocs, cases]);
-
-  const strongCount = pillars.filter((p) => p.status === "green").length;
-
-  /* ----- Computed: Next Best Action ----- */
-  const nextAction = useMemo(() => {
-    const recordCount = records.length;
-    const vaultCount = vaultDocs.length;
-    const hasCaseInfo = cases.some((c) => c.employer || c.role || c.description);
-    const activeCases = cases.filter((c) => c.status.toLowerCase() === "active").length;
-
-    if (recordCount === 0) {
-      return { heading: "Document your first event", desc: "Start building your record by logging a workplace event, conversation, or observation.", href: "/dashboard", cta: "New Record" };
-    }
-    if (vaultCount === 0) {
-      return { heading: "Upload your first piece of evidence", desc: "Add emails, screenshots, or documents to your secure vault.", href: "/dashboard/vault", cta: "Go to Vault" };
-    }
-    if (!hasCaseInfo) {
-      return { heading: "Add details to your case", desc: "Fill in your employer, role, and a brief summary to strengthen your case file.", href: "/dashboard/case", cta: "Go to Cases" };
-    }
-    // No records in last 7 days
-    const now = Date.now();
-    const lastRecordDate = records.length > 0
-      ? new Date(records[records.length - 1].date + "T00:00:00").getTime()
-      : 0;
-    if (now - lastRecordDate > 7 * 86400000) {
-      return { heading: "Keep documenting", desc: "It's been over a week since your last record. Log what happened this week.", href: "/dashboard", cta: "New Record" };
-    }
-    if (recordCount >= 5 && activeCases === 0) {
-      return { heading: "Organize your records into a case", desc: "You have enough records to start building a case file.", href: "/dashboard/case", cta: "Go to Cases" };
-    }
-    return { heading: "You're in good shape", desc: "Keep documenting as things happen. Consistency strengthens your case.", href: "", cta: "" };
-  }, [records, vaultDocs, cases]);
 
   /* ----- Computed: Quick Stats ----- */
   const activeCaseCount = cases.filter((c) => c.status.toLowerCase() === "active").length;
@@ -277,32 +194,6 @@ export default function HomePage() {
     return items.slice(0, 5);
   }, [records, vaultDocs, cases]);
 
-  /* ---------------------------------------------------------------- */
-  /*  Pillar icons                                                     */
-  /* ---------------------------------------------------------------- */
-
-  const pillarIcons: Record<string, React.ReactNode> = {
-    records: (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" />
-      </svg>
-    ),
-    evidence: (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0110 0v4" />
-      </svg>
-    ),
-    caseinfo: (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="2" y="7" width="20" height="14" rx="2" ry="2" /><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" />
-      </svg>
-    ),
-    timeline: (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
-      </svg>
-    ),
-  };
 
   const activityIcons: Record<string, React.ReactNode> = {
     record: (
@@ -322,33 +213,6 @@ export default function HomePage() {
     ),
   };
 
-  /* ---------------------------------------------------------------- */
-  /*  Status helpers                                                   */
-  /* ---------------------------------------------------------------- */
-
-  function statusColor(s: "green" | "amber" | "gray"): string {
-    if (s === "green") return "#15803D";
-    if (s === "amber") return "#D97706";
-    return "#78716C";
-  }
-
-  function statusBg(s: "green" | "amber" | "gray"): string {
-    if (s === "green") return "#F0FDF4";
-    if (s === "amber") return "#FFFBEB";
-    return "#F5F5F4";
-  }
-
-  function statusBorder(s: "green" | "amber" | "gray"): string {
-    if (s === "green") return "#BBF7D0";
-    if (s === "amber") return "#FDE68A";
-    return "#D6D3D1";
-  }
-
-  function statusText(s: "green" | "amber" | "gray"): string {
-    if (s === "green") return "Complete";
-    if (s === "amber") return "In progress";
-    return "Not started";
-  }
 
   /* ---------------------------------------------------------------- */
   /*  Loading                                                          */
@@ -523,78 +387,7 @@ export default function HomePage() {
             </p>
           </div>
 
-          {/* Section 2: Documentation Strength */}
-          <div style={{ ...cardStyle, padding: 32, marginBottom: 24, borderRadius: 16, borderTop: "3px solid #22C55E", boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)" }}>
-            <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 22, fontWeight: 600, color: "#292524", marginBottom: 24 }}>
-              Documentation Strength
-            </h2>
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              {pillars.map((p) => (
-                <div key={p.key} style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                  <div style={{ width: 32, height: 32, borderRadius: 8, background: statusBg(p.status), border: `1px solid ${statusBorder(p.status)}`, display: "flex", alignItems: "center", justifyContent: "center", color: statusColor(p.status), flexShrink: 0 }}>
-                    {pillarIcons[p.key]}
-                  </div>
-                  <span style={{ flex: 1, fontSize: 14, color: "#292524", fontFamily: "var(--font-sans)", fontWeight: 500 }}>
-                    {p.label}
-                  </span>
-                  <span style={{
-                    display: "inline-block",
-                    padding: "4px 12px",
-                    borderRadius: 6,
-                    fontSize: 11,
-                    fontWeight: 600,
-                    fontFamily: "var(--font-mono)",
-                    color: statusColor(p.status),
-                    background: statusBg(p.status),
-                    border: `1px solid ${statusBorder(p.status)}`,
-                    whiteSpace: "nowrap",
-                  }}>
-                    {statusText(p.status)}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <div style={{ marginTop: 20, paddingTop: 16, borderTop: "1px solid #F5F5F4" }}>
-              <span style={{ fontSize: 14, fontWeight: 600, fontFamily: "var(--font-sans)", color: "#292524" }}>
-                {strongCount} of 4 areas strong
-              </span>
-            </div>
-          </div>
-
-          {/* Section 3: Next Best Action */}
-          <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #E7E5E4", padding: "24px 24px 24px 28px", marginBottom: 24, borderLeft: "4px solid #22C55E", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 20, flexWrap: "wrap", boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)" }}>
-            <div style={{ flex: 1, minWidth: 200 }}>
-              <h3 style={{ fontSize: 16, fontWeight: 600, color: "#292524", fontFamily: "var(--font-sans)", marginBottom: 4 }}>
-                {nextAction.heading}
-              </h3>
-              <p style={{ fontSize: 14, color: "#57534E", fontFamily: "var(--font-sans)", lineHeight: 1.5, margin: 0 }}>
-                {nextAction.desc}
-              </p>
-            </div>
-            {nextAction.cta && (
-              <button
-                onClick={() => router.push(nextAction.href)}
-                style={{
-                  padding: "10px 20px",
-                  borderRadius: 10,
-                  border: "none",
-                  background: "#22C55E",
-                  color: "#fff",
-                  fontSize: 14,
-                  fontWeight: 600,
-                  fontFamily: "var(--font-sans)",
-                  cursor: "pointer",
-                  whiteSpace: "nowrap",
-                  flexShrink: 0,
-                  boxShadow: "none",
-                }}
-              >
-                {nextAction.cta}
-              </button>
-            )}
-          </div>
-
-          {/* Section 4: Quick Stats */}
+          {/* Quick Stats */}
           <div className="da-home-stats" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 28 }}>
             {[
               { value: records.length, label: "Total Records" },
@@ -655,17 +448,6 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* Section 6: Trust Banner */}
-          <div style={{ background: "#F0FDF4", borderRadius: 10, border: "1px solid #BBF7D0", padding: "14px 20px", display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#DCFCE7", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-              </svg>
-            </div>
-            <p style={{ fontSize: 13, color: "#57534E", fontFamily: "var(--font-sans)", lineHeight: 1.5, margin: 0 }}>
-              Your data is private. DocketAlly never shares your information with employers. You own everything you create.
-            </p>
-          </div>
         </div>
 
         {/* ---- Active Cases sidebar ---- */}

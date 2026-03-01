@@ -819,7 +819,7 @@ export default function CaseDetailPage() {
 
   // UI
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"timeline" | "caseinfo" | "casefile" | "patterns">("timeline");
+  const [activeTab, setActiveTab] = useState<"timeline" | "caseinfo" | "casefile" | "patterns" | "strength">("timeline");
   const [expandedRecord, setExpandedRecord] = useState<string | null>(null);
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const [generatingPacket, setGeneratingPacket] = useState(false);
@@ -1559,9 +1559,9 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
 
       {/* TAB BAR */}
       <div style={{ display: "flex", gap: 0, marginBottom: 28, borderBottom: "1px solid var(--color-stone-300)" }}>
-        {(["timeline", "caseinfo", "casefile", "patterns"] as const).map((tab) => (
+        {(["timeline", "caseinfo", "casefile", "patterns", "strength"] as const).map((tab) => (
           <button key={tab} onClick={() => setActiveTab(tab)} style={{ padding: "12px 24px", fontSize: 14, fontWeight: activeTab === tab ? 700 : 600, fontFamily: "var(--font-sans)", color: activeTab === tab ? "#292524" : "var(--color-stone-500)", background: "none", border: "none", borderBottom: activeTab === tab ? "2px solid var(--color-green)" : "2px solid transparent", cursor: "pointer", marginBottom: -1 }}>
-            {tab === "timeline" ? "Timeline" : tab === "caseinfo" ? "Case Info" : tab === "casefile" ? "Case File" : "Patterns"}
+            {tab === "timeline" ? "Timeline" : tab === "caseinfo" ? "Case Info" : tab === "casefile" ? "Case File" : tab === "patterns" ? "Patterns" : "Strength"}
           </button>
         ))}
       </div>
@@ -2288,6 +2288,156 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
               )}
             </div>
           )}
+
+          {/* ============================================================ */}
+          {/*  STRENGTH TAB                                                  */}
+          {/* ============================================================ */}
+          {activeTab === "strength" && (() => {
+            /* Compute strength pillars scoped to this case */
+            const recordCount = records.length;
+            const caseRecordIds = new Set(records.map((r) => r.id));
+            const linkedEvidence = vaultDocs.filter((d) => d.linked_record_id && caseRecordIds.has(d.linked_record_id));
+            const evidenceCount = linkedEvidence.length;
+
+            const theoryFields = [
+              caseData?.case_theory_protected_activity,
+              caseData?.case_theory_employer_response,
+              caseData?.case_theory_connection,
+              caseData?.case_theory_outcome,
+            ];
+            const theoryFilled = theoryFields.filter((f) => f && f.trim()).length;
+            const hasImpact = !!(caseData?.impact_statement && caseData.impact_statement.trim());
+            const hasDescription = !!(caseData?.description && caseData.description.trim());
+            const detailsFilledCount = theoryFilled + (hasImpact ? 1 : 0) + (hasDescription ? 1 : 0);
+
+            let daySpan = 0;
+            if (records.length >= 2) {
+              const sorted = [...records].sort((a, b) => new Date(a.date + "T00:00:00").getTime() - new Date(b.date + "T00:00:00").getTime());
+              const first = new Date(sorted[0].date + "T00:00:00").getTime();
+              const last = new Date(sorted[sorted.length - 1].date + "T00:00:00").getTime();
+              daySpan = Math.round((last - first) / 86400000);
+            }
+
+            type PillarStatus = "green" | "amber" | "gray";
+            const pillars: { key: string; label: string; status: PillarStatus; detail: string }[] = [
+              {
+                key: "records",
+                label: "Records documented",
+                status: recordCount >= 5 ? "green" : recordCount >= 1 ? "amber" : "gray",
+                detail: recordCount === 0 ? "No records linked to this case" : `${recordCount} record${recordCount !== 1 ? "s" : ""} linked`,
+              },
+              {
+                key: "evidence",
+                label: "Evidence linked",
+                status: evidenceCount >= 3 ? "green" : evidenceCount >= 1 ? "amber" : "gray",
+                detail: evidenceCount === 0 ? "No files linked to records" : `${evidenceCount} file${evidenceCount !== 1 ? "s" : ""} linked to records`,
+              },
+              {
+                key: "caseinfo",
+                label: "Case details complete",
+                status: detailsFilledCount >= 6 ? "green" : detailsFilledCount >= 1 ? "amber" : "gray",
+                detail: detailsFilledCount >= 6 ? "Theory, impact, and description filled" : detailsFilledCount > 0 ? `${detailsFilledCount} of 6 detail fields filled` : "No case details filled",
+              },
+              {
+                key: "consistency",
+                label: "Documentation consistency",
+                status: daySpan >= 30 && records.length >= 3 ? "green" : records.length >= 2 ? "amber" : "gray",
+                detail: records.length < 2 ? "Fewer than 2 records" : daySpan >= 30 ? `${daySpan} days documented` : `${daySpan} day${daySpan !== 1 ? "s" : ""} covered so far`,
+              },
+            ];
+
+            const strongCount = pillars.filter((p) => p.status === "green").length;
+
+            function sColor(s: PillarStatus): string { return s === "green" ? "#15803D" : s === "amber" ? "#D97706" : "#78716C"; }
+            function sBg(s: PillarStatus): string { return s === "green" ? "#F0FDF4" : s === "amber" ? "#FFFBEB" : "#F5F5F4"; }
+            function sBorder(s: PillarStatus): string { return s === "green" ? "#BBF7D0" : s === "amber" ? "#FDE68A" : "#D6D3D1"; }
+            function sText(s: PillarStatus): string { return s === "green" ? "Complete" : s === "amber" ? "In progress" : "Not started"; }
+
+            const pillarIconMap: Record<string, React.ReactNode> = {
+              records: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>,
+              evidence: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0110 0v4" /></svg>,
+              caseinfo: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2" /><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" /></svg>,
+              consistency: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>,
+            };
+
+            /* Build actionable next steps */
+            const nextSteps: { text: string; action: (() => void) | null }[] = [];
+            if (pillars[0].status !== "green") nextSteps.push({ text: "Add more records to strengthen your timeline", action: null });
+            if (pillars[1].status !== "green") nextSteps.push({ text: "Link evidence files to your records", action: null });
+            if (pillars[2].status !== "green") {
+              if (!hasImpact) nextSteps.push({ text: "Add an impact statement", action: () => setActiveTab("caseinfo") });
+              if (theoryFilled < 4) nextSteps.push({ text: "Complete your case theory in Case Info", action: () => setActiveTab("caseinfo") });
+              if (!hasDescription) nextSteps.push({ text: "Add a case description", action: () => setActiveTab("caseinfo") });
+            }
+            if (pillars[3].status !== "green") nextSteps.push({ text: "Keep documenting regularly to show a consistent pattern", action: null });
+
+            return (
+              <div>
+                {/* Strength Card */}
+                <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E7E5E4", borderTop: "3px solid #22C55E", padding: 32, marginBottom: 24, boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)" }}>
+                  <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 22, fontWeight: 600, color: "#292524", marginBottom: 24 }}>
+                    Documentation Strength
+                  </h2>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                    {pillars.map((p) => (
+                      <div key={p.key} style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                        <div style={{ width: 32, height: 32, borderRadius: 8, background: sBg(p.status), border: `1px solid ${sBorder(p.status)}`, display: "flex", alignItems: "center", justifyContent: "center", color: sColor(p.status), flexShrink: 0 }}>
+                          {pillarIconMap[p.key]}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <span style={{ fontSize: 14, color: "#292524", fontFamily: "var(--font-sans)", fontWeight: 500, display: "block" }}>{p.label}</span>
+                          <span style={{ fontSize: 12, color: "#78716C", fontFamily: "var(--font-mono)" }}>{p.detail}</span>
+                        </div>
+                        <span style={{
+                          display: "inline-block", padding: "4px 12px", borderRadius: 6, fontSize: 11, fontWeight: 600,
+                          fontFamily: "var(--font-mono)", color: sColor(p.status), background: sBg(p.status),
+                          border: `1px solid ${sBorder(p.status)}`, whiteSpace: "nowrap",
+                        }}>
+                          {sText(p.status)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ marginTop: 20, paddingTop: 16, borderTop: "1px solid #F5F5F4" }}>
+                    <span style={{ fontSize: 14, fontWeight: 600, fontFamily: "var(--font-sans)", color: "#292524" }}>
+                      {strongCount} of 4 areas strong
+                    </span>
+                  </div>
+                </div>
+
+                {/* Actionable Next Steps */}
+                {strongCount === 4 ? (
+                  <div style={{ background: "#F0FDF4", borderRadius: 12, border: "1px solid #BBF7D0", padding: "20px 24px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
+                      <span style={{ fontSize: 14, fontWeight: 600, color: "#15803D", fontFamily: "var(--font-sans)" }}>Your documentation is strong. Keep recording as events happen.</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <h3 style={{ fontFamily: "var(--font-serif)", fontSize: 18, fontWeight: 600, color: "#292524", marginBottom: 12 }}>Next Steps</h3>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      {nextSteps.map((step, idx) => (
+                        <div
+                          key={idx}
+                          onClick={step.action || undefined}
+                          style={{
+                            display: "flex", alignItems: "center", gap: 12, padding: "14px 18px",
+                            background: "#fff", borderRadius: 10, border: "1px solid #E7E5E4",
+                            cursor: step.action ? "pointer" : "default",
+                          }}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+                          <span style={{ fontSize: 14, color: "#292524", fontFamily: "var(--font-sans)" }}>{step.text}</span>
+                          {step.action && <span style={{ marginLeft: "auto", fontSize: 11, color: "#78716C", fontFamily: "var(--font-mono)" }}>Go</span>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </>
       )}
 
