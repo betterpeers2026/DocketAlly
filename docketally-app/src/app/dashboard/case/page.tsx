@@ -1069,7 +1069,7 @@ export default function CaseViewPage() {
                                   e.currentTarget.style.background = "none";
                                 }}
                               >
-                                Delete
+                                Delete Case
                               </button>
                             </div>
                           )}
