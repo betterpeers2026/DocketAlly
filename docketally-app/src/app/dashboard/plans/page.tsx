@@ -857,52 +857,144 @@ export default function PlansPage() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          minHeight: 400,
+          minHeight: "calc(100vh - 150px)",
         }}
       >
-        <div
-          style={{
-            textAlign: "center",
-            maxWidth: 480,
-            background: "#fff",
-            borderRadius: 16,
-            border: "1px solid var(--color-stone-300)",
-            padding: "56px 40px",
-          }}
-        >
-          <div
-            style={{
-              width: 48,
-              height: 48,
-              borderRadius: "50%",
-              background: "#F0FDF4",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              margin: "0 auto 20px",
-            }}
-          >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 11l3 3L22 4" />
-              <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
-            </svg>
+        <div style={{ maxWidth: 780, width: "100%", padding: "0 20px" }}>
+          <div style={{ textAlign: "center", marginBottom: 36 }}>
+            <h1
+              style={{
+                fontFamily: "var(--font-sans)",
+                fontSize: 28,
+                fontWeight: 700,
+                color: "#292524",
+                letterSpacing: "-0.03em",
+                marginBottom: 12,
+              }}
+            >
+              Track a workplace plan
+            </h1>
+            <p
+              style={{
+                fontSize: 15,
+                color: "#78716C",
+                lineHeight: 1.6,
+                maxWidth: 480,
+                margin: "0 auto 28px",
+              }}
+            >
+              PIPs, development plans, and performance targets all have goals
+              and deadlines. Track them here so nothing slips through the cracks.
+            </p>
+            <button
+              onClick={() => {
+                setPlanForm({ plan_type: "development", plan_name: "Development Plan", start_date: todayStr(), end_date: "", notes: "", case_id: "" });
+                setEditingPlanId(null);
+                setShowPlanForm(true);
+              }}
+              style={btnGreen}
+            >
+              + New Plan
+            </button>
           </div>
-          <h2 style={{ fontFamily: "var(--font-sans)", fontSize: 22, fontWeight: 600, color: "#292524", marginBottom: 10 }}>
-            Stay ahead of workplace changes
-          </h2>
-          <p style={{ fontSize: 14, color: "var(--color-stone-600)", lineHeight: 1.6, fontFamily: "var(--font-sans)", marginBottom: 24 }}>
-            Track action items, goals, and commitments from meetings with your manager. Whether it is a development plan, new responsibilities, or performance targets, keeping a record helps you stay aligned and show your progress.
-          </p>
-          <button
-            onClick={() => {
-              setPlanForm({ plan_type: "development", plan_name: "Development Plan", start_date: todayStr(), end_date: "", notes: "", case_id: "" });
-              setEditingPlanId(null);
-              setShowPlanForm(true);
+
+          <div
+            className="da-onboard-grid"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(4, 1fr)",
+              gap: 16,
             }}
-            style={btnGreen}
           >
-            + New Plan
-          </button>
+            {[
+              {
+                title: "Goals",
+                desc: "Track each goal or action item with its own deadline and status",
+                icon: (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <circle cx="12" cy="12" r="6" />
+                    <circle cx="12" cy="12" r="2" />
+                  </svg>
+                ),
+              },
+              {
+                title: "Revisions",
+                desc: "Log when goals or expectations change after the plan starts",
+                icon: (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                  </svg>
+                ),
+              },
+              {
+                title: "Check-Ins",
+                desc: "Record what was discussed at each review meeting or follow-up",
+                icon: (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+                  </svg>
+                ),
+              },
+              {
+                title: "Case Link",
+                desc: "Connect a plan to a case so everything stays in one file",
+                icon: (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
+                    <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
+                  </svg>
+                ),
+              },
+            ].map((card) => (
+              <div
+                key={card.title}
+                style={{
+                  background: "#fff",
+                  borderRadius: 12,
+                  border: "1px solid #E7E5E4",
+                  padding: "24px 20px",
+                  textAlign: "center",
+                }}
+              >
+                <div
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: "50%",
+                    background: "#F0FDF4",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    margin: "0 auto 12px",
+                  }}
+                >
+                  {card.icon}
+                </div>
+                <div
+                  style={{
+                    fontFamily: "var(--font-sans)",
+                    fontSize: 14,
+                    fontWeight: 600,
+                    color: "#292524",
+                    marginBottom: 6,
+                  }}
+                >
+                  {card.title}
+                </div>
+                <div
+                  style={{
+                    fontSize: 13,
+                    color: "#78716C",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {card.desc}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );

@@ -698,84 +698,149 @@ export default function CaseViewPage() {
             minHeight: "calc(100vh - 150px)",
           }}
         >
-          <div
-            style={{
-              textAlign: "center",
-              maxWidth: 420,
-              background: "#fff",
-              borderRadius: 16,
-              border: "1px solid var(--color-stone-300)",
-              padding: "56px 40px",
-            }}
-          >
-            <div
-              style={{
-                width: 48,
-                height: 48,
-                borderRadius: "50%",
-                background: "var(--color-green-soft)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                margin: "0 auto 20px",
-              }}
-            >
-              <svg
-                width="22"
-                height="22"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="var(--color-green)"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+          <div style={{ maxWidth: 780, width: "100%", padding: "0 20px" }}>
+            <div style={{ textAlign: "center", marginBottom: 36 }}>
+              <h1
+                style={{
+                  fontFamily: "var(--font-sans)",
+                  fontSize: 28,
+                  fontWeight: 700,
+                  color: "#292524",
+                  letterSpacing: "-0.03em",
+                  marginBottom: 12,
+                }}
               >
-                <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
-                <path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" />
-              </svg>
+                Build your first case
+              </h1>
+              <p
+                style={{
+                  fontSize: 15,
+                  color: "#78716C",
+                  lineHeight: 1.6,
+                  maxWidth: 480,
+                  margin: "0 auto 28px",
+                }}
+              >
+                A case groups your records, evidence, and documents around a
+                single workplace situation. It keeps everything organized and
+                ready when you need it.
+              </p>
+              <button
+                onClick={openNewForm}
+                style={{
+                  padding: "14px 32px",
+                  borderRadius: 10,
+                  border: "none",
+                  background: "var(--color-green)",
+                  color: "#fff",
+                  fontSize: 15,
+                  fontWeight: 600,
+                  fontFamily: "var(--font-sans)",
+                  cursor: "pointer",
+                  boxShadow: "0 1px 4px rgba(34,197,94,0.3)",
+                }}
+              >
+                + New Case
+              </button>
             </div>
 
-            <h2
+            <div
+              className="da-onboard-grid"
               style={{
-                fontFamily: "var(--font-sans)",
-                fontSize: 22,
-                fontWeight: 600,
-                color: "var(--color-stone-900)",
-                marginBottom: 10,
+                display: "grid",
+                gridTemplateColumns: "repeat(4, 1fr)",
+                gap: 16,
               }}
             >
-              No cases yet
-            </h2>
-
-            <p
-              style={{
-                fontSize: 14,
-                color: "var(--color-stone-600)",
-                lineHeight: 1.6,
-                marginBottom: 28,
-              }}
-            >
-              Start organizing your workplace cases. Each case groups related
-              records, documents, and evidence together.
-            </p>
-
-            <button
-              onClick={openNewForm}
-              style={{
-                padding: "14px 32px",
-                borderRadius: 10,
-                border: "none",
-                background: "var(--color-green)",
-                color: "#fff",
-                fontSize: 15,
-                fontWeight: 600,
-                fontFamily: "var(--font-sans)",
-                cursor: "pointer",
-                boxShadow: "0 1px 4px rgba(34,197,94,0.3)",
-              }}
-            >
-              New Case
-            </button>
+              {[
+                {
+                  title: "Organize",
+                  desc: "Group related records, files, and notes into one place",
+                  icon: (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />
+                    </svg>
+                  ),
+                },
+                {
+                  title: "Case File",
+                  desc: "Your records automatically build into a structured case file PDF",
+                  icon: (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                      <polyline points="14 2 14 8 20 8" />
+                      <line x1="16" y1="13" x2="8" y2="13" />
+                      <line x1="16" y1="17" x2="8" y2="17" />
+                    </svg>
+                  ),
+                },
+                {
+                  title: "Patterns",
+                  desc: "See trends across your records that reveal a bigger picture",
+                  icon: (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                    </svg>
+                  ),
+                },
+                {
+                  title: "Attorney Packet",
+                  desc: "Export a complete packet with case file and supporting documents",
+                  icon: (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+                      <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" />
+                    </svg>
+                  ),
+                },
+              ].map((card) => (
+                <div
+                  key={card.title}
+                  style={{
+                    background: "#fff",
+                    borderRadius: 12,
+                    border: "1px solid #E7E5E4",
+                    padding: "24px 20px",
+                    textAlign: "center",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: "50%",
+                      background: "#F0FDF4",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      margin: "0 auto 12px",
+                    }}
+                  >
+                    {card.icon}
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: "var(--font-sans)",
+                      fontSize: 14,
+                      fontWeight: 600,
+                      color: "#292524",
+                      marginBottom: 6,
+                    }}
+                  >
+                    {card.title}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 13,
+                      color: "#78716C",
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    {card.desc}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       ) : (
