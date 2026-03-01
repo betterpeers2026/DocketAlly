@@ -402,6 +402,20 @@ export default function CaseViewPage() {
     setMenuOpen(null);
   }
 
+  async function handleRestore(caseId: string) {
+    const { data: updated, error } = await supabase
+      .from("cases")
+      .update({ status: "active" })
+      .eq("id", caseId)
+      .select()
+      .single();
+
+    if (!error && updated) {
+      setCases((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
+    }
+    setMenuOpen(null);
+  }
+
 
   /* ---------------------------------------------------------------- */
   /*  Filtering                                                        */
@@ -1012,7 +1026,7 @@ export default function CaseViewPage() {
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleArchive(c.id);
+                                  c.status === "archived" ? handleRestore(c.id) : handleArchive(c.id);
                                 }}
                                 style={{
                                   display: "block",
@@ -1035,7 +1049,7 @@ export default function CaseViewPage() {
                                   e.currentTarget.style.background = "none";
                                 }}
                               >
-                                Archive
+                                {c.status === "archived" ? "Restore" : "Archive"}
                               </button>
                               <div
                                 style={{
