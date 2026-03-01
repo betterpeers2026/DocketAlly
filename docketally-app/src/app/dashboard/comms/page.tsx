@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { createClient } from "@/lib/supabase/client";
 import { useSubscription } from "@/components/SubscriptionProvider";
 import { hasActiveAccess } from "@/lib/subscription";
 import ProGate from "@/components/ProGate";
+import EducationCard from "@/components/EducationCard";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -870,6 +872,15 @@ export default function CommsPage() {
   // Toast state
   const [showToast, setShowToast] = useState(false);
 
+  // Auth for education card
+  const supabase = createClient();
+  const [commsUserId, setCommsUserId] = useState<string | null>(null);
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) setCommsUserId(data.user.id);
+    });
+  }, [supabase]);
+
   // Filter templates
   const filteredTemplates = TEMPLATES.filter((t) => {
     const matchesCategory =
@@ -1418,6 +1429,16 @@ export default function CommsPage() {
           situations. Select a template, fill in the placeholders, and copy.
         </p>
       </div>
+
+      {/* ---- EDUCATION CARD ---- */}
+      <EducationCard
+        pageKey="comms"
+        label="How comms work"
+        title="Put it in writing."
+        description="Use professional templates to follow up on meetings, request clarification, or respond to formal actions. Written records are stronger than verbal ones."
+        steps={["Pick a template", "Customize and send", "Save as a record"]}
+        userId={commsUserId}
+      />
 
       {/* Search + Category Filter */}
       <div

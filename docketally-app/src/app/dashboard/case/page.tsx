@@ -8,6 +8,7 @@ import { renderMarkdown } from "@/lib/renderMarkdown";
 import { useSubscription } from "@/components/SubscriptionProvider";
 import { hasActiveAccess } from "@/lib/subscription";
 import ProGate from "@/components/ProGate";
+import EducationCard from "@/components/EducationCard";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -441,6 +442,16 @@ export default function CaseViewPage() {
       className="da-page-wrapper"
       style={{ padding: 32, maxWidth: 960, margin: "0 auto" }}
     >
+      {/* ---- EDUCATION CARD ---- */}
+      <EducationCard
+        pageKey="cases"
+        label="How cases work"
+        title="A case organizes your records into a structured timeline."
+        description="If you ever need to share your documentation with an attorney, your case file is ready. Link records to a case and your timeline builds automatically."
+        steps={["Create a case", "Link your records", "Export when ready"]}
+        userId={userId}
+      />
+
       {/* ---- FORM VIEW ---- */}
       {showForm ? (
         <div

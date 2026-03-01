@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useSubscription } from "@/components/SubscriptionProvider";
 import { hasActiveAccess } from "@/lib/subscription";
 import ProGate from "@/components/ProGate";
+import EducationCard from "@/components/EducationCard";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -724,6 +725,16 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
 
   return (
     <div className="da-page-wrapper" style={{ padding: 32, maxWidth: 1060, margin: "0 auto" }}>
+      {/* ---- EDUCATION CARD ---- */}
+      <EducationCard
+        pageKey="vault"
+        label="How the vault works"
+        title="Your files, encrypted and private."
+        description="Upload emails, screenshots, or reviews that support your records. Everything is stored securely and only visible to you. Link evidence to specific records to strengthen your documentation."
+        steps={["Upload a file", "Link to a record", "Appears in your timeline"]}
+        userId={userId}
+      />
+
       {/* ---- UPLOAD FORM ---- */}
       {showUpload ? (
         <div

@@ -8,6 +8,7 @@ import { renderMarkdown } from "@/lib/renderMarkdown";
 import { useSubscription } from "@/components/SubscriptionProvider";
 import { hasActiveAccess } from "@/lib/subscription";
 import CaseFilePanel from "@/components/CaseFilePanel";
+import EducationCard from "@/components/EducationCard";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -845,6 +846,16 @@ export default function RecordPage() {
           </button>
         </div>
       )}
+
+      {/* ---- EDUCATION CARD ---- */}
+      <EducationCard
+        pageKey="records"
+        label="How records work"
+        title="Document for yourself."
+        description="Write down what happened, who was involved, and when. Be specific and factual. A good record is one you could read six months from now and still understand exactly what occurred."
+        steps={["Write what happened", "Add details later if needed", "Your timeline builds over time"]}
+        userId={userId}
+      />
 
       {/* ---- FORM VIEW ---- */}
       {showForm ? (

@@ -619,7 +619,8 @@ export default function SupportPage() {
   const [activeArticleCategory, setActiveArticleCategory] = useState<ArticleCategory | "All">("All");
   const [selectedArticle, setSelectedArticle] = useState<{ sectionIdx: number; articleIdx: number } | null>(null);
   const [helpful, setHelpful] = useState<Record<string, "up" | "down">>({});
-  const [expandedStep, setExpandedStep] = useState<number | null>(null);
+  const [expandedStep, setExpandedStep] = useState<number | null>(1);
+  const [hoveredStep, setHoveredStep] = useState<number | null>(null);
 
   // Tickets
   const [userId, setUserId] = useState<string | null>(null);
@@ -1442,78 +1443,110 @@ export default function SupportPage() {
       {activeTab === "how" && (
         <>
           {/* Info banner */}
-          <div style={{ background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 10, padding: "14px 18px", marginBottom: 28, display: "flex", alignItems: "flex-start", gap: 10 }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1E40AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}>
+          <div style={{ background: "#F5F5F4", border: "1px solid #E7E5E4", borderRadius: 10, padding: "14px 18px", marginBottom: 28, display: "flex", alignItems: "flex-start", gap: 10 }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#78716C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}>
               <circle cx="12" cy="12" r="10" />
               <line x1="12" y1="16" x2="12" y2="12" />
               <line x1="12" y1="8" x2="12.01" y2="8" />
             </svg>
-            <p style={{ fontSize: 13, color: "#1E40AF", fontFamily: "var(--font-sans)", lineHeight: 1.6, margin: 0 }}>
+            <p style={{ fontSize: 13, color: "#57534E", fontFamily: "var(--font-sans)", lineHeight: 1.6, margin: 0 }}>
               DocketAlly helps you document workplace events, organize them into a case, and generate professional documentation. Here&apos;s how the pieces fit together.
             </p>
           </div>
 
-          {/* Steps with vertical line */}
-          <div style={{ position: "relative", paddingLeft: 48 }}>
-            {/* Vertical line */}
-            <div style={{ position: "absolute", left: 19, top: 0, bottom: 0, width: 2, background: "var(--color-stone-300)" }} />
-
+          {/* Steps accordion */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {HOW_STEPS.map((step) => {
               const isOpen = expandedStep === step.number;
+              const isActive = isOpen || hoveredStep === step.number;
               return (
-                <div key={step.number} style={{ position: "relative", marginBottom: 16 }}>
-                  {/* Green numbered dot */}
+                <div
+                  key={step.number}
+                  onMouseEnter={() => setHoveredStep(step.number)}
+                  onMouseLeave={() => setHoveredStep(null)}
+                  style={{ display: "flex", gap: 0 }}
+                >
+                  {/* Vertical green bar */}
                   <div style={{
-                    position: "absolute",
-                    left: -37,
-                    top: 14,
-                    width: 28,
-                    height: 28,
-                    borderRadius: "50%",
-                    background: "var(--color-green)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 12,
-                    fontWeight: 700,
-                    fontFamily: "var(--font-mono)",
-                    color: "#fff",
-                    zIndex: 1,
-                  }}>
-                    {step.number}
-                  </div>
+                    width: 3,
+                    flexShrink: 0,
+                    borderRadius: 2,
+                    background: isActive ? "#22C55E" : "#E7E5E4",
+                    transition: "background 0.2s",
+                  }} />
 
-                  <div style={{ border: "1px solid var(--color-stone-300)", borderRadius: 12, overflow: "hidden" }}>
-                    <button
-                      onClick={() => setExpandedStep(isOpen ? null : step.number)}
-                      style={{
-                        width: "100%",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        gap: 12,
-                        padding: "16px 20px",
-                        background: isOpen ? "var(--color-stone-50)" : "#fff",
-                        border: "none",
-                        cursor: "pointer",
-                        textAlign: "left",
-                      }}
-                    >
-                      <span style={{ fontSize: 15, fontWeight: 600, color: "#292524", fontFamily: "var(--font-sans)" }}>
+                  {/* Step content + chevron */}
+                  <button
+                    onClick={() => setExpandedStep(isOpen ? null : step.number)}
+                    style={{
+                      flex: 1,
+                      display: "flex",
+                      alignItems: "flex-start",
+                      justifyContent: "space-between",
+                      gap: 12,
+                      padding: "14px 16px",
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      textAlign: "left",
+                    }}
+                  >
+                    <div style={{ flex: 1 }}>
+                      {/* Step label */}
+                      <div style={{
+                        fontFamily: "var(--font-mono)",
+                        fontSize: 10,
+                        fontWeight: 700,
+                        textTransform: "uppercase" as const,
+                        letterSpacing: "0.06em",
+                        color: "#A8A29E",
+                        marginBottom: 4,
+                      }}>
+                        STEP {step.number}
+                      </div>
+                      {/* Step title */}
+                      <div style={{
+                        fontFamily: "var(--font-sans)",
+                        fontSize: 15,
+                        fontWeight: 600,
+                        color: "#292524",
+                      }}>
                         {step.title}
-                      </span>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-stone-500)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, transform: isOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.15s" }}>
-                        <polyline points="6 9 12 15 18 9" />
-                      </svg>
-                    </button>
-                    {isOpen && (
-                      <div style={{ padding: "0 20px 20px", background: "#fff" }}>
-                        <p style={{ fontSize: 14, color: "var(--color-stone-700)", fontFamily: "var(--font-sans)", lineHeight: 1.8, margin: 0 }}>
+                      </div>
+                      {/* Expanded description */}
+                      {isOpen && (
+                        <p style={{
+                          fontSize: 14,
+                          color: "#57534E",
+                          fontFamily: "var(--font-sans)",
+                          lineHeight: 1.65,
+                          margin: "10px 0 0",
+                        }}>
                           {step.detail}
                         </p>
-                      </div>
-                    )}
-                  </div>
+                      )}
+                    </div>
+
+                    {/* Chevron */}
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#A8A29E"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      style={{
+                        flexShrink: 0,
+                        marginTop: 6,
+                        transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+                        transition: "transform 0.2s",
+                      }}
+                    >
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </button>
                 </div>
               );
             })}

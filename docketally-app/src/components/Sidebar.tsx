@@ -1,11 +1,30 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import type { SubscriptionInfo } from "@/lib/subscription";
 import { hasActiveAccess, trialDaysLeft } from "@/lib/subscription";
+
+/* ------------------------------------------------------------------ */
+/*  Getting Started checklist items                                    */
+/* ------------------------------------------------------------------ */
+
+interface ChecklistItem {
+  key: string;
+  label: string;
+  subtitle?: string;
+  href?: string;
+  matchPath?: string;
+}
+
+const CHECKLIST_ITEMS: ChecklistItem[] = [
+  { key: "record", label: "Create your first record", matchPath: "/dashboard" },
+  { key: "case", label: "Build a case from your records", subtitle: "Go to Cases", href: "/dashboard/case", matchPath: "/dashboard/case" },
+  { key: "vault", label: "Upload evidence to your Vault", subtitle: "Go to Vault", href: "/dashboard/vault", matchPath: "/dashboard/vault" },
+  { key: "export", label: "Export or preview your case file", matchPath: "/dashboard/case" },
+];
 
 interface NavItem {
   label: string;
@@ -133,6 +152,11 @@ export default function Sidebar({ user, subscription }: { user: User; subscripti
   // Documentation strength pillars
   const [docStrength, setDocStrength] = useState<[boolean, boolean, boolean, boolean]>([false, false, false, false]);
 
+  // Getting started checklist
+  const [checklistDone, setChecklistDone] = useState<Record<string, boolean>>({});
+  const [checklistAllDone, setChecklistAllDone] = useState(false);
+  const [checklistHidden, setChecklistHidden] = useState(true); // hidden until we know status
+
   // Fetch user role from profiles
   useEffect(() => {
     async function fetchRole() {
@@ -146,28 +170,66 @@ export default function Sidebar({ user, subscription }: { user: User; subscripti
     fetchRole();
   }, [user.id, supabase]);
 
-  // Fetch documentation strength pillars
-  useEffect(() => {
-    async function fetchStrength() {
-      const [recordsRes, vaultRes, casesRes] = await Promise.all([
-        supabase.from("records").select("date").eq("user_id", user.id).order("date", { ascending: true }),
-        supabase.from("vault_documents").select("id").eq("user_id", user.id).limit(1),
-        supabase.from("cases").select("employer, role").eq("user_id", user.id),
-      ]);
-      const records = recordsRes.data ?? [];
-      const hasRecords = records.length >= 5;
-      const hasEvidence = (vaultRes.data ?? []).length >= 1;
-      const hasCaseInfo = (casesRes.data ?? []).some((c) => c.employer || c.role);
-      let hasTimeline = false;
-      if (records.length >= 2) {
-        const first = new Date(records[0].date + "T00:00:00").getTime();
-        const last = new Date(records[records.length - 1].date + "T00:00:00").getTime();
-        hasTimeline = Math.round((last - first) / 86400000) >= 7;
-      }
-      setDocStrength([hasRecords, hasEvidence, hasCaseInfo, hasTimeline]);
+  // Fetch documentation strength + getting-started checklist
+  const fetchSidebarData = useCallback(async () => {
+    const [recordsRes, vaultRes, casesRes, profileRes] = await Promise.all([
+      supabase.from("records").select("date").eq("user_id", user.id).order("date", { ascending: true }),
+      supabase.from("vault_documents").select("id").eq("user_id", user.id).limit(1),
+      supabase.from("cases").select("employer, role").eq("user_id", user.id),
+      supabase.from("profiles").select("onboarding_checklist").eq("id", user.id).single(),
+    ]);
+
+    // Doc strength
+    const records = recordsRes.data ?? [];
+    const hasRecords = records.length >= 5;
+    const hasEvidence = (vaultRes.data ?? []).length >= 1;
+    const hasCaseInfo = (casesRes.data ?? []).some((c: { employer: string | null; role: string | null }) => c.employer || c.role);
+    let hasTimeline = false;
+    if (records.length >= 2) {
+      const first = new Date(records[0].date + "T00:00:00").getTime();
+      const last = new Date(records[records.length - 1].date + "T00:00:00").getTime();
+      hasTimeline = Math.round((last - first) / 86400000) >= 7;
     }
-    fetchStrength();
+    setDocStrength([hasRecords, hasEvidence, hasCaseInfo, hasTimeline]);
+
+    // Checklist
+    const stored = profileRes.data?.onboarding_checklist as Record<string, boolean> | null;
+    if (stored?.completed) {
+      setChecklistHidden(true);
+      setChecklistAllDone(true);
+      return;
+    }
+
+    const hasAnyRecord = records.length >= 1;
+    const hasAnyCase = (casesRes.data ?? []).length >= 1;
+    const hasAnyVault = (vaultRes.data ?? []).length >= 1;
+    const hasExported = stored?.export === true;
+
+    const done: Record<string, boolean> = {
+      record: hasAnyRecord,
+      case: hasAnyCase,
+      vault: hasAnyVault,
+      export: hasExported,
+    };
+    setChecklistDone(done);
+
+    const allDone = done.record && done.case && done.vault && done.export;
+    if (allDone) {
+      // Persist completion so checklist never shows again
+      await supabase
+        .from("profiles")
+        .update({ onboarding_checklist: { ...done, completed: true } })
+        .eq("id", user.id);
+      setChecklistAllDone(true);
+      setChecklistHidden(true);
+    } else {
+      setChecklistHidden(false);
+    }
   }, [user.id, supabase]);
+
+  useEffect(() => {
+    fetchSidebarData();
+  }, [fetchSidebarData]);
 
   // Close sidebar on navigation
   useEffect(() => {
@@ -466,6 +528,115 @@ export default function Sidebar({ user, subscription }: { user: User; subscripti
           </div>
         );
       })()}
+
+      {/* Getting Started checklist */}
+      {!checklistHidden && !checklistAllDone && (
+        <div style={{
+          margin: "12px 12px",
+          background: "rgba(255,255,255,0.04)",
+          border: "1px solid rgba(255,255,255,0.06)",
+          borderRadius: 10,
+          padding: 16,
+        }}>
+          {/* Header */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+            <span style={{ fontFamily: "var(--font-sans)", fontSize: 13, fontWeight: 700, color: "#fff" }}>
+              Getting started
+            </span>
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 700, color: "#A8A29E", letterSpacing: "0.04em" }}>
+              {Object.values(checklistDone).filter(Boolean).length} of 4
+            </span>
+          </div>
+          {/* Progress bar */}
+          <div style={{ height: 3, borderRadius: 2, background: "rgba(255,255,255,0.08)", marginBottom: 14 }}>
+            <div style={{
+              height: 3,
+              borderRadius: 2,
+              background: "#22C55E",
+              width: `${(Object.values(checklistDone).filter(Boolean).length / 4) * 100}%`,
+              transition: "width 0.3s ease",
+            }} />
+          </div>
+          {/* Items */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {CHECKLIST_ITEMS.map((item) => {
+              const done = checklistDone[item.key] === true;
+              const isHere = !done && item.matchPath && (
+                item.matchPath === "/dashboard"
+                  ? pathname === "/dashboard"
+                  : pathname.startsWith(item.matchPath)
+              );
+              return (
+                <div key={item.key} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                  {/* Circle checkbox */}
+                  {done ? (
+                    <div style={{
+                      width: 18,
+                      height: 18,
+                      borderRadius: "50%",
+                      background: "#22C55E",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                      marginTop: 1,
+                    }}>
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    </div>
+                  ) : (
+                    <div style={{
+                      width: 18,
+                      height: 18,
+                      borderRadius: "50%",
+                      border: "1.5px solid rgba(255,255,255,0.15)",
+                      flexShrink: 0,
+                      marginTop: 1,
+                    }} />
+                  )}
+                  {/* Label + subtitle */}
+                  <div>
+                    <div style={{
+                      fontFamily: "var(--font-sans)",
+                      fontSize: 12,
+                      fontWeight: 500,
+                      color: done ? "rgba(255,255,255,0.35)" : "rgba(255,255,255,0.8)",
+                      textDecoration: done ? "line-through" : "none",
+                      lineHeight: 1.3,
+                    }}>
+                      {item.label}
+                    </div>
+                    {isHere ? (
+                      <div style={{ fontFamily: "var(--font-sans)", fontSize: 11, color: "#22C55E", marginTop: 2 }}>
+                        You&apos;re here
+                      </div>
+                    ) : !done && item.subtitle && item.href ? (
+                      <button
+                        onClick={() => { router.push(item.href!); setSidebarOpen(false); }}
+                        style={{
+                          fontFamily: "var(--font-sans)",
+                          fontSize: 11,
+                          color: "rgba(255,255,255,0.35)",
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          padding: 0,
+                          marginTop: 2,
+                          textDecoration: "underline",
+                          textDecorationColor: "rgba(255,255,255,0.15)",
+                        }}
+                      >
+                        {item.subtitle}
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* User footer */}
       <div

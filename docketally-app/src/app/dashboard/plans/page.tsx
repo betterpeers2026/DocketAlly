@@ -9,6 +9,7 @@ import { useSubscription } from "@/components/SubscriptionProvider";
 import { hasActiveAccess } from "@/lib/subscription";
 import ProGate from "@/components/ProGate";
 import CaseFilePanel from "@/components/CaseFilePanel";
+import EducationCard from "@/components/EducationCard";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -1965,6 +1966,16 @@ export default function PlansPage() {
           Add a Plan
         </button>
       </div>
+
+      {/* ---- EDUCATION CARD ---- */}
+      <EducationCard
+        pageKey="plans"
+        label="How plans work"
+        title="If your employer moves the goalposts, you'll have proof."
+        description="Add each goal from your PIP or performance plan. Track check-ins, log revisions, and flag when expectations change. Every modification is timestamped so you have a clear record of what was originally agreed to versus what shifted."
+        steps={["Add your goals", "Log check-ins", "Track revisions"]}
+        userId={userId}
+      />
 
       {/* ACTIVE PLANS */}
       {activePlans.length > 0 && (
