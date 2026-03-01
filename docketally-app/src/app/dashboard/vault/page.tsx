@@ -29,6 +29,11 @@ interface LinkedRecord {
   title: string;
 }
 
+interface CaseRecord {
+  id: string;
+  name: string;
+}
+
 interface PendingFile {
   file: File;
   category: string;
@@ -178,6 +183,12 @@ export default function VaultPage() {
   const [filterCategory, setFilterCategory] = useState("");
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest" | "name">("newest");
 
+  // Cases & Packet
+  const [cases, setCases] = useState<CaseRecord[]>([]);
+  const [generatingPacket, setGeneratingPacket] = useState(false);
+  const [showCaseSelector, setShowCaseSelector] = useState(false);
+  const caseSelectorRef = useRef<HTMLDivElement>(null);
+
   // Upload
   const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
   const [uploadError, setUploadError] = useState("");
@@ -236,12 +247,34 @@ export default function VaultPage() {
     init();
   }, [supabase]);
 
+  const fetchCases = useCallback(async () => {
+    if (!userId) return;
+    const { data } = await supabase
+      .from("cases")
+      .select("id, name")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false });
+    if (data) setCases(data);
+  }, [userId, supabase]);
+
   useEffect(() => {
     if (userId) {
       fetchDocuments();
       fetchRecords();
+      fetchCases();
     }
-  }, [userId, fetchDocuments, fetchRecords]);
+  }, [userId, fetchDocuments, fetchRecords, fetchCases]);
+
+  // Close case selector on outside click
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (caseSelectorRef.current && !caseSelectorRef.current.contains(e.target as Node)) {
+        setShowCaseSelector(false);
+      }
+    }
+    if (showCaseSelector) document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [showCaseSelector]);
 
   /* ---------------------------------------------------------------- */
   /*  Helpers                                                          */
@@ -495,6 +528,168 @@ export default function VaultPage() {
       setDocuments((prev) => prev.filter((d) => d.id !== docId));
       setExpandedDoc(null);
       setDeleteConfirm(null);
+    }
+  }
+
+  /* ---------------------------------------------------------------- */
+  /*  Packet generation                                                */
+  /* ---------------------------------------------------------------- */
+
+  async function generateVaultPacket(caseId: string) {
+    setGeneratingPacket(true);
+    setShowCaseSelector(false);
+
+    try {
+      const JSZip = (await import("jszip")).default;
+      const zip = new JSZip();
+
+      // Fetch case info and linked record IDs
+      const [caseRes, linksRes] = await Promise.all([
+        supabase.from("cases").select("name").eq("id", caseId).single(),
+        supabase.from("case_records").select("record_id").eq("case_id", caseId),
+      ]);
+
+      const caseName = caseRes.data?.name || "Case";
+      const today = new Date().toISOString().split("T")[0];
+      const safeName = caseName.replace(/[^a-zA-Z0-9]/g, "-");
+      const folderName = `DocketAlly-${safeName}-${today}`;
+      const folder = zip.folder(folderName)!;
+
+      const caseRecordIds = new Set(
+        (linksRes.data || []).map((l: { record_id: string }) => l.record_id)
+      );
+
+      // Fetch records for exhibit letter ordering
+      let caseRecords: { id: string; date: string }[] = [];
+      if (caseRecordIds.size > 0) {
+        const { data: recs } = await supabase
+          .from("records")
+          .select("id, date")
+          .in("id", Array.from(caseRecordIds))
+          .order("date", { ascending: true });
+        if (recs) caseRecords = recs;
+      }
+
+      // Build linked docs map scoped to case records
+      const linkedDocsMap: Record<string, VaultDocument[]> = {};
+      documents.forEach((doc) => {
+        if (doc.linked_record_id && caseRecordIds.has(doc.linked_record_id)) {
+          if (!linkedDocsMap[doc.linked_record_id]) linkedDocsMap[doc.linked_record_id] = [];
+          linkedDocsMap[doc.linked_record_id].push(doc);
+        }
+      });
+
+      // Compute exhibit letters (same as CaseFileDocument)
+      const sortedRecords = [...caseRecords].sort(
+        (a, b) => new Date(a.date + "T00:00:00").getTime() - new Date(b.date + "T00:00:00").getTime()
+      );
+      const exhibitMap = new Map<string, string>();
+      let letterIdx = 0;
+      for (const record of sortedRecords) {
+        const docs = linkedDocsMap[record.id] || [];
+        for (const doc of docs) {
+          if (!exhibitMap.has(doc.id)) {
+            let label = "";
+            let n = letterIdx;
+            do {
+              label = String.fromCharCode(65 + (n % 26)) + label;
+              n = Math.floor(n / 26) - 1;
+            } while (n >= 0);
+            exhibitMap.set(doc.id, label);
+            letterIdx++;
+          }
+        }
+      }
+
+      // Download vault files
+      const evidenceFolder = folder.folder("Evidence")!;
+      let evidenceCount = 0;
+
+      const caseLinkedDocs = documents.filter(
+        (d) => d.file_url && d.linked_record_id && caseRecordIds.has(d.linked_record_id)
+      );
+
+      for (const doc of caseLinkedDocs) {
+        const letter = exhibitMap.get(doc.id);
+        if (!letter) continue;
+        const ext = doc.file_name.includes(".") ? doc.file_name.substring(doc.file_name.lastIndexOf(".")) : "";
+        const baseName = doc.file_name.includes(".")
+          ? doc.file_name.substring(0, doc.file_name.lastIndexOf("."))
+          : doc.file_name;
+        const safeBase = baseName.replace(/[^a-zA-Z0-9_\-. ]/g, "_");
+        const fileName = `Ex-${letter}_${safeBase}${ext}`;
+
+        try {
+          const { data, error } = await supabase.storage
+            .from("vault-files")
+            .download(doc.file_url);
+          if (error || !data) continue;
+          evidenceFolder.file(fileName, data);
+          evidenceCount++;
+        } catch {
+          // skip failed downloads
+        }
+      }
+
+      // Fallback: include all vault files with "Unlinked-" prefix
+      if (evidenceCount === 0 && documents.length > 0) {
+        for (const doc of documents) {
+          if (!doc.file_url) continue;
+          const ext = doc.file_name.includes(".") ? doc.file_name.substring(doc.file_name.lastIndexOf(".")) : "";
+          const baseName = doc.file_name.includes(".")
+            ? doc.file_name.substring(0, doc.file_name.lastIndexOf("."))
+            : doc.file_name;
+          const safeBase = baseName.replace(/[^a-zA-Z0-9_\-. ]/g, "_");
+          const fileName = `Unlinked-${safeBase}${ext}`;
+
+          try {
+            const { data, error } = await supabase.storage
+              .from("vault-files")
+              .download(doc.file_url);
+            if (error || !data) continue;
+            evidenceFolder.file(fileName, data);
+          } catch {
+            // skip failed downloads
+          }
+        }
+      }
+
+      // README
+      const readmeText = `Evidence Packet -- ${caseName}
+Generated by DocketAlly on ${today}.
+
+This packet contains vault files linked to records in your case.
+Exhibit letters (Ex-A, Ex-B, etc.) match the exhibit references in your Case File document.
+
+To generate the full Attorney Packet with the Case File PDF, use the Packet button on the Case page.
+
+DocketAlly provides documentation and risk awareness tools. This is not legal advice.`;
+
+      folder.file("README.txt", readmeText);
+
+      // Generate and download ZIP
+      const zipBlob = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(zipBlob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${folderName}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Vault packet generation error:", err);
+    }
+
+    setGeneratingPacket(false);
+  }
+
+  function handlePacketClick() {
+    if (cases.length === 0) return;
+    if (cases.length === 1) {
+      generateVaultPacket(cases[0].id);
+    } else {
+      setShowCaseSelector((prev) => !prev);
     }
   }
 
@@ -922,6 +1117,84 @@ export default function VaultPage() {
 
             {/* Spacer */}
             <div style={{ flex: 1 }} />
+
+            {/* Packet button */}
+            {cases.length > 0 && (
+              <div ref={caseSelectorRef} style={{ position: "relative" }}>
+                <button
+                  onClick={handlePacketClick}
+                  disabled={generatingPacket || documents.length === 0}
+                  title="Download Evidence Packet (ZIP)"
+                  style={{
+                    padding: "10px 16px",
+                    borderRadius: 10,
+                    border: "1px solid #E7E5E4",
+                    background: "#fff",
+                    color: "#78716C",
+                    fontSize: 13,
+                    fontWeight: 600,
+                    fontFamily: "var(--font-sans)",
+                    cursor: generatingPacket || documents.length === 0 ? "not-allowed" : "pointer",
+                    whiteSpace: "nowrap",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    opacity: generatingPacket || documents.length === 0 ? 0.4 : 1,
+                  }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />
+                  </svg>
+                  {generatingPacket ? "Generating..." : "Packet"}
+                </button>
+
+                {/* Case selector dropdown */}
+                {showCaseSelector && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "100%",
+                      right: 0,
+                      marginTop: 4,
+                      background: "#fff",
+                      borderRadius: 10,
+                      border: "1px solid #E7E5E4",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                      zIndex: 50,
+                      minWidth: 200,
+                      overflow: "hidden",
+                    }}
+                  >
+                    <div style={{ padding: "8px 12px", fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", color: "#A8A29E", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                      Select case
+                    </div>
+                    {cases.map((c) => (
+                      <button
+                        key={c.id}
+                        onClick={() => generateVaultPacket(c.id)}
+                        style={{
+                          width: "100%",
+                          padding: "10px 12px",
+                          background: "none",
+                          border: "none",
+                          borderTop: "1px solid #F5F5F4",
+                          cursor: "pointer",
+                          textAlign: "left",
+                          fontSize: 13,
+                          fontWeight: 500,
+                          fontFamily: "var(--font-sans)",
+                          color: "#292524",
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = "#F5F5F4"; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = "none"; }}
+                      >
+                        {c.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Upload button */}
             <label

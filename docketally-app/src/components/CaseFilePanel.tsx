@@ -570,6 +570,7 @@ export default function CaseFilePanel({
       folder.file(`Case-File-${safeName}.pdf`, pdfBlob);
 
       /* --- 2. Compute exhibit letters (same logic as CaseFileDocument) --- */
+      const caseRecordIds = new Set(records.map((r) => r.id));
       const sortedRecords = [...records].sort(
         (a, b) => new Date(a.date + "T00:00:00").getTime() - new Date(b.date + "T00:00:00").getTime()
       );
@@ -592,30 +593,67 @@ export default function CaseFilePanel({
       }
 
       /* --- 3. Download vault files and add to Evidence folder --- */
-      if (exhibitMap.size > 0) {
-        const evidenceFolder = folder.folder("Evidence")!;
+      const evidenceFolder = folder.folder("Evidence")!;
+      let evidenceCount = 0;
+
+      // Only include vault files linked to records in THIS case
+      const caseLinkedDocs = vaultDocs.filter(
+        (d) => d.file_url && d.linked_record_id && caseRecordIds.has(d.linked_record_id)
+      );
+
+      console.log("[Packet] Case records:", caseRecordIds.size);
+      console.log("[Packet] Vault docs linked to case records:", caseLinkedDocs.length);
+      console.log("[Packet] Exhibit map entries:", exhibitMap.size);
+
+      for (const doc of caseLinkedDocs) {
+        const letter = exhibitMap.get(doc.id);
+        if (!letter) continue;
+        const ext = doc.file_name.includes(".") ? doc.file_name.substring(doc.file_name.lastIndexOf(".")) : "";
+        const baseName = doc.file_name.includes(".")
+          ? doc.file_name.substring(0, doc.file_name.lastIndexOf("."))
+          : doc.file_name;
+        const safeBase = baseName.replace(/[^a-zA-Z0-9_\-. ]/g, "_");
+        const fileName = `Ex-${letter}_${safeBase}${ext}`;
+
+        console.log(`[Packet] Downloading exhibit ${letter}: ${doc.file_name} from storage path: ${doc.file_url}`);
+        try {
+          const { data, error } = await supabase.storage
+            .from("vault-files")
+            .download(doc.file_url);
+          if (error || !data) {
+            console.error(`[Packet] Failed to download ${doc.file_name}:`, error);
+            continue;
+          }
+          evidenceFolder.file(fileName, data);
+          evidenceCount++;
+        } catch (err) {
+          console.error(`[Packet] Error fetching ${doc.file_name}:`, err);
+        }
+      }
+
+      // Fallback: if no linked files, include ALL vault files with "Unlinked-" prefix
+      if (evidenceCount === 0 && vaultDocs.length > 0) {
+        console.log(`[Packet] No linked exhibits found. Including all ${vaultDocs.length} vault files as unlinked.`);
         for (const doc of vaultDocs) {
           if (!doc.file_url) continue;
-          const letter = exhibitMap.get(doc.id);
-          if (!letter) continue;
           const ext = doc.file_name.includes(".") ? doc.file_name.substring(doc.file_name.lastIndexOf(".")) : "";
           const baseName = doc.file_name.includes(".")
             ? doc.file_name.substring(0, doc.file_name.lastIndexOf("."))
             : doc.file_name;
           const safeBase = baseName.replace(/[^a-zA-Z0-9_\-. ]/g, "_");
-          const fileName = `Ex-${letter}_${safeBase}${ext}`;
+          const fileName = `Unlinked-${safeBase}${ext}`;
 
           try {
             const { data, error } = await supabase.storage
               .from("vault-files")
               .download(doc.file_url);
             if (error || !data) {
-              console.error(`Failed to download ${doc.file_name}:`, error);
+              console.error(`[Packet] Failed to download unlinked ${doc.file_name}:`, error);
               continue;
             }
             evidenceFolder.file(fileName, data);
           } catch (err) {
-            console.error(`Error fetching ${doc.file_name}:`, err);
+            console.error(`[Packet] Error fetching unlinked ${doc.file_name}:`, err);
           }
         }
       }
