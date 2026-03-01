@@ -175,7 +175,7 @@ const ARTICLE_SECTIONS: ArticleSection[] = [
             <Ap><strong>Plan tracking.</strong> If you&apos;re on a PIP or formal performance plan, your goals, check-ins, and any revisions should be documented in the Plans tab. This is especially important if goals have changed since the plan started. A complete plan history shows exactly how you engaged with the process.</Ap>
             <Ap><strong>Personal readiness.</strong> Beyond DocketAlly, there are things you should do while you still have access. Save copies of your employment contract, recent performance reviews, and any emails that document commitments or praise. Review your company&apos;s severance and separation policies. Know what your non-compete and non-solicitation clauses say. Consider scheduling a consultation with an employment attorney before you need one urgently. Have a financial plan for the transition period.</Ap>
             <Callout>Don&apos;t wait until your last day to prepare. The best time to organize your documentation and personal files is while you still have access to information and while events are fresh.</Callout>
-            <Ap>Think of readiness as making sure your parachute is packed before you need it. Completing these steps doesn&apos;t mean you&apos;re planning to leave. It means you&apos;ll be ready if the situation changes. <TabLink href="/dashboard/home" label="Check your documentation strength" /></Ap>
+            <Ap>Think of readiness as making sure your parachute is packed before you need it. Completing these steps doesn&apos;t mean you&apos;re planning to leave. It means you&apos;ll be ready if the situation changes. <TabLink href="/dashboard/case" label="Check your documentation strength" /></Ap>
           </>
         ),
       },

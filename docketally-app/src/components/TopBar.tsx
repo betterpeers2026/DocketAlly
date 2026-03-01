@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 const labels: Record<string, string> = {
-  "/dashboard/home": "Home",
   "/dashboard": "Record",
   "/dashboard/plans": "Plans",
   "/dashboard/case": "Cases",

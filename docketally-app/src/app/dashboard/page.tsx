@@ -1393,7 +1393,7 @@ export default function RecordPage() {
           Loading records...
         </div>
       ) : records.length === 0 ? (
-        /* ---- EMPTY STATE ---- */
+        /* ---- ONBOARDING EMPTY STATE ---- */
         <div
           style={{
             display: "flex",
@@ -1402,89 +1402,138 @@ export default function RecordPage() {
             minHeight: "calc(100vh - 150px)",
           }}
         >
-          <div
-            style={{
-              textAlign: "center",
-              maxWidth: 420,
-              background: "#fff",
-              borderRadius: 16,
-              border: "1px solid var(--color-stone-300)",
-              padding: "56px 40px",
-            }}
-          >
-            <div
-              style={{
-                width: 48,
-                height: 48,
-                borderRadius: "50%",
-                background: "var(--color-green-soft)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                margin: "0 auto 20px",
-              }}
-            >
-              <svg
-                width="22"
-                height="22"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="var(--color-green)"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+          <div style={{ maxWidth: 620, width: "100%", padding: "0 20px" }}>
+            <div style={{ textAlign: "center", marginBottom: 36 }}>
+              <h1
+                style={{
+                  fontFamily: "var(--font-serif)",
+                  fontSize: 28,
+                  fontWeight: 700,
+                  color: "#292524",
+                  letterSpacing: "-0.03em",
+                  marginBottom: 12,
+                }}
               >
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
+                Document your first workplace event
+              </h1>
+              <p
+                style={{
+                  fontSize: 15,
+                  color: "#78716C",
+                  lineHeight: 1.6,
+                  maxWidth: 480,
+                  margin: "0 auto 28px",
+                }}
+              >
+                Each record captures what happened, who was involved, and when.
+                Your records automatically build into a case file -- a structured
+                document ready for an attorney or HR review.
+              </p>
+              <button
+                onClick={openNewForm}
+                style={{
+                  padding: "14px 32px",
+                  borderRadius: 10,
+                  border: "none",
+                  background: "var(--color-green)",
+                  color: "#fff",
+                  fontSize: 15,
+                  fontWeight: 600,
+                  fontFamily: "var(--font-sans)",
+                  cursor: "pointer",
+                  boxShadow: "0 1px 4px rgba(34,197,94,0.3)",
+                }}
+              >
+                + New Record
+              </button>
             </div>
 
-            <h2
+            <div
               style={{
-                fontFamily: "var(--font-serif)",
-                fontSize: 22,
-                fontWeight: 600,
-                color: "var(--color-stone-900)",
-                marginBottom: 10,
+                display: "grid",
+                gridTemplateColumns: "repeat(3, 1fr)",
+                gap: 16,
               }}
             >
-              No records yet
-            </h2>
-
-            <p
-              style={{
-                fontSize: 14,
-                color: "var(--color-stone-600)",
-                lineHeight: 1.6,
-                marginBottom: 28,
-              }}
-            >
-              Start documenting workplace events. Every record you create builds
-              your case over time.
-            </p>
-
-            <p style={{ fontSize: 12, color: "#78716C", fontFamily: "var(--font-sans)", fontStyle: "italic", display: "flex", alignItems: "center", gap: 6, marginBottom: 28, justifyContent: "center" }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#78716C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-              Your records are private and only visible to you.
-            </p>
-
-            <button
-              onClick={openNewForm}
-              style={{
-                padding: "14px 32px",
-                borderRadius: 10,
-                border: "none",
-                background: "var(--color-green)",
-                color: "#fff",
-                fontSize: 15,
-                fontWeight: 600,
-                fontFamily: "var(--font-sans)",
-                cursor: "pointer",
-                boxShadow: "0 1px 4px rgba(34,197,94,0.3)",
-              }}
-            >
-              New Record
-            </button>
+              {[
+                {
+                  title: "Record",
+                  desc: "Document meetings, emails, incidents as they happen",
+                  icon: (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                      <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                    </svg>
+                  ),
+                },
+                {
+                  title: "Build",
+                  desc: "Records become a timeline with patterns and evidence",
+                  icon: (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                    </svg>
+                  ),
+                },
+                {
+                  title: "Export",
+                  desc: "Download a professional case file PDF or attorney packet",
+                  icon: (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                      <polyline points="7 10 12 15 17 10" />
+                      <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                  ),
+                },
+              ].map((card) => (
+                <div
+                  key={card.title}
+                  style={{
+                    background: "#fff",
+                    borderRadius: 12,
+                    border: "1px solid #E7E5E4",
+                    padding: "24px 20px",
+                    textAlign: "center",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: "50%",
+                      background: "#F0FDF4",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      margin: "0 auto 12px",
+                    }}
+                  >
+                    {card.icon}
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: "var(--font-sans)",
+                      fontSize: 14,
+                      fontWeight: 600,
+                      color: "#292524",
+                      marginBottom: 6,
+                    }}
+                  >
+                    {card.title}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 13,
+                      color: "#78716C",
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    {card.desc}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       ) : (

@@ -77,7 +77,7 @@ export default function BottomNav({ subscription }: { subscription: Subscription
 
   const isActive = (href: string) => {
     if (href === "/dashboard") return pathname === "/dashboard";
-    if (href === "/dashboard/home") return pathname === "/dashboard/home";
+
     return pathname.startsWith(href);
   };
 
@@ -192,30 +192,6 @@ export default function BottomNav({ subscription }: { subscription: Subscription
           zIndex: 88,
         }}
       >
-        {/* Home */}
-        <button
-          onClick={() => router.push("/dashboard/home")}
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 2,
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            padding: "6px 12px",
-            minWidth: 56,
-          }}
-        >
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={isActive("/dashboard/home") ? activeColor : inactiveColor} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-            <polyline points="9 22 9 12 15 12 15 22" />
-          </svg>
-          <span style={{ fontSize: 10, fontWeight: 600, color: isActive("/dashboard/home") ? activeColor : inactiveColor, fontFamily: "var(--font-sans)" }}>
-            Home
-          </span>
-        </button>
-
         {/* Record */}
         <button
           onClick={() => router.push("/dashboard")}

@@ -1026,7 +1026,7 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
               marginBottom: 6,
             }}
           >
-            No cases yet
+            Create a case to start building your file
           </div>
           <div
             style={{
@@ -1036,10 +1036,11 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
               marginBottom: 20,
             }}
           >
-            Create a case to see your file build in real time as you document.
+            A case groups your records into a single narrative -- like a folder
+            for everything related to one workplace situation.
           </div>
           <button
-            onClick={() => router.push("/dashboard/cases")}
+            onClick={() => router.push("/dashboard/case")}
             style={{
               padding: "8px 18px",
               borderRadius: 8,
@@ -1052,7 +1053,7 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
               cursor: "pointer",
             }}
           >
-            + New Case
+            Create Case
           </button>
         </div>
       </div>
