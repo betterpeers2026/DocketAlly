@@ -409,6 +409,11 @@
     gap: 6px !important;
   }
 
+  /* ---- Onboarding grid (Records empty state) ---- */
+  .da-onboard-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
   /* ---- Home page ---- */
   .da-home-stats {
     grid-template-columns: repeat(2, 1fr) !important;
@@ -629,6 +634,11 @@
 
   .da-page-wrapper {
     padding: 16px !important;
+  }
+
+  /* Onboarding grid: single column on phone */
+  .da-onboard-grid {
+    grid-template-columns: 1fr !important;
   }
 
   /* Home stats: single column on phone */

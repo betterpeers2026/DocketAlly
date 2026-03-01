@@ -1402,7 +1402,7 @@ export default function RecordPage() {
             minHeight: "calc(100vh - 150px)",
           }}
         >
-          <div style={{ maxWidth: 620, width: "100%", padding: "0 20px" }}>
+          <div style={{ maxWidth: 780, width: "100%", padding: "0 20px" }}>
             <div style={{ textAlign: "center", marginBottom: 36 }}>
               <h1
                 style={{
@@ -1449,9 +1449,10 @@ export default function RecordPage() {
             </div>
 
             <div
+              className="da-onboard-grid"
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(3, 1fr)",
+                gridTemplateColumns: "repeat(4, 1fr)",
                 gap: 16,
               }}
             >
@@ -1483,6 +1484,16 @@ export default function RecordPage() {
                       <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
                       <polyline points="7 10 12 15 17 10" />
                       <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                  ),
+                },
+                {
+                  title: "Case File",
+                  desc: "Your records build a case file in real time. It\u2019s right there \u2192",
+                  icon: (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+                      <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" />
                     </svg>
                   ),
                 },
