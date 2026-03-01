@@ -526,6 +526,18 @@ export default function LoginPage() {
         >
           Enter your email and we&apos;ll send you a sign-in code.
         </p>
+        <p
+          style={{
+            fontSize: 13,
+            color: "#a8a29e",
+            textAlign: "center",
+            lineHeight: 1.5,
+            marginTop: -20,
+            marginBottom: 28,
+          }}
+        >
+          New here? No problem. We&apos;ll set up your account automatically.
+        </p>
 
         <form onSubmit={handleSendOtp}>
           <label htmlFor="email" style={labelStyle}>
