@@ -13,7 +13,9 @@ export function hasActiveAccess(info: SubscriptionInfo): boolean {
   if (info.subscriptionStatus === "active" || info.subscriptionStatus === "past_due") {
     return true;
   }
-  if (info.subscriptionStatus === "trial" && info.trialEndsAt) {
+  if (info.subscriptionStatus === "trial") {
+    // No end date set means trial is still active
+    if (!info.trialEndsAt) return true;
     return new Date(info.trialEndsAt) > new Date();
   }
   return false;
