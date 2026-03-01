@@ -389,7 +389,7 @@ export default function LoginPage() {
               lineHeight: 1.5,
             }}
           >
-            We sent a 6-digit code to{" "}
+            We sent an 8-digit code to{" "}
             <strong style={{ color: "#44403C" }}>{email}</strong>
           </p>
 
@@ -403,10 +403,10 @@ export default function LoginPage() {
               inputMode="numeric"
               autoComplete="one-time-code"
               pattern="[0-9]*"
-              maxLength={6}
+              maxLength={8}
               value={otp}
               onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-              placeholder="000000"
+              placeholder="00000000"
               required
               autoFocus
               style={{
@@ -432,11 +432,11 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              disabled={loading || otp.length < 6}
+              disabled={loading || otp.length < 8}
               style={{
                 ...btnGreen,
-                opacity: loading || otp.length < 6 ? 0.5 : 1,
-                cursor: loading || otp.length < 6 ? "not-allowed" : "pointer",
+                opacity: loading || otp.length < 8 ? 0.5 : 1,
+                cursor: loading || otp.length < 8 ? "not-allowed" : "pointer",
               }}
             >
               {loading ? "Verifying..." : "Verify"}
