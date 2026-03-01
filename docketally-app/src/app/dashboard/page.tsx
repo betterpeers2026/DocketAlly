@@ -904,7 +904,7 @@ export default function RecordPage() {
 
           {/* Entry Type */}
           <div style={{ marginBottom: 20 }}>
-            <label style={labelStyle}>Entry Type *</label>
+            <label style={labelStyle}>Entry Type (Optional)</label>
             <div style={{ position: "relative" }}>
               <select
                 value={formData.entry_type}
@@ -917,7 +917,7 @@ export default function RecordPage() {
                   color: formData.entry_type ? "#292524" : "transparent",
                 }}
               >
-                <option value="" disabled>
+                <option value="">
                   Select entry type...
                 </option>
                 {ENTRY_TYPES.map((et) => (
@@ -943,6 +943,9 @@ export default function RecordPage() {
                 </span>
               )}
             </div>
+            <p style={{ fontSize: 13, color: "#A8A29E", fontFamily: "var(--font-sans)", marginTop: 8, marginBottom: 0 }}>
+              Most records don&apos;t need an event type. Use these only when something specific has occurred.
+            </p>
           </div>
 
           {/* Title */}
