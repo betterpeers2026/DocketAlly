@@ -10,6 +10,15 @@ import Link from "next/link";
 
 type Tab = "articles" | "tickets" | "how";
 
+type ArticleCategory =
+  | "Getting Started"
+  | "Using DocketAlly"
+  | "Preparing to Leave"
+  | "Building Your Case"
+  | "Using Templates"
+  | "Plans & PIPs"
+  | "Privacy & Security";
+
 interface Article {
   title: string;
   description: string;
@@ -419,6 +428,46 @@ const ARTICLE_SECTIONS: ArticleSection[] = [
   },
 ];
 
+const ARTICLE_CATEGORIES: ArticleCategory[] = [
+  "Getting Started",
+  "Using DocketAlly",
+  "Preparing to Leave",
+  "Building Your Case",
+  "Using Templates",
+  "Plans & PIPs",
+  "Privacy & Security",
+];
+
+function getCategoryBadgeStyle(category: string): React.CSSProperties {
+  const base: React.CSSProperties = {
+    display: "inline-block",
+    padding: "3px 8px",
+    borderRadius: 4,
+    fontSize: 9,
+    fontWeight: 700,
+    fontFamily: "var(--font-mono)",
+    letterSpacing: "0.06em",
+    whiteSpace: "nowrap",
+    textTransform: "uppercase",
+  };
+  switch (category) {
+    case "Getting Started":
+    case "Building Your Case":
+      return { ...base, color: "#16A34A", background: "#F0FDF4", border: "1px solid #BBF7D0" };
+    case "Using DocketAlly":
+      return { ...base, color: "#2563EB", background: "#EFF6FF", border: "1px solid #BFDBFE" };
+    case "Preparing to Leave":
+      return { ...base, color: "#D97706", background: "#FFFBEB", border: "1px solid #FDE68A" };
+    case "Using Templates":
+    case "Privacy & Security":
+      return { ...base, color: "#57534E", background: "#F5F5F4", border: "1px solid #E7E5E4" };
+    case "Plans & PIPs":
+      return { ...base, color: "#9333EA", background: "#FAF5FF", border: "1px solid #E9D5FF" };
+    default:
+      return { ...base, color: "#57534E", background: "#F5F5F4", border: "1px solid #E7E5E4" };
+  }
+}
+
 /* ------------------------------------------------------------------ */
 /*  How It Works Steps                                                 */
 /* ------------------------------------------------------------------ */
@@ -567,6 +616,7 @@ export default function SupportPage() {
 
   const [activeTab, setActiveTab] = useState<Tab>("articles");
   const [articleSearch, setArticleSearch] = useState("");
+  const [activeArticleCategory, setActiveArticleCategory] = useState<ArticleCategory | "All">("All");
   const [selectedArticle, setSelectedArticle] = useState<{ sectionIdx: number; articleIdx: number } | null>(null);
   const [helpful, setHelpful] = useState<Record<string, "up" | "down">>({});
   const [expandedStep, setExpandedStep] = useState<number | null>(null);
@@ -675,7 +725,11 @@ export default function SupportPage() {
         const q = articleSearch.toLowerCase();
         return a.title.toLowerCase().includes(q) || a.description.toLowerCase().includes(q);
       }),
-  })).filter((s) => s.articles.length > 0);
+  })).filter((s) => {
+    if (s.articles.length === 0) return false;
+    if (activeArticleCategory !== "All" && s.label !== activeArticleCategory) return false;
+    return true;
+  });
 
   // Resolve selected article
   const currentArticle = selectedArticle
@@ -696,7 +750,7 @@ export default function SupportPage() {
   /* ---------------------------------------------------------------- */
 
   return (
-    <div className="da-page-wrapper" style={{ padding: 32, maxWidth: 820, margin: "0 auto" }}>
+    <div className="da-page-wrapper" style={{ padding: 32, maxWidth: 1100, margin: "0 auto" }}>
       {/* Header */}
       <div style={{ marginBottom: 24 }}>
         <h1 style={{ fontFamily: "var(--font-serif)", fontSize: 26, fontWeight: 700, color: "#292524", marginBottom: 8 }}>
@@ -957,7 +1011,7 @@ export default function SupportPage() {
             /* ---- ARTICLE LIST VIEW ---- */
             <>
               {/* Search */}
-              <div style={{ position: "relative", marginBottom: 24 }}>
+              <div style={{ position: "relative", marginBottom: 16 }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-stone-500)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }}>
                   <circle cx="11" cy="11" r="8" />
                   <line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -973,19 +1027,90 @@ export default function SupportPage() {
                 />
               </div>
 
+              {/* Category filter chips */}
+              <div className="da-pills-scroll" style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 24 }}>
+                {(["All", ...ARTICLE_CATEGORIES] as const).map((cat) => {
+                  const isActive = activeArticleCategory === cat;
+                  return (
+                    <button
+                      key={cat}
+                      onClick={() => setActiveArticleCategory(cat)}
+                      style={{
+                        padding: "8px 14px",
+                        borderRadius: 20,
+                        border: isActive
+                          ? "1px solid var(--color-green)"
+                          : "1px solid var(--color-stone-300)",
+                        background: isActive ? "var(--color-green-soft)" : "#fff",
+                        color: isActive ? "var(--color-green-text)" : "var(--color-stone-700)",
+                        fontSize: 12,
+                        fontWeight: 600,
+                        fontFamily: "var(--font-sans)",
+                        cursor: "pointer",
+                        whiteSpace: "nowrap",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isActive) {
+                          e.currentTarget.style.borderColor = "var(--color-stone-300)";
+                          e.currentTarget.style.background = "var(--color-stone-50)";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isActive) {
+                          e.currentTarget.style.borderColor = "var(--color-stone-300)";
+                          e.currentTarget.style.background = "#fff";
+                        }
+                      }}
+                    >
+                      {cat}
+                    </button>
+                  );
+                })}
+              </div>
+
               {filteredSections.length === 0 ? (
-                <div style={{ ...cardStyle, textAlign: "center", padding: "40px 24px" }}>
-                  <p style={{ fontSize: 14, color: "var(--color-stone-500)", fontFamily: "var(--font-sans)" }}>
-                    No articles match your search.
-                  </p>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 300 }}>
+                  <div style={{ textAlign: "center", maxWidth: 420, background: "#fff", borderRadius: 16, border: "1px solid var(--color-stone-300)", padding: "56px 40px" }}>
+                    <div style={{ width: 48, height: 48, borderRadius: "50%", background: "#F0FDF4", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                      </svg>
+                    </div>
+                    <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 22, fontWeight: 600, color: "#292524", marginBottom: 10 }}>
+                      No articles found
+                    </h2>
+                    <p style={{ fontSize: 14, color: "var(--color-stone-600)", lineHeight: 1.6 }}>
+                      Try adjusting your search or filter.
+                    </p>
+                  </div>
                 </div>
               ) : (
-                filteredSections.map((section) => {
-                  const isAmber = section.label === "Preparing to Leave";
-                  return (
-                  <div key={section.label} style={{ marginBottom: 28 }}>
-                    <span style={{ ...labelStyle, ...(isAmber ? { background: "#FFFBEB", color: "#92400E", border: "1px solid #FDE68A", padding: "3px 10px", borderRadius: 20 } : {}) }}>{section.label}</span>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                filteredSections.map((section) => (
+                  <div key={section.label} style={{ marginBottom: 32 }}>
+                    {/* Section header */}
+                    <h2
+                      style={{
+                        fontFamily: "var(--font-serif)",
+                        fontSize: 18,
+                        fontWeight: 600,
+                        color: "#292524",
+                        marginBottom: 14,
+                        paddingBottom: 8,
+                        borderBottom: "1px solid var(--color-stone-100)",
+                      }}
+                    >
+                      {section.label}
+                    </h2>
+
+                    {/* Card grid */}
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+                        gap: 12,
+                      }}
+                    >
                       {section.articles.map((article) => (
                         <button
                           key={`${section.sectionIdx}-${article.articleIdx}`}
@@ -994,45 +1119,78 @@ export default function SupportPage() {
                             window.scrollTo({ top: 0, behavior: "smooth" });
                           }}
                           style={{
-                            width: "100%",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                            gap: 12,
-                            padding: "16px 20px",
-                            borderRadius: 12,
-                            border: isAmber ? "1px solid #FDE68A" : "1px solid var(--color-stone-300)",
-                            background: isAmber ? "#FFFBEB" : "#fff",
-                            cursor: "pointer",
+                            background: "#fff",
+                            borderRadius: 14,
+                            border: "1px solid var(--color-stone-300)",
+                            padding: "20px 20px",
                             textAlign: "left",
-                            transition: "border-color 0.2s, box-shadow 0.2s",
+                            cursor: "pointer",
+                            transition: "border-color 0.15s, box-shadow 0.15s",
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 10,
                             boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)",
                           }}
-                          onMouseEnter={(e) => { e.currentTarget.style.borderColor = isAmber ? "#F59E0B" : "#D6D3D1"; e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.03)"; }}
-                          onMouseLeave={(e) => { e.currentTarget.style.borderColor = isAmber ? "#FDE68A" : "var(--color-stone-300)"; e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)"; }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.borderColor = "#D6D3D1";
+                            e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.03)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.borderColor = "var(--color-stone-300)";
+                            e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)";
+                          }}
                         >
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
-                              <span style={{ fontSize: 15, fontWeight: 600, color: "#292524", fontFamily: "var(--font-sans)" }}>
-                                {article.title}
-                              </span>
-                              <span style={{ fontSize: 10, fontFamily: "var(--font-mono)", color: "var(--color-stone-500)", fontWeight: 700, whiteSpace: "nowrap" }}>
-                                {article.readTime}
-                              </span>
-                            </div>
-                            <p style={{ fontSize: 13, color: "var(--color-stone-600)", fontFamily: "var(--font-sans)", margin: 0, lineHeight: 1.4 }}>
-                              {article.description}
-                            </p>
+                          {/* Badge + read time */}
+                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <span style={getCategoryBadgeStyle(section.label)}>{section.label}</span>
+                            <span style={{ fontSize: 10, fontFamily: "var(--font-mono)", color: "var(--color-stone-500)", fontWeight: 700, whiteSpace: "nowrap" }}>
+                              {article.readTime}
+                            </span>
                           </div>
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-stone-300)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-                            <polyline points="9 18 15 12 9 6" />
-                          </svg>
+                          {/* Title */}
+                          <div style={{ fontSize: 15, fontWeight: 600, color: "#292524", fontFamily: "var(--font-sans)" }}>
+                            {article.title}
+                          </div>
+                          {/* Description */}
+                          <p
+                            style={{
+                              fontSize: 13,
+                              color: "var(--color-stone-600)",
+                              lineHeight: 1.6,
+                              fontFamily: "var(--font-sans)",
+                              display: "-webkit-box",
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: "vertical" as never,
+                              overflow: "hidden",
+                              margin: 0,
+                            }}
+                          >
+                            {article.description}
+                          </p>
+                          {/* Read link */}
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 6,
+                              fontSize: 12,
+                              color: "var(--color-green-text)",
+                              fontWeight: 600,
+                              fontFamily: "var(--font-sans)",
+                              marginTop: "auto",
+                            }}
+                          >
+                            Read article
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <line x1="5" y1="12" x2="19" y2="12" />
+                              <polyline points="12 5 19 12 12 19" />
+                            </svg>
+                          </div>
                         </button>
                       ))}
                     </div>
                   </div>
-                  );
-                })
+                ))
               )}
             </>
           )}
