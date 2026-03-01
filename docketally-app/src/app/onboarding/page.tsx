@@ -51,6 +51,19 @@ const WHATS_NEXT = [
   "Download your case file PDF anytime",
 ];
 
+const STEP_HEADLINES: { text: string; green: string }[] = [
+  { text: "What you write down today can {green} tomorrow.", green: "protect you" },
+  { text: "Your situation. Your words. Your record.", green: "" },
+  { text: "The first entry is the hardest. After this, it gets easier.", green: "" },
+  { text: "Your case file is already building.", green: "" },
+];
+
+const TRUST_ITEMS = [
+  "Private and encrypted. Only you can see your records.",
+  "Your records organize into a case file automatically.",
+  "Export anytime as a PDF or attorney packet.",
+];
+
 /* ------------------------------------------------------------------ */
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
@@ -101,7 +114,6 @@ export default function OnboardingPage() {
   function mapReasonsToCaseTypes(selected: string[]): string[] {
     const mapped = selected.map((r) => REASON_TO_CASE_TYPE[r] || "General");
     const unique = [...new Set(mapped)];
-    // If there are non-General types, filter out General
     const nonGeneral = unique.filter((t) => t !== "General");
     return nonGeneral.length > 0 ? nonGeneral : ["General"];
   }
@@ -116,7 +128,6 @@ export default function OnboardingPage() {
     if (!userId || saving) return;
     setSaving(true);
 
-    // 1. Create case
     const caseTypes = mapReasonsToCaseTypes(reasons);
     const { data: newCase } = await supabase
       .from("cases")
@@ -133,7 +144,6 @@ export default function OnboardingPage() {
       .select()
       .single();
 
-    // 2. Create record
     const entryType = EVENT_TO_ENTRY[eventType] || "Other";
     const { data: newRecord } = await supabase
       .from("records")
@@ -148,7 +158,6 @@ export default function OnboardingPage() {
       .select()
       .single();
 
-    // 3. Link record to case
     if (newCase && newRecord) {
       await supabase.from("case_records").insert({
         case_id: newCase.id,
@@ -157,7 +166,6 @@ export default function OnboardingPage() {
       });
     }
 
-    // 4. Update profile
     await supabase
       .from("profiles")
       .update({
@@ -187,7 +195,7 @@ export default function OnboardingPage() {
                 fontSize: 13,
                 fontWeight: 700,
                 fontFamily: "var(--font-sans)",
-                background: s < step ? "#22C55E" : s === step ? "#22C55E" : "#E7E5E4",
+                background: s <= step ? "#22C55E" : "#E7E5E4",
                 color: s <= step ? "#fff" : "#A8A29E",
                 transition: "background 0.2s, color 0.2s",
               }}
@@ -214,7 +222,25 @@ export default function OnboardingPage() {
     );
   }
 
-  /* ---- Render ---- */
+  /* ---- Headline renderer ---- */
+  function renderHeadline() {
+    const h = STEP_HEADLINES[step - 1];
+    if (!h.green) {
+      return (
+        <h1 style={{ fontFamily: "var(--font-sans)", fontSize: 38, fontWeight: 700, color: "#fff", letterSpacing: "-0.03em", lineHeight: 1.15, marginBottom: 20, maxWidth: 380 }}>
+          {h.text}
+        </h1>
+      );
+    }
+    const parts = h.text.split("{green}");
+    return (
+      <h1 style={{ fontFamily: "var(--font-sans)", fontSize: 38, fontWeight: 700, color: "#fff", letterSpacing: "-0.03em", lineHeight: 1.15, marginBottom: 20, maxWidth: 380 }}>
+        {parts[0]}<span style={{ color: "#22C55E" }}>{h.green}</span>{parts[1]}
+      </h1>
+    );
+  }
+
+  /* ---- Loading state ---- */
   if (!userId) {
     return (
       <div style={{ minHeight: "100vh", background: "#FAFAF9", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -223,361 +249,514 @@ export default function OnboardingPage() {
     );
   }
 
-  return (
-    <div style={{ minHeight: "100vh", background: "#FAFAF9", display: "flex", flexDirection: "column", alignItems: "center" }}>
-      {/* Logo */}
-      <div style={{ padding: "40px 0 32px", textAlign: "center" }}>
-        <span style={{ fontFamily: "var(--font-sans)", fontSize: 20, fontWeight: 700, color: "#292524" }}>Docket</span>
-        <span style={{ fontFamily: "var(--font-sans)", fontSize: 20, fontWeight: 700, color: "#22C55E" }}>Ally</span>
-      </div>
+  /* ================================================================ */
+  /*  LEFT PANEL                                                       */
+  /* ================================================================ */
 
-      {/* Progress */}
-      <ProgressBar />
-
-      {/* Step card */}
-      <div style={{ maxWidth: 560, width: "100%", padding: "0 20px", marginBottom: 40 }}>
+  const leftPanel = (
+    <div
+      className="da-onboarding-left"
+      style={{
+        width: "40%",
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        padding: "48px 44px",
+        position: "relative",
+        overflow: "hidden",
+        backgroundImage: "linear-gradient(rgba(28,25,23,0.82), rgba(28,25,23,0.88)), url(/pexels-cottonbro-5971249.jpg)",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
+      {/* Top: Logo */}
+      <div style={{ position: "relative", zIndex: 1 }}>
         <div
           style={{
-            background: "#fff",
-            border: "1px solid #E7E5E4",
-            borderRadius: 16,
-            padding: "36px 40px",
+            fontFamily: "var(--font-sans)",
+            fontSize: 22,
+            fontWeight: 700,
+            color: "#fff",
+            marginBottom: 12,
           }}
         >
+          Docket<span style={{ color: "#22C55E" }}>Ally</span>
+        </div>
+        <div
+          style={{
+            width: 36,
+            height: 3,
+            background: "#22C55E",
+            borderRadius: 2,
+          }}
+        />
+      </div>
 
-          {/* ========== STEP 1: WELCOME ========== */}
-          {step === 1 && (
-            <>
-              <h1 style={{ fontFamily: "var(--font-sans)", fontSize: 24, fontWeight: 700, color: "#292524", marginBottom: 8, letterSpacing: "-0.02em" }}>
-                Welcome to DocketAlly
-              </h1>
-              <p style={{ fontSize: 15, color: "#78716C", lineHeight: 1.6, marginBottom: 28 }}>
-                We'll set up your workspace in under 2 minutes. Everything you create here is private and encrypted.
-              </p>
+      {/* Bottom: Headline + trust signals */}
+      <div style={{ position: "relative", zIndex: 1 }}>
+        {renderHeadline()}
 
-              {/* First name */}
-              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#292524", marginBottom: 6 }}>
-                What's your first name?
-              </label>
-              <input
-                type="text"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                placeholder="First name"
-                style={{ width: "100%", marginBottom: 24, padding: "12px 14px", border: "1px solid #D6D3D1", borderRadius: 8, fontSize: 14, fontFamily: "var(--font-sans)", outline: "none" }}
-              />
-
-              {/* Reasons */}
-              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#292524", marginBottom: 10 }}>
-                What brings you here? <span style={{ fontWeight: 400, color: "#A8A29E" }}>(select all that apply)</span>
-              </label>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 28 }}>
-                {REASONS.map((r) => {
-                  const sel = reasons.includes(r);
-                  return (
-                    <button
-                      key={r}
-                      onClick={() => toggleReason(r)}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        padding: "14px 16px",
-                        borderRadius: 10,
-                        border: sel ? "2px solid #22C55E" : "1px solid #D6D3D1",
-                        background: sel ? "#F0FDF4" : "#fff",
-                        cursor: "pointer",
-                        textAlign: "left",
-                        fontSize: 14,
-                        fontFamily: "var(--font-sans)",
-                        fontWeight: 500,
-                        color: "#292524",
-                        transition: "border-color 0.15s, background 0.15s",
-                      }}
-                    >
-                      <span>{r}</span>
-                      {sel && (
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M20 6L9 17l-5-5" />
-                        </svg>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Continue */}
-              <button
-                onClick={() => setStep(2)}
-                disabled={!step1Valid}
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          {TRUST_ITEMS.map((text) => (
+            <div
+              key={text}
+              style={{ display: "flex", alignItems: "center", gap: 12 }}
+            >
+              <div
                 style={{
-                  width: "100%",
-                  padding: "14px 0",
-                  borderRadius: 10,
-                  border: "none",
-                  background: step1Valid ? "#22C55E" : "#D6D3D1",
-                  color: "#fff",
-                  fontSize: 15,
-                  fontWeight: 600,
-                  fontFamily: "var(--font-sans)",
-                  cursor: step1Valid ? "pointer" : "not-allowed",
+                  width: 22,
+                  height: 22,
+                  borderRadius: "50%",
+                  background: "rgba(34,197,94,0.15)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
                 }}
               >
-                Continue
-              </button>
-            </>
-          )}
-
-          {/* ========== STEP 2: YOUR SITUATION ========== */}
-          {step === 2 && (
-            <>
-              <h1 style={{ fontFamily: "var(--font-sans)", fontSize: 24, fontWeight: 700, color: "#292524", marginBottom: 8, letterSpacing: "-0.02em" }}>
-                Your situation
-              </h1>
-              <p style={{ fontSize: 15, color: "#78716C", lineHeight: 1.6, marginBottom: 28 }}>
-                This creates your first case. You can always update these details later.
-              </p>
-
-              {/* Employer */}
-              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#292524", marginBottom: 6 }}>
-                Employer name <span style={{ color: "#EF4444" }}>*</span>
-              </label>
-              <input
-                type="text"
-                value={employer}
-                onChange={(e) => setEmployer(e.target.value)}
-                placeholder="Company or organization"
-                style={{ width: "100%", marginBottom: 20, padding: "12px 14px", border: "1px solid #D6D3D1", borderRadius: 8, fontSize: 14, fontFamily: "var(--font-sans)", outline: "none" }}
-              />
-
-              {/* Role */}
-              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#292524", marginBottom: 6 }}>
-                Your role / title
-              </label>
-              <input
-                type="text"
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                placeholder="e.g. Senior Analyst"
-                style={{ width: "100%", marginBottom: 20, padding: "12px 14px", border: "1px solid #D6D3D1", borderRadius: 8, fontSize: 14, fontFamily: "var(--font-sans)", outline: "none" }}
-              />
-
-              {/* Start date */}
-              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#292524", marginBottom: 6 }}>
-                When did you start?
-              </label>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                style={{ width: "100%", marginBottom: 4, padding: "12px 14px", border: "1px solid #D6D3D1", borderRadius: 8, fontSize: 14, fontFamily: "var(--font-sans)", outline: "none" }}
-              />
-              <p style={{ fontSize: 12, color: "#A8A29E", marginBottom: 28 }}>Approximate is fine.</p>
-
-              {/* Buttons */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                <button
-                  onClick={() => setStep(3)}
-                  disabled={!step2Valid}
-                  style={{
-                    width: "100%",
-                    padding: "14px 0",
-                    borderRadius: 10,
-                    border: "none",
-                    background: step2Valid ? "#22C55E" : "#D6D3D1",
-                    color: "#fff",
-                    fontSize: 15,
-                    fontWeight: 600,
-                    fontFamily: "var(--font-sans)",
-                    cursor: step2Valid ? "pointer" : "not-allowed",
-                  }}
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#22C55E"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 >
-                  Continue
-                </button>
-                <button
-                  onClick={() => setStep(1)}
-                  style={{ background: "none", border: "none", fontSize: 14, color: "#78716C", cursor: "pointer", fontFamily: "var(--font-sans)", textAlign: "left", padding: 0 }}
-                >
-                  &larr; Back
-                </button>
-              </div>
-            </>
-          )}
-
-          {/* ========== STEP 3: FIRST EVENT ========== */}
-          {step === 3 && (
-            <>
-              <h1 style={{ fontFamily: "var(--font-sans)", fontSize: 24, fontWeight: 700, color: "#292524", marginBottom: 8, letterSpacing: "-0.02em" }}>
-                Document your first event
-              </h1>
-              <p style={{ fontSize: 15, color: "#78716C", lineHeight: 1.6, marginBottom: 28 }}>
-                What happened most recently? Write it how you'd tell a trusted friend.
-              </p>
-
-              {/* Event type cards */}
-              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#292524", marginBottom: 10 }}>
-                Event type
-              </label>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 24 }}>
-                {EVENT_CARDS.map((ec) => {
-                  const sel = eventType === ec.value;
-                  return (
-                    <button
-                      key={ec.value}
-                      onClick={() => setEventType(ec.value)}
-                      style={{
-                        padding: "16px 14px",
-                        borderRadius: 10,
-                        border: sel ? "2px solid #22C55E" : "1px solid #D6D3D1",
-                        background: sel ? "#F0FDF4" : "#fff",
-                        cursor: "pointer",
-                        textAlign: "left",
-                        transition: "border-color 0.15s, background 0.15s",
-                      }}
-                    >
-                      <div style={{ fontSize: 14, fontWeight: 600, fontFamily: "var(--font-sans)", color: "#292524", marginBottom: 4 }}>{ec.label}</div>
-                      <div style={{ fontSize: 12, color: "#78716C", lineHeight: 1.4 }}>{ec.desc}</div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Title */}
-              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#292524", marginBottom: 6 }}>
-                Give it a short title <span style={{ color: "#EF4444" }}>*</span>
-              </label>
-              <input
-                type="text"
-                value={recordTitle}
-                onChange={(e) => setRecordTitle(e.target.value)}
-                placeholder="e.g. Manager denied my accommodation request"
-                style={{ width: "100%", marginBottom: 20, padding: "12px 14px", border: "1px solid #D6D3D1", borderRadius: 8, fontSize: 14, fontFamily: "var(--font-sans)", outline: "none" }}
-              />
-
-              {/* Narrative */}
-              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#292524", marginBottom: 6 }}>
-                What happened? <span style={{ color: "#EF4444" }}>*</span>
-              </label>
-              <textarea
-                value={narrative}
-                onChange={(e) => setNarrative(e.target.value)}
-                placeholder="Describe what happened in your own words. Include dates, details, and anything you think is relevant."
-                rows={4}
-                style={{ width: "100%", marginBottom: 20, padding: "12px 14px", border: "1px solid #D6D3D1", borderRadius: 8, fontSize: 14, fontFamily: "var(--font-sans)", outline: "none", resize: "vertical", lineHeight: 1.6 }}
-              />
-
-              {/* People */}
-              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#292524", marginBottom: 6 }}>
-                Who was involved?
-              </label>
-              <input
-                type="text"
-                value={people}
-                onChange={(e) => setPeople(e.target.value)}
-                placeholder="e.g. Sarah Chen, Mike Ross"
-                style={{ width: "100%", marginBottom: 20, padding: "12px 14px", border: "1px solid #D6D3D1", borderRadius: 8, fontSize: 14, fontFamily: "var(--font-sans)", outline: "none" }}
-              />
-
-              {/* Event date */}
-              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#292524", marginBottom: 6 }}>
-                When did it happen?
-              </label>
-              <input
-                type="date"
-                value={eventDate}
-                onChange={(e) => setEventDate(e.target.value)}
-                style={{ width: "100%", marginBottom: 28, padding: "12px 14px", border: "1px solid #D6D3D1", borderRadius: 8, fontSize: 14, fontFamily: "var(--font-sans)", outline: "none" }}
-              />
-
-              {/* Buttons */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                <button
-                  onClick={handleFinish}
-                  disabled={!step3Valid || saving}
-                  style={{
-                    width: "100%",
-                    padding: "14px 0",
-                    borderRadius: 10,
-                    border: "none",
-                    background: step3Valid && !saving ? "#22C55E" : "#D6D3D1",
-                    color: "#fff",
-                    fontSize: 15,
-                    fontWeight: 600,
-                    fontFamily: "var(--font-sans)",
-                    cursor: step3Valid && !saving ? "pointer" : "not-allowed",
-                  }}
-                >
-                  {saving ? "Saving..." : "Save & finish"}
-                </button>
-                <button
-                  onClick={() => setStep(2)}
-                  style={{ background: "none", border: "none", fontSize: 14, color: "#78716C", cursor: "pointer", fontFamily: "var(--font-sans)", textAlign: "left", padding: 0 }}
-                >
-                  &larr; Back
-                </button>
-              </div>
-            </>
-          )}
-
-          {/* ========== STEP 4: CONFIRMATION ========== */}
-          {step === 4 && (
-            <div style={{ textAlign: "center" }}>
-              {/* Green checkmark circle */}
-              <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#F0FDF4", border: "2px solid #22C55E", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20 6L9 17l-5-5" />
+                  <polyline points="20 6 9 17 4 12" />
                 </svg>
               </div>
-
-              <h1 style={{ fontFamily: "var(--font-sans)", fontSize: 24, fontWeight: 700, color: "#292524", marginBottom: 8, letterSpacing: "-0.02em" }}>
-                You're documenting, {firstName}.
-              </h1>
-              <p style={{ fontSize: 15, color: "#78716C", lineHeight: 1.6, marginBottom: 28 }}>
-                Your case file is already building. Every record you add strengthens your position.
-              </p>
-
-              {/* What's next card */}
-              <div style={{ background: "#FAFAF9", border: "1px solid #E7E5E4", borderRadius: 12, padding: "20px 24px", textAlign: "left", marginBottom: 28 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: "#292524", marginBottom: 12 }}>What's next</div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  {WHATS_NEXT.map((item) => (
-                    <div key={item} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#22C55E", flexShrink: 0 }} />
-                      <span style={{ fontSize: 14, color: "#44403C", lineHeight: 1.5 }}>{item}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Go to records */}
-              <button
-                onClick={() => router.push("/dashboard?welcome=1")}
+              <span
                 style={{
-                  width: "100%",
-                  padding: "14px 0",
-                  borderRadius: 10,
-                  border: "none",
-                  background: "#22C55E",
-                  color: "#fff",
-                  fontSize: 15,
-                  fontWeight: 600,
+                  fontSize: 14,
+                  color: "#d6d3d1",
                   fontFamily: "var(--font-sans)",
-                  cursor: "pointer",
                 }}
               >
-                Go to my records
-              </button>
+                {text}
+              </span>
             </div>
-          )}
+          ))}
         </div>
       </div>
+    </div>
+  );
 
-      {/* Footer */}
-      <div style={{ padding: "0 20px 40px", textAlign: "center" }}>
-        <p style={{ fontSize: 13, color: "#A8A29E" }}>
-          Your data is encrypted and private. Only you can see your records.
-        </p>
+  /* ================================================================ */
+  /*  MOBILE HEADER                                                    */
+  /* ================================================================ */
+
+  const mobileHeader = (
+    <div
+      className="da-onboarding-mobile-header"
+      style={{
+        display: "none",
+        padding: "28px 24px 20px",
+        textAlign: "center",
+      }}
+    >
+      <div
+        style={{
+          fontFamily: "var(--font-sans)",
+          fontSize: 20,
+          fontWeight: 700,
+          color: "#292524",
+        }}
+      >
+        Docket<span style={{ color: "#22C55E" }}>Ally</span>
       </div>
     </div>
+  );
+
+  /* ================================================================ */
+  /*  RENDER                                                           */
+  /* ================================================================ */
+
+  return (
+    <>
+      <style>{`
+        @media (max-width: 768px) {
+          .da-onboarding-left { display: none !important; }
+          .da-onboarding-mobile-header { display: block !important; }
+          .da-onboarding-right {
+            width: 100% !important;
+            min-height: auto !important;
+          }
+          .da-onboarding-wrapper {
+            flex-direction: column !important;
+          }
+        }
+      `}</style>
+
+      <div
+        className="da-onboarding-wrapper"
+        style={{
+          display: "flex",
+          minHeight: "100vh",
+          fontFamily: "var(--font-sans)",
+        }}
+      >
+        {leftPanel}
+        {mobileHeader}
+
+        {/* Right panel */}
+        <div
+          className="da-onboarding-right"
+          style={{
+            width: "60%",
+            background: "#FAFAF9",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            padding: "48px 24px 40px",
+            minHeight: "100vh",
+            overflowY: "auto",
+          }}
+        >
+          {/* Progress */}
+          <ProgressBar />
+
+          {/* Step card */}
+          <div style={{ maxWidth: 560, width: "100%", padding: "0 4px" }}>
+            <div
+              style={{
+                background: "#fff",
+                border: "1px solid #E7E5E4",
+                borderRadius: 16,
+                padding: "36px 40px",
+              }}
+            >
+
+              {/* ========== STEP 1: WELCOME ========== */}
+              {step === 1 && (
+                <>
+                  <h1 style={{ fontFamily: "var(--font-sans)", fontSize: 24, fontWeight: 700, color: "#292524", marginBottom: 8, letterSpacing: "-0.02em" }}>
+                    Welcome to DocketAlly
+                  </h1>
+                  <p style={{ fontSize: 15, color: "#78716C", lineHeight: 1.6, marginBottom: 28 }}>
+                    We'll set up your workspace in under 2 minutes. Everything you create here is private and encrypted.
+                  </p>
+
+                  {/* First name */}
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#292524", marginBottom: 6 }}>
+                    What's your first name?
+                  </label>
+                  <input
+                    type="text"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    placeholder="First name"
+                    style={{ width: "100%", marginBottom: 24, padding: "12px 14px", border: "1px solid #D6D3D1", borderRadius: 8, fontSize: 14, fontFamily: "var(--font-sans)", outline: "none" }}
+                  />
+
+                  {/* Reasons */}
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#292524", marginBottom: 10 }}>
+                    What brings you here? <span style={{ fontWeight: 400, color: "#A8A29E" }}>(select all that apply)</span>
+                  </label>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 28 }}>
+                    {REASONS.map((r) => {
+                      const sel = reasons.includes(r);
+                      return (
+                        <button
+                          key={r}
+                          onClick={() => toggleReason(r)}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            padding: "14px 16px",
+                            borderRadius: 10,
+                            border: sel ? "2px solid #22C55E" : "1px solid #D6D3D1",
+                            background: sel ? "#F0FDF4" : "#fff",
+                            cursor: "pointer",
+                            textAlign: "left",
+                            fontSize: 14,
+                            fontFamily: "var(--font-sans)",
+                            fontWeight: 500,
+                            color: "#292524",
+                            transition: "border-color 0.15s, background 0.15s",
+                          }}
+                        >
+                          <span>{r}</span>
+                          {sel && (
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M20 6L9 17l-5-5" />
+                            </svg>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Continue */}
+                  <button
+                    onClick={() => setStep(2)}
+                    disabled={!step1Valid}
+                    style={{
+                      width: "100%",
+                      padding: "14px 0",
+                      borderRadius: 10,
+                      border: "none",
+                      background: step1Valid ? "#22C55E" : "#D6D3D1",
+                      color: "#fff",
+                      fontSize: 15,
+                      fontWeight: 600,
+                      fontFamily: "var(--font-sans)",
+                      cursor: step1Valid ? "pointer" : "not-allowed",
+                    }}
+                  >
+                    Continue
+                  </button>
+                </>
+              )}
+
+              {/* ========== STEP 2: YOUR SITUATION ========== */}
+              {step === 2 && (
+                <>
+                  <h1 style={{ fontFamily: "var(--font-sans)", fontSize: 24, fontWeight: 700, color: "#292524", marginBottom: 8, letterSpacing: "-0.02em" }}>
+                    Your situation
+                  </h1>
+                  <p style={{ fontSize: 15, color: "#78716C", lineHeight: 1.6, marginBottom: 28 }}>
+                    This creates your first case. You can always update these details later.
+                  </p>
+
+                  {/* Employer */}
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#292524", marginBottom: 6 }}>
+                    Employer name <span style={{ color: "#EF4444" }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={employer}
+                    onChange={(e) => setEmployer(e.target.value)}
+                    placeholder="Company or organization"
+                    style={{ width: "100%", marginBottom: 20, padding: "12px 14px", border: "1px solid #D6D3D1", borderRadius: 8, fontSize: 14, fontFamily: "var(--font-sans)", outline: "none" }}
+                  />
+
+                  {/* Role */}
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#292524", marginBottom: 6 }}>
+                    Your role / title
+                  </label>
+                  <input
+                    type="text"
+                    value={role}
+                    onChange={(e) => setRole(e.target.value)}
+                    placeholder="e.g. Senior Analyst"
+                    style={{ width: "100%", marginBottom: 20, padding: "12px 14px", border: "1px solid #D6D3D1", borderRadius: 8, fontSize: 14, fontFamily: "var(--font-sans)", outline: "none" }}
+                  />
+
+                  {/* Start date */}
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#292524", marginBottom: 6 }}>
+                    When did you start?
+                  </label>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    style={{ width: "100%", marginBottom: 4, padding: "12px 14px", border: "1px solid #D6D3D1", borderRadius: 8, fontSize: 14, fontFamily: "var(--font-sans)", outline: "none" }}
+                  />
+                  <p style={{ fontSize: 12, color: "#A8A29E", marginBottom: 28 }}>Approximate is fine.</p>
+
+                  {/* Buttons */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                    <button
+                      onClick={() => setStep(3)}
+                      disabled={!step2Valid}
+                      style={{
+                        width: "100%",
+                        padding: "14px 0",
+                        borderRadius: 10,
+                        border: "none",
+                        background: step2Valid ? "#22C55E" : "#D6D3D1",
+                        color: "#fff",
+                        fontSize: 15,
+                        fontWeight: 600,
+                        fontFamily: "var(--font-sans)",
+                        cursor: step2Valid ? "pointer" : "not-allowed",
+                      }}
+                    >
+                      Continue
+                    </button>
+                    <button
+                      onClick={() => setStep(1)}
+                      style={{ background: "none", border: "none", fontSize: 14, color: "#78716C", cursor: "pointer", fontFamily: "var(--font-sans)", textAlign: "left", padding: 0 }}
+                    >
+                      &larr; Back
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {/* ========== STEP 3: FIRST EVENT ========== */}
+              {step === 3 && (
+                <>
+                  <h1 style={{ fontFamily: "var(--font-sans)", fontSize: 24, fontWeight: 700, color: "#292524", marginBottom: 8, letterSpacing: "-0.02em" }}>
+                    Document your first event
+                  </h1>
+                  <p style={{ fontSize: 15, color: "#78716C", lineHeight: 1.6, marginBottom: 28 }}>
+                    What happened most recently? Write it how you'd tell a trusted friend.
+                  </p>
+
+                  {/* Event type cards */}
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#292524", marginBottom: 10 }}>
+                    Event type
+                  </label>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 24 }}>
+                    {EVENT_CARDS.map((ec) => {
+                      const sel = eventType === ec.value;
+                      return (
+                        <button
+                          key={ec.value}
+                          onClick={() => setEventType(ec.value)}
+                          style={{
+                            padding: "16px 14px",
+                            borderRadius: 10,
+                            border: sel ? "2px solid #22C55E" : "1px solid #D6D3D1",
+                            background: sel ? "#F0FDF4" : "#fff",
+                            cursor: "pointer",
+                            textAlign: "left",
+                            transition: "border-color 0.15s, background 0.15s",
+                          }}
+                        >
+                          <div style={{ fontSize: 14, fontWeight: 600, fontFamily: "var(--font-sans)", color: "#292524", marginBottom: 4 }}>{ec.label}</div>
+                          <div style={{ fontSize: 12, color: "#78716C", lineHeight: 1.4 }}>{ec.desc}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Title */}
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#292524", marginBottom: 6 }}>
+                    Give it a short title <span style={{ color: "#EF4444" }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={recordTitle}
+                    onChange={(e) => setRecordTitle(e.target.value)}
+                    placeholder="e.g. Manager denied my accommodation request"
+                    style={{ width: "100%", marginBottom: 20, padding: "12px 14px", border: "1px solid #D6D3D1", borderRadius: 8, fontSize: 14, fontFamily: "var(--font-sans)", outline: "none" }}
+                  />
+
+                  {/* Narrative */}
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#292524", marginBottom: 6 }}>
+                    What happened? <span style={{ color: "#EF4444" }}>*</span>
+                  </label>
+                  <textarea
+                    value={narrative}
+                    onChange={(e) => setNarrative(e.target.value)}
+                    placeholder="Describe what happened in your own words. Include dates, details, and anything you think is relevant."
+                    rows={4}
+                    style={{ width: "100%", marginBottom: 20, padding: "12px 14px", border: "1px solid #D6D3D1", borderRadius: 8, fontSize: 14, fontFamily: "var(--font-sans)", outline: "none", resize: "vertical", lineHeight: 1.6 }}
+                  />
+
+                  {/* People */}
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#292524", marginBottom: 6 }}>
+                    Who was involved?
+                  </label>
+                  <input
+                    type="text"
+                    value={people}
+                    onChange={(e) => setPeople(e.target.value)}
+                    placeholder="e.g. Sarah Chen, Mike Ross"
+                    style={{ width: "100%", marginBottom: 20, padding: "12px 14px", border: "1px solid #D6D3D1", borderRadius: 8, fontSize: 14, fontFamily: "var(--font-sans)", outline: "none" }}
+                  />
+
+                  {/* Event date */}
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#292524", marginBottom: 6 }}>
+                    When did it happen?
+                  </label>
+                  <input
+                    type="date"
+                    value={eventDate}
+                    onChange={(e) => setEventDate(e.target.value)}
+                    style={{ width: "100%", marginBottom: 28, padding: "12px 14px", border: "1px solid #D6D3D1", borderRadius: 8, fontSize: 14, fontFamily: "var(--font-sans)", outline: "none" }}
+                  />
+
+                  {/* Buttons */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                    <button
+                      onClick={handleFinish}
+                      disabled={!step3Valid || saving}
+                      style={{
+                        width: "100%",
+                        padding: "14px 0",
+                        borderRadius: 10,
+                        border: "none",
+                        background: step3Valid && !saving ? "#22C55E" : "#D6D3D1",
+                        color: "#fff",
+                        fontSize: 15,
+                        fontWeight: 600,
+                        fontFamily: "var(--font-sans)",
+                        cursor: step3Valid && !saving ? "pointer" : "not-allowed",
+                      }}
+                    >
+                      {saving ? "Saving..." : "Save & finish"}
+                    </button>
+                    <button
+                      onClick={() => setStep(2)}
+                      style={{ background: "none", border: "none", fontSize: 14, color: "#78716C", cursor: "pointer", fontFamily: "var(--font-sans)", textAlign: "left", padding: 0 }}
+                    >
+                      &larr; Back
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {/* ========== STEP 4: CONFIRMATION ========== */}
+              {step === 4 && (
+                <div style={{ textAlign: "center" }}>
+                  {/* Green checkmark circle */}
+                  <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#F0FDF4", border: "2px solid #22C55E", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20 6L9 17l-5-5" />
+                    </svg>
+                  </div>
+
+                  <h1 style={{ fontFamily: "var(--font-sans)", fontSize: 24, fontWeight: 700, color: "#292524", marginBottom: 8, letterSpacing: "-0.02em" }}>
+                    You're documenting, {firstName}.
+                  </h1>
+                  <p style={{ fontSize: 15, color: "#78716C", lineHeight: 1.6, marginBottom: 28 }}>
+                    Your case file is already building. Every record you add strengthens your position.
+                  </p>
+
+                  {/* What's next card */}
+                  <div style={{ background: "#FAFAF9", border: "1px solid #E7E5E4", borderRadius: 12, padding: "20px 24px", textAlign: "left", marginBottom: 28 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "#292524", marginBottom: 12 }}>What's next</div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                      {WHATS_NEXT.map((item) => (
+                        <div key={item} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#22C55E", flexShrink: 0 }} />
+                          <span style={{ fontSize: 14, color: "#44403C", lineHeight: 1.5 }}>{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Go to records */}
+                  <button
+                    onClick={() => router.push("/dashboard?welcome=1")}
+                    style={{
+                      width: "100%",
+                      padding: "14px 0",
+                      borderRadius: 10,
+                      border: "none",
+                      background: "#22C55E",
+                      color: "#fff",
+                      fontSize: 15,
+                      fontWeight: 600,
+                      fontFamily: "var(--font-sans)",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Go to my records
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
   );
 }
