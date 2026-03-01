@@ -19,12 +19,14 @@ export default async function DashboardLayout({
 
   if (!user) redirect("/login");
 
-  // Fetch subscription data from profiles
+  // Fetch subscription data + onboarding status from profiles
   const { data: profile } = await supabase
     .from("profiles")
-    .select("subscription_status, subscription_plan, trial_ends_at, subscription_ends_at")
+    .select("subscription_status, subscription_plan, trial_ends_at, subscription_ends_at, onboarding_completed")
     .eq("id", user.id)
     .single();
+
+  if (profile?.onboarding_completed === false) redirect("/onboarding");
 
   const subInfo: SubscriptionInfo = {
     subscriptionStatus: profile?.subscription_status ?? "trial",

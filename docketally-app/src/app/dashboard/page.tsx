@@ -237,6 +237,10 @@ export default function RecordPage() {
   const [expandedRecord, setExpandedRecord] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
+  // Welcome banner
+  const [welcomeBanner, setWelcomeBanner] = useState(false);
+  const [welcomeName, setWelcomeName] = useState("");
+
   // Search & filter
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState("");
@@ -417,6 +421,22 @@ export default function RecordPage() {
       openNewForm();
       router.replace("/dashboard");
     }
+  }, [searchParams, userId]);
+
+  // Welcome banner after onboarding
+  useEffect(() => {
+    if (searchParams.get("welcome") === "1" && userId) {
+      setWelcomeBanner(true);
+      router.replace("/dashboard", { scroll: false });
+      // Fetch user name for banner
+      (async () => {
+        const { data } = await supabase.from("profiles").select("full_name").eq("id", userId).single();
+        if (data?.full_name) setWelcomeName(data.full_name);
+      })();
+      const t = setTimeout(() => setWelcomeBanner(false), 8000);
+      return () => clearTimeout(t);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, userId]);
 
   async function fetchAttachments(recordId: string) {
@@ -814,6 +834,18 @@ export default function RecordPage() {
   return (
     <div className="da-records-layout">
     <div className="da-page-wrapper" style={{ padding: 32, flex: 1, minWidth: 0 }}>
+      {/* ---- WELCOME BANNER ---- */}
+      {welcomeBanner && (
+        <div style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: 10, padding: "12px 16px", marginBottom: 20, display: "flex", alignItems: "center", justifyContent: "space-between", animation: "fadeUp 0.3s ease both" }}>
+          <span style={{ fontSize: 14, color: "#15803D", fontFamily: "var(--font-sans)" }}>
+            {welcomeName || "Your"} first record is saved. Your case file is building to the right.
+          </span>
+          <button onClick={() => setWelcomeBanner(false)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", color: "#15803D" }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18" /><path d="M6 6l12 12" /></svg>
+          </button>
+        </div>
+      )}
+
       {/* ---- FORM VIEW ---- */}
       {showForm ? (
         <div
