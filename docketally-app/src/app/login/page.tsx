@@ -1,71 +1,68 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 /* ------------------------------------------------------------------ */
-/*  Login / Sign-Up page with branded split layout                     */
+/*  Login page with branded split layout, email OTP only               */
 /* ------------------------------------------------------------------ */
 
-type View = "login" | "signup" | "forgot" | "otp";
+type Step = "email" | "otp";
 
 export default function LoginPage() {
   const router = useRouter();
   const supabase = createClient();
 
-  const [view, setView] = useState<View>("login");
+  const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [showPw, setShowPw] = useState(false);
+  const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
-  /* OTP state (used after email sign-up) */
-  const [otp, setOtp] = useState("");
+  /* Resend cooldown */
+  const [cooldown, setCooldown] = useState(0);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setTimeout(() => setCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [cooldown]);
 
   /* ---- Auth handlers ---- */
 
-  async function handleLogin(e: React.FormEvent) {
-    e.preventDefault();
+  const sendOtp = useCallback(async () => {
     setError("");
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithOtp({
       email,
-      password,
+      options: { shouldCreateUser: true },
     });
 
     setLoading(false);
     if (error) {
       setError(error.message);
     } else {
-      router.push("/dashboard");
+      setStep("otp");
+      setCooldown(60);
+      setMessage("");
     }
+  }, [email, supabase.auth]);
+
+  async function handleSendOtp(e: React.FormEvent) {
+    e.preventDefault();
+    await sendOtp();
   }
 
-  async function handleSignUp(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleResend() {
+    if (cooldown > 0) return;
+    setOtp("");
     setError("");
-    setLoading(true);
-
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: fullName.trim() },
-      },
-    });
-
-    setLoading(false);
-    if (error) {
-      setError(error.message);
-    } else {
-      setView("otp");
-      setMessage("Check your email for a verification code.");
-    }
+    setMessage("");
+    await sendOtp();
+    setMessage("A new code has been sent.");
   }
 
   async function handleVerifyOtp(e: React.FormEvent) {
@@ -87,41 +84,15 @@ export default function LoginPage() {
     }
   }
 
-  async function handleForgotPassword(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/dashboard/billing`,
-    });
-
-    setLoading(false);
-    if (error) {
-      setError(error.message);
-    } else {
-      setMessage("Check your email for a password reset link.");
-    }
-  }
-
-  async function handleOAuth(provider: "google" | "apple") {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-    if (error) setError(error.message);
-  }
-
-  function switchView(target: View) {
-    setView(target);
+  function goBackToEmail() {
+    setStep("email");
+    setOtp("");
     setError("");
     setMessage("");
-    setOtp("");
+    setCooldown(0);
   }
 
-  /* ---- Shared input style ---- */
+  /* ---- Shared styles ---- */
 
   const inputStyle: React.CSSProperties = {
     width: "100%",
@@ -157,23 +128,6 @@ export default function LoginPage() {
     fontFamily: "var(--font-sans)",
     cursor: loading ? "not-allowed" : "pointer",
     opacity: loading ? 0.7 : 1,
-  };
-
-  const btnOAuth: React.CSSProperties = {
-    width: "100%",
-    padding: "12px 20px",
-    borderRadius: 10,
-    border: "1px solid #d6d3d1",
-    background: "#fff",
-    color: "#1c1917",
-    fontSize: 14,
-    fontWeight: 500,
-    fontFamily: "var(--font-sans)",
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
   };
 
   /* ---- Trust signals ---- */
@@ -406,74 +360,12 @@ export default function LoginPage() {
   );
 
   /* ================================================================ */
-  /*  DIVIDER                                                          */
-  /* ================================================================ */
-
-  const divider = (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 16,
-        margin: "24px 0",
-      }}
-    >
-      <div style={{ flex: 1, height: 1, background: "#e7e5e4" }} />
-      <span
-        style={{
-          fontSize: 12,
-          color: "#a8a29e",
-          fontFamily: "var(--font-sans)",
-        }}
-      >
-        or
-      </span>
-      <div style={{ flex: 1, height: 1, background: "#e7e5e4" }} />
-    </div>
-  );
-
-  /* ================================================================ */
-  /*  GOOGLE ICON                                                      */
-  /* ================================================================ */
-
-  const googleIcon = (
-    <svg width="18" height="18" viewBox="0 0 24 24">
-      <path
-        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
-        fill="#4285F4"
-      />
-      <path
-        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-        fill="#34A853"
-      />
-      <path
-        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-        fill="#FBBC05"
-      />
-      <path
-        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-        fill="#EA4335"
-      />
-    </svg>
-  );
-
-  /* ================================================================ */
-  /*  APPLE ICON                                                       */
-  /* ================================================================ */
-
-  const appleIcon = (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="#1c1917">
-      <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
-    </svg>
-  );
-
-  /* ================================================================ */
   /*  RIGHT PANEL CONTENT                                              */
   /* ================================================================ */
 
   function renderForm() {
-    /* ---- OTP verification (after signup) ---- */
-    if (view === "otp") {
+    /* ---- Step 2: OTP verification ---- */
+    if (step === "otp") {
       return (
         <>
           <h1
@@ -497,13 +389,13 @@ export default function LoginPage() {
               lineHeight: 1.5,
             }}
           >
-            We sent a verification code to{" "}
+            We sent a 6-digit code to{" "}
             <strong style={{ color: "#44403C" }}>{email}</strong>
           </p>
 
           <form onSubmit={handleVerifyOtp}>
             <label htmlFor="otp" style={labelStyle}>
-              Verification code
+              Sign-in code
             </label>
             <input
               id="otp"
@@ -511,10 +403,10 @@ export default function LoginPage() {
               inputMode="numeric"
               autoComplete="one-time-code"
               pattern="[0-9]*"
-              maxLength={8}
+              maxLength={6}
               value={otp}
               onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-              placeholder="00000000"
+              placeholder="000000"
               required
               autoFocus
               style={{
@@ -533,24 +425,62 @@ export default function LoginPage() {
               </p>
             )}
             {message && (
-              <p
-                style={{
-                  fontSize: 13,
-                  color: "#22C55E",
-                  marginBottom: 14,
-                }}
-              >
+              <p style={{ fontSize: 13, color: "#22C55E", marginBottom: 14 }}>
                 {message}
               </p>
             )}
 
-            <button type="submit" disabled={loading} style={btnGreen}>
+            <button
+              type="submit"
+              disabled={loading || otp.length < 6}
+              style={{
+                ...btnGreen,
+                opacity: loading || otp.length < 6 ? 0.5 : 1,
+                cursor: loading || otp.length < 6 ? "not-allowed" : "pointer",
+              }}
+            >
               {loading ? "Verifying..." : "Verify"}
             </button>
           </form>
 
+          {/* Resend */}
+          <div
+            style={{
+              textAlign: "center",
+              marginTop: 20,
+              fontSize: 13,
+              fontFamily: "var(--font-sans)",
+            }}
+          >
+            {cooldown > 0 ? (
+              <span style={{ color: "#a8a29e" }}>
+                Resend code in {cooldown}s
+              </span>
+            ) : (
+              <span style={{ color: "#78716c" }}>
+                Didn&apos;t get it?{" "}
+                <button
+                  onClick={handleResend}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "#22C55E",
+                    cursor: "pointer",
+                    fontSize: 13,
+                    fontFamily: "var(--font-sans)",
+                    fontWeight: 600,
+                    padding: 0,
+                  }}
+                >
+                  Resend code
+                </button>
+              </span>
+            )}
+          </div>
+
+          {/* Use different email */}
           <button
-            onClick={() => switchView("signup")}
+            onClick={goBackToEmail}
             style={{
               display: "block",
               width: "100%",
@@ -561,7 +491,7 @@ export default function LoginPage() {
               border: "none",
               cursor: "pointer",
               fontFamily: "var(--font-sans)",
-              marginTop: 16,
+              marginTop: 12,
             }}
           >
             Use a different email
@@ -570,241 +500,7 @@ export default function LoginPage() {
       );
     }
 
-    /* ---- Forgot password ---- */
-    if (view === "forgot") {
-      return (
-        <>
-          <h1
-            style={{
-              fontFamily: "var(--font-sans)",
-              fontSize: 26,
-              fontWeight: 600,
-              color: "#1c1917",
-              marginBottom: 8,
-              textAlign: "center",
-            }}
-          >
-            Reset your password
-          </h1>
-          <p
-            style={{
-              fontSize: 14,
-              color: "#78716c",
-              marginBottom: 28,
-              textAlign: "center",
-              lineHeight: 1.5,
-            }}
-          >
-            Enter your email and we will send you a reset link.
-          </p>
-
-          <form onSubmit={handleForgotPassword}>
-            <label htmlFor="reset-email" style={labelStyle}>
-              Email address
-            </label>
-            <input
-              id="reset-email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              required
-              autoFocus
-              style={{ ...inputStyle, marginBottom: 20 }}
-            />
-
-            {error && (
-              <p style={{ fontSize: 13, color: "#ef4444", marginBottom: 14 }}>
-                {error}
-              </p>
-            )}
-            {message && (
-              <p
-                style={{
-                  fontSize: 13,
-                  color: "#22C55E",
-                  marginBottom: 14,
-                }}
-              >
-                {message}
-              </p>
-            )}
-
-            <button type="submit" disabled={loading} style={btnGreen}>
-              {loading ? "Sending..." : "Send Reset Link"}
-            </button>
-          </form>
-
-          <button
-            onClick={() => switchView("login")}
-            style={{
-              display: "block",
-              width: "100%",
-              textAlign: "center",
-              fontSize: 13,
-              color: "#22C55E",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              fontFamily: "var(--font-sans)",
-              marginTop: 16,
-            }}
-          >
-            Back to log in
-          </button>
-        </>
-      );
-    }
-
-    /* ---- Login ---- */
-    if (view === "login") {
-      return (
-        <>
-          <h1
-            style={{
-              fontFamily: "var(--font-sans)",
-              fontSize: 26,
-              fontWeight: 600,
-              color: "#1c1917",
-              marginBottom: 8,
-              textAlign: "center",
-            }}
-          >
-            Welcome back
-          </h1>
-          <p
-            style={{
-              fontSize: 14,
-              color: "#78716c",
-              marginBottom: 28,
-              textAlign: "center",
-              lineHeight: 1.5,
-            }}
-          >
-            New to DocketAlly?{" "}
-            <button
-              onClick={() => switchView("signup")}
-              style={{
-                background: "none",
-                border: "none",
-                color: "#22C55E",
-                cursor: "pointer",
-                fontSize: 14,
-                fontFamily: "var(--font-sans)",
-                fontWeight: 600,
-                padding: 0,
-              }}
-            >
-              Sign up today.
-            </button>
-          </p>
-
-          <form onSubmit={handleLogin}>
-            <div style={{ marginBottom: 16 }}>
-              <label htmlFor="login-email" style={labelStyle}>
-                Email address
-              </label>
-              <input
-                id="login-email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                required
-                autoFocus
-                style={inputStyle}
-              />
-            </div>
-
-            <div style={{ marginBottom: 20 }}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: 6,
-                }}
-              >
-                <label htmlFor="login-pw" style={{ ...labelStyle, marginBottom: 0 }}>
-                  Password
-                </label>
-                <button
-                  type="button"
-                  onClick={() => switchView("forgot")}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    color: "#22C55E",
-                    cursor: "pointer",
-                    fontSize: 12,
-                    fontFamily: "var(--font-sans)",
-                    fontWeight: 500,
-                    padding: 0,
-                  }}
-                >
-                  Forgot password?
-                </button>
-              </div>
-              <div style={{ position: "relative" }}>
-                <input
-                  id="login-pw"
-                  type={showPw ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  style={{ ...inputStyle, paddingRight: 56 }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPw(!showPw)}
-                  style={{
-                    position: "absolute",
-                    right: 14,
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    fontSize: 12,
-                    color: "#78716c",
-                    fontFamily: "var(--font-sans)",
-                    fontWeight: 500,
-                    padding: 0,
-                  }}
-                >
-                  {showPw ? "Hide" : "Show"}
-                </button>
-              </div>
-            </div>
-
-            {error && (
-              <p style={{ fontSize: 13, color: "#ef4444", marginBottom: 14 }}>
-                {error}
-              </p>
-            )}
-
-            <button type="submit" disabled={loading} style={btnGreen}>
-              {loading ? "Logging in..." : "Log In"}
-            </button>
-          </form>
-
-          {divider}
-
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <button onClick={() => handleOAuth("google")} style={btnOAuth}>
-              {googleIcon}
-              Continue with Google
-            </button>
-            <button onClick={() => handleOAuth("apple")} style={btnOAuth}>
-              {appleIcon}
-              Continue with Apple
-            </button>
-          </div>
-        </>
-      );
-    }
-
-    /* ---- Sign Up ---- */
+    /* ---- Step 1: Email input ---- */
     return (
       <>
         <h1
@@ -817,7 +513,7 @@ export default function LoginPage() {
             textAlign: "center",
           }}
         >
-          Create your account
+          Sign in to DocketAlly
         </h1>
         <p
           style={{
@@ -828,91 +524,23 @@ export default function LoginPage() {
             lineHeight: 1.5,
           }}
         >
-          Already have an account?{" "}
-          <button
-            onClick={() => switchView("login")}
-            style={{
-              background: "none",
-              border: "none",
-              color: "#22C55E",
-              cursor: "pointer",
-              fontSize: 14,
-              fontFamily: "var(--font-sans)",
-              fontWeight: 600,
-              padding: 0,
-            }}
-          >
-            Log in.
-          </button>
+          Enter your email and we&apos;ll send you a sign-in code.
         </p>
 
-        <form onSubmit={handleSignUp}>
-          <div style={{ marginBottom: 16 }}>
-            <label htmlFor="signup-name" style={labelStyle}>
-              Full name
-            </label>
-            <input
-              id="signup-name"
-              type="text"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              placeholder="Jane Smith"
-              required
-              autoFocus
-              style={inputStyle}
-            />
-          </div>
-
-          <div style={{ marginBottom: 16 }}>
-            <label htmlFor="signup-email" style={labelStyle}>
-              Email address
-            </label>
-            <input
-              id="signup-email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              required
-              style={inputStyle}
-            />
-          </div>
-
-          <div style={{ marginBottom: 20 }}>
-            <label htmlFor="signup-pw" style={labelStyle}>
-              Password
-            </label>
-            <div style={{ position: "relative" }}>
-              <input
-                id="signup-pw"
-                type={showPw ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                style={{ ...inputStyle, paddingRight: 56 }}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPw(!showPw)}
-                style={{
-                  position: "absolute",
-                  right: 14,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  fontSize: 12,
-                  color: "#78716c",
-                  fontFamily: "var(--font-sans)",
-                  fontWeight: 500,
-                  padding: 0,
-                }}
-              >
-                {showPw ? "Hide" : "Show"}
-              </button>
-            </div>
-          </div>
+        <form onSubmit={handleSendOtp}>
+          <label htmlFor="email" style={labelStyle}>
+            Email address
+          </label>
+          <input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+            required
+            autoFocus
+            style={{ ...inputStyle, marginBottom: 20 }}
+          />
 
           {error && (
             <p style={{ fontSize: 13, color: "#ef4444", marginBottom: 14 }}>
@@ -921,22 +549,9 @@ export default function LoginPage() {
           )}
 
           <button type="submit" disabled={loading} style={btnGreen}>
-            {loading ? "Creating..." : "Create Account"}
+            {loading ? "Sending..." : "Send Code"}
           </button>
         </form>
-
-        {divider}
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <button onClick={() => handleOAuth("google")} style={btnOAuth}>
-            {googleIcon}
-            Continue with Google
-          </button>
-          <button onClick={() => handleOAuth("apple")} style={btnOAuth}>
-            {appleIcon}
-            Continue with Apple
-          </button>
-        </div>
       </>
     );
   }
