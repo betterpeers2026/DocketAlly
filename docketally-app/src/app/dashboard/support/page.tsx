@@ -753,7 +753,7 @@ export default function SupportPage() {
     <div className="da-page-wrapper" style={{ padding: 32, maxWidth: 1100, margin: "0 auto" }}>
       {/* Header */}
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontFamily: "var(--font-serif)", fontSize: 26, fontWeight: 700, color: "#292524", marginBottom: 8 }}>
+        <h1 style={{ fontFamily: "var(--font-sans)", fontSize: 26, fontWeight: 700, color: "#292524", marginBottom: 8 }}>
           Support
         </h1>
         <p style={{ fontSize: 14, color: "var(--color-stone-600)", lineHeight: 1.6, fontFamily: "var(--font-sans)", maxWidth: 600 }}>
@@ -838,7 +838,7 @@ export default function SupportPage() {
                   {currentSection.label}
                 </span>
                 <h2 style={{
-                  fontFamily: "var(--font-serif)",
+                  fontFamily: "var(--font-sans)",
                   fontSize: 28,
                   fontWeight: 700,
                   color: "#292524",
@@ -1077,7 +1077,7 @@ export default function SupportPage() {
                         <line x1="21" y1="21" x2="16.65" y2="16.65" />
                       </svg>
                     </div>
-                    <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 22, fontWeight: 600, color: "#292524", marginBottom: 10 }}>
+                    <h2 style={{ fontFamily: "var(--font-sans)", fontSize: 22, fontWeight: 600, color: "#292524", marginBottom: 10 }}>
                       No articles found
                     </h2>
                     <p style={{ fontSize: 14, color: "var(--color-stone-600)", lineHeight: 1.6 }}>
@@ -1091,7 +1091,7 @@ export default function SupportPage() {
                     {/* Section header */}
                     <h2
                       style={{
-                        fontFamily: "var(--font-serif)",
+                        fontFamily: "var(--font-sans)",
                         fontSize: 18,
                         fontWeight: 600,
                         color: "#292524",

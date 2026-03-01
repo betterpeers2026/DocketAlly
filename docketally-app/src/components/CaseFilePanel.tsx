@@ -797,7 +797,7 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
                     fontSize: 13,
                     fontWeight: 600,
                     color: "#292524",
-                    fontFamily: "var(--font-serif)",
+                    fontFamily: "var(--font-sans)",
                     lineHeight: 1.3,
                     marginBottom: 4,
                   }}
@@ -1057,7 +1057,7 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
           </svg>
           <div
             style={{
-              fontFamily: "var(--font-serif)",
+              fontFamily: "var(--font-sans)",
               fontSize: 16,
               fontWeight: 600,
               color: "#292524",
@@ -1155,7 +1155,7 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
                 >
                   <span
                     style={{
-                      fontFamily: "var(--font-serif)",
+                      fontFamily: "var(--font-sans)",
                       fontSize: 15,
                       fontWeight: 700,
                       color: "#292524",
@@ -1237,7 +1237,7 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
             ) : (
               <span
                 style={{
-                  fontFamily: "var(--font-serif)",
+                  fontFamily: "var(--font-sans)",
                   fontSize: 15,
                   fontWeight: 700,
                   color: "#292524",

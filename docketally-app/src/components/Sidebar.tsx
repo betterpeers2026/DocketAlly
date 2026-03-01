@@ -259,7 +259,7 @@ export default function Sidebar({ user, subscription }: { user: User; subscripti
       <div
         style={{
           padding: "24px 20px 20px",
-          fontFamily: "var(--font-serif)",
+          fontFamily: "var(--font-sans)",
           fontSize: 18,
           fontWeight: 700,
           color: "#fff",

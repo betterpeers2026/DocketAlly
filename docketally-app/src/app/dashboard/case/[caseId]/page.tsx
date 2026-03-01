@@ -553,8 +553,8 @@ function CaseFileDocPreview({ records, vaultDocs, patterns, contradictions, link
       <div style={{ height: 4, background: "#22C55E", marginBottom: 12 }} />
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 12, borderBottom: "1px solid #D6D3D1" }}>
         <div>
-          <span style={{ fontFamily: "var(--font-serif)", fontSize: 16, fontWeight: 800, color: "#292524" }}>Docket</span>
-          <span style={{ fontFamily: "var(--font-serif)", fontSize: 16, fontWeight: 800, color: "#22C55E" }}>Ally</span>
+          <span style={{ fontFamily: "var(--font-sans)", fontSize: 16, fontWeight: 800, color: "#292524" }}>Docket</span>
+          <span style={{ fontFamily: "var(--font-sans)", fontSize: 16, fontWeight: 800, color: "#22C55E" }}>Ally</span>
         </div>
         <span style={{ fontSize: 13, color: "#44403C" }}>Confidential Case File</span>
       </div>
@@ -590,14 +590,14 @@ function CaseFileDocPreview({ records, vaultDocs, patterns, contradictions, link
       <div style={{ padding: 56, minHeight: 700 }}>
         <div style={{ height: 4, background: "#22C55E", marginBottom: 40 }} />
         <div style={{ marginBottom: 80 }}>
-          <span style={{ fontFamily: "var(--font-serif)", fontSize: 22, fontWeight: 800, color: "#292524" }}>Docket</span>
-          <span style={{ fontFamily: "var(--font-serif)", fontSize: 22, fontWeight: 800, color: "#22C55E" }}>Ally</span>
+          <span style={{ fontFamily: "var(--font-sans)", fontSize: 22, fontWeight: 800, color: "#292524" }}>Docket</span>
+          <span style={{ fontFamily: "var(--font-sans)", fontSize: 22, fontWeight: 800, color: "#22C55E" }}>Ally</span>
           <div style={{ display: "flex", gap: 4, marginTop: 4 }}>
             <div style={{ width: 24, height: 3, background: "#22C55E", borderRadius: 2 }} />
             <div style={{ width: 24, height: 3, background: "#22C55E", borderRadius: 2 }} />
           </div>
         </div>
-        <h1 style={{ fontFamily: "var(--font-serif)", fontSize: 48, fontWeight: 900, color: "#292524", lineHeight: 1.1, marginBottom: 12 }}>{caseName}</h1>
+        <h1 style={{ fontFamily: "var(--font-sans)", fontSize: 48, fontWeight: 900, color: "#292524", lineHeight: 1.1, marginBottom: 12 }}>{caseName}</h1>
         <div style={{ width: 40, height: 3, background: "#22C55E", borderRadius: 2, marginBottom: 16 }} />
         <p style={{ fontSize: 18, color: "#292524", marginBottom: pdfProtectedClasses ? 8 : 60 }}>{pdfSubtitle}</p>
         {pdfProtectedClasses && (
@@ -630,7 +630,7 @@ function CaseFileDocPreview({ records, vaultDocs, patterns, contradictions, link
       {/* Table of Contents */}
       <div style={{ padding: "0 56px 56px", pageBreakBefore: "always" }}>
         {runningHeader}
-        <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 28, fontWeight: 800, marginBottom: 32 }}>Contents</h2>
+        <h2 style={{ fontFamily: "var(--font-sans)", fontSize: 28, fontWeight: 800, marginBottom: 32 }}>Contents</h2>
         {[
           { n: 1, t: "Case Summary" },
           { n: 2, t: "Key Dates" },
@@ -667,7 +667,7 @@ function CaseFileDocPreview({ records, vaultDocs, patterns, contradictions, link
         </div>
         {caseData?.description && (
           <div style={{ marginTop: 32 }}>
-            <h3 style={{ fontFamily: "var(--font-serif)", fontSize: 20, fontWeight: 700, marginBottom: 12 }}>Situation</h3>
+            <h3 style={{ fontFamily: "var(--font-sans)", fontSize: 20, fontWeight: 700, marginBottom: 12 }}>Situation</h3>
             <p style={{ fontSize: 15, lineHeight: 1.8, whiteSpace: "pre-wrap" }}>{caseData.description}</p>
           </div>
         )}
@@ -730,7 +730,7 @@ function CaseFileDocPreview({ records, vaultDocs, patterns, contradictions, link
           {patterns.map((pattern, idx) => (
             <div key={`p-${idx}`} style={{ borderLeft: "3px solid #22C55E", paddingLeft: 24, marginBottom: 24, pageBreakInside: "avoid" }}>
               <div style={{ marginBottom: 8 }}>
-                <span style={{ fontFamily: "var(--font-serif)", fontSize: 18, fontWeight: 700 }}>{pattern.label}</span>
+                <span style={{ fontFamily: "var(--font-sans)", fontSize: 18, fontWeight: 700 }}>{pattern.label}</span>
                 <span style={{ fontSize: 12, fontWeight: 600, color: "#22C55E", marginLeft: 12 }}>[{pattern.type === "plan" ? "Plan Pattern" : "Notable Pattern"}]</span>
               </div>
               <p style={{ fontSize: 14, lineHeight: 1.7 }}>{pattern.detail}</p>
@@ -739,7 +739,7 @@ function CaseFileDocPreview({ records, vaultDocs, patterns, contradictions, link
           {contradictions.map((c, idx) => (
             <div key={`c-${idx}`} style={{ borderLeft: "3px solid #F59E0B", paddingLeft: 24, marginBottom: 24, pageBreakInside: "avoid" }}>
               <div style={{ marginBottom: 8 }}>
-                <span style={{ fontFamily: "var(--font-serif)", fontSize: 18, fontWeight: 700 }}>
+                <span style={{ fontFamily: "var(--font-sans)", fontSize: 18, fontWeight: 700 }}>
                   {c.type === "performance" ? "Contradictory Performance Signals" : c.type === "shifting" ? "Shifting Expectations" : c.type === "exclusion" ? "Post-Complaint Changes" : "Plan Contradiction"}
                 </span>
                 <span style={{ fontSize: 12, fontWeight: 600, color: "#F59E0B", marginLeft: 12 }}>[Potential Contradiction]</span>
@@ -1443,7 +1443,7 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
   if (!caseData && !loading) {
     return (
       <div className="da-page-wrapper" style={{ padding: 32, maxWidth: 960, margin: "0 auto", textAlign: "center", paddingTop: 120 }}>
-        <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 22, fontWeight: 600, color: "#292524", marginBottom: 10 }}>Case not found</h2>
+        <h2 style={{ fontFamily: "var(--font-sans)", fontSize: 22, fontWeight: 600, color: "#292524", marginBottom: 10 }}>Case not found</h2>
         <button onClick={() => router.push("/dashboard/case")} style={{ padding: "14px 32px", borderRadius: 10, border: "none", background: "var(--color-green)", color: "#fff", fontSize: 15, fontWeight: 600, fontFamily: "var(--font-sans)", cursor: "pointer" }}>Back to Cases</button>
       </div>
     );
@@ -1469,13 +1469,13 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
               onChange={(e) => setNameInput(e.target.value)}
               onBlur={saveNameEdit}
               onKeyDown={(e) => { if (e.key === "Enter") saveNameEdit(); if (e.key === "Escape") setEditingName(false); }}
-              style={{ fontFamily: "var(--font-serif)", fontSize: 28, fontWeight: 600, color: "#292524", margin: 0, padding: "0 4px", border: "none", borderBottom: "2px solid var(--color-green)", outline: "none", background: "transparent", minWidth: 120, maxWidth: "100%" }}
+              style={{ fontFamily: "var(--font-sans)", fontSize: 28, fontWeight: 600, color: "#292524", margin: 0, padding: "0 4px", border: "none", borderBottom: "2px solid var(--color-green)", outline: "none", background: "transparent", minWidth: 120, maxWidth: "100%" }}
             />
           ) : (
             <h1
               onClick={startEditingName}
               title="Click to rename"
-              style={{ fontFamily: "var(--font-serif)", fontSize: 28, fontWeight: 600, color: "#292524", margin: 0, cursor: "pointer", borderBottom: "2px solid transparent", transition: "border-color 0.15s" }}
+              style={{ fontFamily: "var(--font-sans)", fontSize: 28, fontWeight: 600, color: "#292524", margin: 0, cursor: "pointer", borderBottom: "2px solid transparent", transition: "border-color 0.15s" }}
               onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--color-stone-300)"; }}
               onMouseLeave={(e) => { e.currentTarget.style.borderColor = "transparent"; }}
             >
@@ -1652,7 +1652,7 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
                     <div style={{ width: 48, height: 48, borderRadius: "50%", background: "#F0FDF4", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
                       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 8v4l3 3" /><circle cx="12" cy="12" r="10" /></svg>
                     </div>
-                    <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 22, fontWeight: 600, color: "#292524", marginBottom: 10 }}>No records in this case yet</h2>
+                    <h2 style={{ fontFamily: "var(--font-sans)", fontSize: 22, fontWeight: 600, color: "#292524", marginBottom: 10 }}>No records in this case yet</h2>
                     <p style={{ fontSize: 14, color: "var(--color-stone-600)", lineHeight: 1.6, marginBottom: 20 }}>Use the &quot;Add Records&quot; button above to link records to this case.</p>
                     <button onClick={() => { fetchAllRecords(); setShowAddRecords(true); }} style={{ padding: "12px 24px", borderRadius: 10, border: "1px solid #22C55E", background: "#fff", color: "#22C55E", fontSize: 14, fontWeight: 600, fontFamily: "var(--font-sans)", cursor: "pointer" }}>+ Add Records</button>
                   </div>
@@ -1800,7 +1800,7 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
               {editingCaseInfo ? (
                 <div style={{ background: "#fff", borderRadius: 14, border: "1px solid var(--color-stone-300)", padding: "28px 28px" }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
-                    <h3 style={{ fontFamily: "var(--font-serif)", fontSize: 18, fontWeight: 700, color: "#292524" }}>Edit Case Information</h3>
+                    <h3 style={{ fontFamily: "var(--font-sans)", fontSize: 18, fontWeight: 700, color: "#292524" }}>Edit Case Information</h3>
                     <button onClick={() => setEditingCaseInfo(false)} style={{ padding: "6px 14px", borderRadius: 8, border: "1px solid #D6D3D1", background: "#fff", color: "#292524", fontSize: 13, fontWeight: 600, fontFamily: "var(--font-sans)", cursor: "pointer" }}>Cancel</button>
                   </div>
                   <div className="da-case-info-grid da-grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
@@ -1974,7 +1974,7 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
               ) : (
                 <div style={{ background: "#fff", borderRadius: 14, border: "1px solid var(--color-stone-300)", padding: "28px 28px" }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
-                    <h3 style={{ fontFamily: "var(--font-serif)", fontSize: 18, fontWeight: 700, color: "#292524" }}>Case Information</h3>
+                    <h3 style={{ fontFamily: "var(--font-sans)", fontSize: 18, fontWeight: 700, color: "#292524" }}>Case Information</h3>
                     <button onClick={startEditCaseInfo} style={{ padding: "8px 16px", borderRadius: 8, border: "1px solid var(--color-stone-300)", background: "#fff", color: "var(--color-stone-800)", fontSize: 13, fontWeight: 600, fontFamily: "var(--font-sans)", cursor: "pointer" }}>Edit Case Info</button>
                   </div>
                   {/* Row 1: Case Name + Case Type */}
@@ -2090,7 +2090,7 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
               {/* Action Bar + View Toggle */}
               <div className="da-cf-action-bar" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, maxWidth: caseFileView === "document" ? 720 : 800, margin: "0 auto 28px" }}>
                 <div>
-                  <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 24, fontWeight: 600, color: "#292524", marginBottom: 4 }}>{(() => { const nt = resolveTypes(caseData).filter((t) => t.toLowerCase() !== "general"); return nt.length > 0 ? `${nt.join(" \u00b7 ")} Case File` : "Case File"; })()}</h2>
+                  <h2 style={{ fontFamily: "var(--font-sans)", fontSize: 24, fontWeight: 600, color: "#292524", marginBottom: 4 }}>{(() => { const nt = resolveTypes(caseData).filter((t) => t.toLowerCase() !== "general"); return nt.length > 0 ? `${nt.join(" \u00b7 ")} Case File` : "Case File"; })()}</h2>
                   <p style={{ fontSize: 13, color: "#292524", fontFamily: "var(--font-sans)" }}>
                     Generated {formatDate(new Date().toISOString().split("T")[0])}
                     {records.length > 0 && ` \u00b7 ${records.length} record${records.length !== 1 ? "s" : ""}`}
@@ -2140,21 +2140,21 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
                   {records.length > 0 && (
                     <div className="da-case-stat-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 32 }}>
                       <div style={{ background: "#fff", border: "1px solid #D6D3D1", borderRadius: 10, padding: 20, boxShadow: "0 1px 2px rgba(0,0,0,0.04)" }}>
-                        <div style={{ fontFamily: "var(--font-serif)", fontSize: 24, fontWeight: 600, color: "#292524", marginBottom: 4 }}>{records.length}</div>
+                        <div style={{ fontFamily: "var(--font-sans)", fontSize: 24, fontWeight: 600, color: "#292524", marginBottom: 4 }}>{records.length}</div>
                         <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 700, color: "#292524", textTransform: "uppercase", letterSpacing: "0.06em" }}>Total Records</div>
                       </div>
                       <div style={{ background: "#fff", border: "1px solid #D6D3D1", borderRadius: 10, padding: 20, boxShadow: "0 1px 2px rgba(0,0,0,0.04)" }}>
-                        <div style={{ fontFamily: "var(--font-serif)", fontSize: 14, fontWeight: 600, color: "#292524", marginBottom: 4, lineHeight: 1.6 }}>
+                        <div style={{ fontFamily: "var(--font-sans)", fontSize: 14, fontWeight: 600, color: "#292524", marginBottom: 4, lineHeight: 1.6 }}>
                           {formatDate(records[0].date).replace(/, \d{4}/, "")} to {formatDate(records[records.length - 1].date).replace(/, \d{4}/, "")}
                         </div>
                         <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 700, color: "#292524", textTransform: "uppercase", letterSpacing: "0.06em" }}>Date Range</div>
                       </div>
                       <div style={{ background: "#fff", border: "1px solid #D6D3D1", borderRadius: 10, padding: 20, boxShadow: "0 1px 2px rgba(0,0,0,0.04)" }}>
-                        <div style={{ fontFamily: "var(--font-serif)", fontSize: 24, fontWeight: 600, color: "#292524", marginBottom: 4 }}>{entryTypeCounts.length}</div>
+                        <div style={{ fontFamily: "var(--font-sans)", fontSize: 24, fontWeight: 600, color: "#292524", marginBottom: 4 }}>{entryTypeCounts.length}</div>
                         <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 700, color: "#292524", textTransform: "uppercase", letterSpacing: "0.06em" }}>Entry Types</div>
                       </div>
                       <div style={{ background: "#fff", border: "1px solid #D6D3D1", borderRadius: 10, padding: 20, boxShadow: "0 1px 2px rgba(0,0,0,0.04)" }}>
-                        <div style={{ fontFamily: "var(--font-serif)", fontSize: 24, fontWeight: 600, color: "#292524", marginBottom: 4 }}>{allPeople.length}</div>
+                        <div style={{ fontFamily: "var(--font-sans)", fontSize: 24, fontWeight: 600, color: "#292524", marginBottom: 4 }}>{allPeople.length}</div>
                         <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 700, color: "#292524", textTransform: "uppercase", letterSpacing: "0.06em" }}>Key People</div>
                       </div>
                     </div>
@@ -2190,7 +2190,7 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
                   {/* Interactive Record Timeline */}
                   {records.length > 0 && (
                     <div style={{ marginBottom: 32 }}>
-                      <h3 style={{ fontFamily: "var(--font-serif)", fontSize: 20, fontWeight: 600, color: "#292524", marginBottom: 16 }}>Record Timeline</h3>
+                      <h3 style={{ fontFamily: "var(--font-sans)", fontSize: 20, fontWeight: 600, color: "#292524", marginBottom: 16 }}>Record Timeline</h3>
                       <div style={{ position: "relative", paddingLeft: 32 }}>
                         <div style={{ position: "absolute", left: 9, top: 8, bottom: 8, width: 2, background: "#22C55E", borderRadius: 1 }} />
                         {records.map((record) => {
@@ -2206,7 +2206,7 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
                                   <span style={getBadgeStyle(record.entry_type)}>{record.entry_type}</span>
                                   {starredIds.has(record.id) && <span style={{ fontSize: 13, color: "#22C55E" }}>&#9733;</span>}
                                 </div>
-                                <div style={{ fontFamily: "var(--font-serif)", fontSize: 16, fontWeight: 600, color: "#292524", marginBottom: 6 }}>{record.title}</div>
+                                <div style={{ fontFamily: "var(--font-sans)", fontSize: 16, fontWeight: 600, color: "#292524", marginBottom: 6 }}>{record.title}</div>
                                 <div style={{ fontSize: 14, color: "#292524", lineHeight: 1.7, ...(isLong && !isExpanded ? { display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical" as const, overflow: "hidden" } : {}) }}>{renderMarkdown(record.narrative)}</div>
                                 {isLong && (
                                   <button onClick={() => setExpandedCFRecord(isExpanded ? null : record.id)} style={{ background: "none", border: "none", padding: 0, fontSize: 13, fontWeight: 600, color: "#22C55E", cursor: "pointer", fontFamily: "var(--font-sans)", marginTop: 4 }}>{isExpanded ? "Show less" : "Show more"}</button>
@@ -2245,13 +2245,13 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
               {patterns.length === 0 && contradictions.length === 0 ? (
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 300 }}>
                   <div style={{ textAlign: "center", maxWidth: 420, background: "#fff", borderRadius: 16, border: "1px solid var(--color-stone-300)", padding: "56px 40px" }}>
-                    <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 22, fontWeight: 600, color: "#292524", marginBottom: 10 }}>No patterns detected yet</h2>
+                    <h2 style={{ fontFamily: "var(--font-sans)", fontSize: 22, fontWeight: 600, color: "#292524", marginBottom: 10 }}>No patterns detected yet</h2>
                     <p style={{ fontSize: 14, color: "var(--color-stone-600)", lineHeight: 1.6 }}>Add more records to this case. Patterns become clearer over time.</p>
                   </div>
                 </div>
               ) : (
                 <>
-                  <h3 style={{ fontFamily: "var(--font-serif)", fontSize: 24, fontWeight: 600, color: "#292524", marginBottom: 6 }}>Patterns</h3>
+                  <h3 style={{ fontFamily: "var(--font-sans)", fontSize: 24, fontWeight: 600, color: "#292524", marginBottom: 6 }}>Patterns</h3>
                   <p style={{ fontSize: 14, color: "#78716C", fontFamily: "var(--font-sans)", fontStyle: "italic", marginBottom: 20 }}>These patterns are observations from your records, not legal analysis.</p>
                   <div className="da-pattern-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 14 }}>
                     {patterns.map((pattern, idx) => (
@@ -2375,7 +2375,7 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
               <div>
                 {/* Strength Card */}
                 <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E7E5E4", borderTop: "3px solid #22C55E", padding: 32, marginBottom: 24, boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)" }}>
-                  <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 22, fontWeight: 600, color: "#292524", marginBottom: 24 }}>
+                  <h2 style={{ fontFamily: "var(--font-sans)", fontSize: 22, fontWeight: 600, color: "#292524", marginBottom: 24 }}>
                     Documentation Strength
                   </h2>
                   <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -2415,7 +2415,7 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
                   </div>
                 ) : (
                   <div>
-                    <h3 style={{ fontFamily: "var(--font-serif)", fontSize: 18, fontWeight: 600, color: "#292524", marginBottom: 12 }}>Next Steps</h3>
+                    <h3 style={{ fontFamily: "var(--font-sans)", fontSize: 18, fontWeight: 600, color: "#292524", marginBottom: 12 }}>Next Steps</h3>
                     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                       {nextSteps.map((step, idx) => (
                         <div
@@ -2451,7 +2451,7 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
             {/* Modal header */}
             <div style={{ padding: "20px 24px", borderBottom: "1px solid #E7E5E4", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
               <div>
-                <h3 style={{ fontFamily: "var(--font-serif)", fontSize: 18, fontWeight: 700, color: "#292524", marginBottom: 4 }}>Add Records to Case</h3>
+                <h3 style={{ fontFamily: "var(--font-sans)", fontSize: 18, fontWeight: 700, color: "#292524", marginBottom: 4 }}>Add Records to Case</h3>
                 <p style={{ fontSize: 13, color: "var(--color-stone-500)" }}>{caseRecordIds.size} record{caseRecordIds.size !== 1 ? "s" : ""} in this case</p>
               </div>
               <button onClick={closeAddRecordsModal} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>

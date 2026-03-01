@@ -38,7 +38,7 @@
 
   /* Fonts */
   --font-serif: 'Source Serif 4', Georgia, serif;
-  --font-sans: 'Manrope', -apple-system, sans-serif;
+  --font-sans: 'DM Sans', -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
 
   /* Shadows — depth hierarchy */
@@ -86,7 +86,7 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Serif heading letter-spacing (Source Serif 4) */
+  /* Heading letter-spacing */
   h1, h2, h3, h4 {
     letter-spacing: -0.02em;
   }

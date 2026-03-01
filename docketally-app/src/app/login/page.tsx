@@ -77,7 +77,7 @@ export default function LoginPage() {
         {/* Logo */}
         <div
           style={{
-            fontFamily: "var(--font-serif)",
+            fontFamily: "var(--font-sans)",
             fontSize: 22,
             fontWeight: 700,
             marginBottom: 32,
@@ -91,7 +91,7 @@ export default function LoginPage() {
           <>
             <h1
               style={{
-                fontFamily: "var(--font-serif)",
+                fontFamily: "var(--font-sans)",
                 fontSize: 24,
                 fontWeight: 600,
                 color: "var(--color-stone-900)",
@@ -187,7 +187,7 @@ export default function LoginPage() {
           <>
             <h1
               style={{
-                fontFamily: "var(--font-serif)",
+                fontFamily: "var(--font-sans)",
                 fontSize: 24,
                 fontWeight: 600,
                 color: "var(--color-stone-900)",

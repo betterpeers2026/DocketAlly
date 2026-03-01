@@ -62,7 +62,7 @@ export default function ProGate({ feature }: { feature: string }) {
 
         <h2
           style={{
-            fontFamily: "var(--font-serif)",
+            fontFamily: "var(--font-sans)",
             fontSize: 24,
             fontWeight: 600,
             color: "var(--color-stone-900)",

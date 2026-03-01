@@ -745,7 +745,7 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
           >
             <h2
               style={{
-                fontFamily: "var(--font-serif)",
+                fontFamily: "var(--font-sans)",
                 fontSize: 22,
                 fontWeight: 700,
                 color: "#292524",
@@ -1015,7 +1015,7 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
           <div style={{ marginBottom: 28 }}>
             <h1
               style={{
-                fontFamily: "var(--font-serif)",
+                fontFamily: "var(--font-sans)",
                 fontSize: 28,
                 fontWeight: 600,
                 color: "#292524",
@@ -1357,7 +1357,7 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
               </div>
               <h2
                 style={{
-                  fontFamily: "var(--font-serif)",
+                  fontFamily: "var(--font-sans)",
                   fontSize: 20,
                   fontWeight: 600,
                   color: "#292524",
@@ -1945,7 +1945,7 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
           >
             <h3
               style={{
-                fontFamily: "var(--font-serif)",
+                fontFamily: "var(--font-sans)",
                 fontSize: 18,
                 fontWeight: 600,
                 color: "#292524",

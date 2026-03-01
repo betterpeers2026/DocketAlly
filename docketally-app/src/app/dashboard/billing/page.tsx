@@ -110,7 +110,7 @@ export default function BillingPage() {
       <div style={{ marginBottom: 32 }}>
         <h1
           style={{
-            fontFamily: "var(--font-serif)",
+            fontFamily: "var(--font-sans)",
             fontSize: 26,
             fontWeight: 700,
             color: "#292524",
@@ -163,7 +163,7 @@ export default function BillingPage() {
             </div>
             <h2
               style={{
-                fontFamily: "var(--font-serif)",
+                fontFamily: "var(--font-sans)",
                 fontSize: 22,
                 fontWeight: 600,
                 color: "#292524",
@@ -227,7 +227,7 @@ export default function BillingPage() {
             </div>
             <h2
               style={{
-                fontFamily: "var(--font-serif)",
+                fontFamily: "var(--font-sans)",
                 fontSize: 22,
                 fontWeight: 600,
                 color: "#292524",
@@ -279,7 +279,7 @@ export default function BillingPage() {
           <>
             <h2
               style={{
-                fontFamily: "var(--font-serif)",
+                fontFamily: "var(--font-sans)",
                 fontSize: 22,
                 fontWeight: 600,
                 color: "#292524",
@@ -304,7 +304,7 @@ export default function BillingPage() {
           <>
             <h2
               style={{
-                fontFamily: "var(--font-serif)",
+                fontFamily: "var(--font-sans)",
                 fontSize: 22,
                 fontWeight: 600,
                 color: "#292524",
@@ -331,7 +331,7 @@ export default function BillingPage() {
         <>
           <h2
             style={{
-              fontFamily: "var(--font-serif)",
+              fontFamily: "var(--font-sans)",
               fontSize: 20,
               fontWeight: 600,
               color: "#292524",

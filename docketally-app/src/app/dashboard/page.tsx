@@ -837,7 +837,7 @@ export default function RecordPage() {
           >
             <h2
               style={{
-                fontFamily: "var(--font-serif)",
+                fontFamily: "var(--font-sans)",
                 fontSize: 22,
                 fontWeight: 700,
                 color: "#292524",
@@ -1406,7 +1406,7 @@ export default function RecordPage() {
             <div style={{ textAlign: "center", marginBottom: 36 }}>
               <h1
                 style={{
-                  fontFamily: "var(--font-serif)",
+                  fontFamily: "var(--font-sans)",
                   fontSize: 28,
                   fontWeight: 700,
                   color: "#292524",
@@ -1542,7 +1542,7 @@ export default function RecordPage() {
           {/* Header */}
           <div className="da-list-header" style={{ marginBottom: 24, animation: "fadeUp 0.4s ease both" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-              <h1 style={{ fontFamily: "var(--font-serif)", fontSize: 32, fontWeight: 700, color: "#292524", letterSpacing: "-0.03em" }}>
+              <h1 style={{ fontFamily: "var(--font-sans)", fontSize: 32, fontWeight: 700, color: "#292524", letterSpacing: "-0.03em" }}>
                 Records
               </h1>
               <button
@@ -1694,7 +1694,7 @@ export default function RecordPage() {
                         </div>
 
                         {/* Title */}
-                        <div style={{ fontSize: 19, fontWeight: 600, color: "#292524", fontFamily: "var(--font-serif)", letterSpacing: "-0.02em", lineHeight: 1.3, margin: "0 0 8px" }}>
+                        <div style={{ fontSize: 19, fontWeight: 600, color: "#292524", fontFamily: "var(--font-sans)", letterSpacing: "-0.02em", lineHeight: 1.3, margin: "0 0 8px" }}>
                           {record.title}
                         </div>
 
@@ -2483,7 +2483,7 @@ export default function RecordPage() {
           >
             <h3
               style={{
-                fontFamily: "var(--font-serif)",
+                fontFamily: "var(--font-sans)",
                 fontSize: 18,
                 fontWeight: 600,
                 color: "var(--color-stone-900)",

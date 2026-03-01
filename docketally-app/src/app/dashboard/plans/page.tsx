@@ -680,7 +680,7 @@ export default function PlansPage() {
           Back
         </button>
 
-        <h1 style={{ fontFamily: "var(--font-serif)", fontSize: 26, fontWeight: 700, color: "#292524", marginBottom: 8 }}>
+        <h1 style={{ fontFamily: "var(--font-sans)", fontSize: 26, fontWeight: 700, color: "#292524", marginBottom: 8 }}>
           {editingPlanId ? "Edit Plan" : "Add a Plan"}
         </h1>
         <p style={{ fontSize: 14, color: "var(--color-stone-600)", lineHeight: 1.6, fontFamily: "var(--font-sans)", marginBottom: 28 }}>
@@ -887,7 +887,7 @@ export default function PlansPage() {
               <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
             </svg>
           </div>
-          <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 22, fontWeight: 600, color: "#292524", marginBottom: 10 }}>
+          <h2 style={{ fontFamily: "var(--font-sans)", fontSize: 22, fontWeight: 600, color: "#292524", marginBottom: 10 }}>
             Stay ahead of workplace changes
           </h2>
           <p style={{ fontSize: 14, color: "var(--color-stone-600)", lineHeight: 1.6, fontFamily: "var(--font-sans)", marginBottom: 24 }}>
@@ -980,7 +980,7 @@ export default function PlansPage() {
               >
                 {typeInfo.shortLabel}
               </span>
-              <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 20, fontWeight: 600, color: "#292524", margin: 0 }}>
+              <h2 style={{ fontFamily: "var(--font-sans)", fontSize: 20, fontWeight: 600, color: "#292524", margin: 0 }}>
                 {plan.plan_name}
               </h2>
               <span style={getStatusBadge(pStatus)}>{statusLabel(pStatus)}</span>
@@ -1188,7 +1188,7 @@ export default function PlansPage() {
             {/* ---- GOALS SECTION ---- */}
             <div style={{ marginTop: 24, paddingTop: 24, borderTop: "1px solid var(--color-stone-100)" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-                <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 18, fontWeight: 600, color: "#292524", margin: 0 }}>
+                <h2 style={{ fontFamily: "var(--font-sans)", fontSize: 18, fontWeight: 600, color: "#292524", margin: 0 }}>
                   Goals
                 </h2>
                 <button
@@ -1534,7 +1534,7 @@ export default function PlansPage() {
             {/* ---- CHECK-INS SECTION ---- */}
             <div style={{ marginTop: 32, paddingTop: 24, borderTop: "1px solid var(--color-stone-100)" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-                <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 18, fontWeight: 600, color: "#292524", margin: 0 }}>
+                <h2 style={{ fontFamily: "var(--font-sans)", fontSize: 18, fontWeight: 600, color: "#292524", margin: 0 }}>
                   Check-Ins
                 </h2>
                 <button
@@ -1756,7 +1756,7 @@ export default function PlansPage() {
 
             {/* ---- GOAL REVISION HISTORY ---- */}
             <div style={{ marginTop: 32, paddingTop: 24, borderTop: "1px solid var(--color-stone-100)" }}>
-              <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 18, fontWeight: 600, color: "#292524", marginBottom: 16 }}>
+              <h2 style={{ fontFamily: "var(--font-sans)", fontSize: 18, fontWeight: 600, color: "#292524", marginBottom: 16 }}>
                 Goal Revision History
               </h2>
 
@@ -1855,7 +1855,7 @@ export default function PlansPage() {
       {/* Header */}
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 28, gap: 16, flexWrap: "wrap" }}>
         <div>
-          <h1 style={{ fontFamily: "var(--font-serif)", fontSize: 26, fontWeight: 700, color: "#292524", marginBottom: 8 }}>
+          <h1 style={{ fontFamily: "var(--font-sans)", fontSize: 26, fontWeight: 700, color: "#292524", marginBottom: 8 }}>
             Plans
           </h1>
           <p style={{ fontSize: 14, color: "var(--color-stone-600)", lineHeight: 1.6, fontFamily: "var(--font-sans)", maxWidth: 600 }}>
@@ -1961,7 +1961,7 @@ export default function PlansPage() {
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 style={{ fontFamily: "var(--font-serif)", fontSize: 20, fontWeight: 600, color: "#292524", marginBottom: 12 }}>
+            <h3 style={{ fontFamily: "var(--font-sans)", fontSize: 20, fontWeight: 600, color: "#292524", marginBottom: 12 }}>
               Delete this plan?
             </h3>
             <p style={{ fontSize: 14, color: "var(--color-stone-600)", fontFamily: "var(--font-sans)", lineHeight: 1.6, marginBottom: 24 }}>

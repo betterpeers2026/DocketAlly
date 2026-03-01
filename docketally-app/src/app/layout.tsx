@@ -1,7 +1,8 @@
 import type { Metadata, Viewport } from "next";
-import { Source_Serif_4, Manrope, JetBrains_Mono } from "next/font/google";
+import { Source_Serif_4, DM_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
+/* Source Serif 4 is loaded here for CaseFileDocument PDF rendering only */
 const sourceSerif = Source_Serif_4({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
@@ -9,7 +10,7 @@ const sourceSerif = Source_Serif_4({
   display: "swap",
 });
 
-const manrope = Manrope({
+const dmSans = DM_Sans({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-sans",
@@ -51,7 +52,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${sourceSerif.variable} ${manrope.variable} ${jetbrainsMono.variable}`}
+      className={`${sourceSerif.variable} ${dmSans.variable} ${jetbrainsMono.variable}`}
     >
       <body>{children}</body>
     </html>

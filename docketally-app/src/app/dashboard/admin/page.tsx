@@ -741,7 +741,7 @@ export default function AdminPage() {
         </div>
         <h1
           style={{
-            fontFamily: "var(--font-serif)",
+            fontFamily: "var(--font-sans)",
             fontSize: 24,
             fontWeight: 700,
             color: "#292524",
@@ -812,7 +812,7 @@ export default function AdminPage() {
       <div style={{ marginBottom: 28 }}>
         <h1
           style={{
-            fontFamily: "var(--font-serif)",
+            fontFamily: "var(--font-sans)",
             fontSize: 28,
             fontWeight: 700,
             color: "#292524",
@@ -1622,7 +1622,7 @@ export default function AdminPage() {
                     #{selectedTicket.id.slice(0, 8)}
                   </span>
                 </div>
-                <h2 style={{ fontFamily: "var(--font-serif)", fontSize: 20, fontWeight: 600, color: "#292524", marginBottom: 4 }}>
+                <h2 style={{ fontFamily: "var(--font-sans)", fontSize: 20, fontWeight: 600, color: "#292524", marginBottom: 4 }}>
                   {selectedTicket.subject}
                 </h2>
                 <div style={{ fontSize: 12, color: "#292524", fontFamily: "var(--font-mono)" }}>
