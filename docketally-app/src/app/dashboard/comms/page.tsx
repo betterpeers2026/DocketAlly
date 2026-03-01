@@ -99,7 +99,7 @@ const TEMPLATES: Template[] = [
     id: "pip-acknowledgment",
     title: "PIP Acknowledgment Letter",
     description:
-      "Acknowledge receipt of a PIP while asking the right clarifying questions to set yourself up for success.",
+      "Acknowledge receipt of a Performance Improvement Plan (PIP) while asking the right clarifying questions to set yourself up for success.",
     category: "Responding to a PIP",
     tag: "Critical",
     body: `Subject: PIP Follow-Up, Next Steps

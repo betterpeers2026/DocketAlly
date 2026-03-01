@@ -97,7 +97,7 @@ const ARTICLE_SECTIONS: ArticleSection[] = [
         content: (
           <>
             <Ap>Opening a new record takes less than two minutes, and those two minutes can make a real difference down the line. Head to the Record tab, click &ldquo;New Record,&rdquo; and start with the basics: what happened, when it happened, and who was there.</Ap>
-            <Ap>Pick the entry type that best fits the situation. If your manager pulled you into an unexpected meeting about performance, that might be a &ldquo;1:1 Meeting&rdquo; or a &ldquo;PIP Conversation&rdquo; depending on the content. If you received an email changing your responsibilities, that&apos;s &ldquo;Written Communication.&rdquo; Don&apos;t overthink the category, the important thing is getting it documented.</Ap>
+            <Ap>Pick the entry type that best fits the situation. If your manager pulled you into an unexpected meeting about performance, that might be a &ldquo;1:1 Meeting&rdquo; or a &ldquo;PIP Conversation&rdquo; (Performance Improvement Plan) depending on the content. If you received an email changing your responsibilities, that&apos;s &ldquo;Written Communication.&rdquo; Don&apos;t overthink the category, the important thing is getting it documented.</Ap>
             <Ap>Write your narrative the way you&apos;d explain it to a colleague: clearly and without embellishment. Stick to what happened, what was said, and what was decided. Skip the emotional reactions for now. You can always add context later, but you can&apos;t recover details you&apos;ve forgotten.</Ap>
             <Callout>The best time to create a record is right after the event happens. Details fade fast. Even waiting a day can cost you specifics that matter.</Callout>
             <Ap>Your record is saved to your personal timeline the moment you submit it. Over time, these entries build into something much more powerful than any single note. <TabLink href="/dashboard" label="Go to Record" /></Ap>
@@ -129,6 +129,165 @@ const ARTICLE_SECTIONS: ArticleSection[] = [
             <Ap>Always fill in the People field with full names. This builds a record of who was present and who was involved, which becomes valuable if you ever need to reference these events formally. Think of it as creating a witness list that assembles itself over time.</Ap>
             <Callout>A good test: would you be comfortable with an attorney, an HR representative, or a judge reading this record? If yes, you&apos;ve struck the right tone.</Callout>
             <Ap>The Facts and Follow-Up fields are optional but powerful. Use Facts for specific data points: numbers, dates, policy references. Use Follow-Up to note anything that was promised or needs to happen next. These small details add up.</Ap>
+          </>
+        ),
+      },
+      {
+        title: "How often should I document?",
+        description: "A breakdown by situation so you can find the right pace.",
+        readTime: "6 min",
+        content: (
+          <>
+            <Ap>The most common question new users ask is how often they should be creating records. The honest answer: it depends on what&apos;s happening at work. Someone on a Performance Improvement Plan (PIP) needs to document daily. Someone in a stable role might write something down once a week. Both are doing it right.</Ap>
+
+            {/* Pullquote */}
+            <div style={{
+              background: "#1C1917",
+              borderRadius: 10,
+              padding: "24px 28px",
+              margin: "28px 0",
+            }}>
+              <p style={{ fontSize: 16, fontWeight: 600, color: "#fff", fontFamily: "var(--font-sans)", lineHeight: 1.5, margin: 0, fontStyle: "italic" }}>
+                &ldquo;The best documentation habit is the one you actually keep.&rdquo;
+              </p>
+            </div>
+
+            <Ap>Here&apos;s a breakdown by situation. Find the one closest to yours.</Ap>
+
+            {/* Situation cards */}
+            {[
+              {
+                label: "Proactive",
+                title: "Starting a new role",
+                cadence: "Once a week, or after key meetings",
+                desc: "You\u2019re not in trouble. You\u2019re building a baseline. Document expectations that are set, promises that are made, and how your role is described to you. If things change later, you\u2019ll have proof of what was originally agreed to.",
+                captures: [
+                  "First meetings with your manager and skip-level",
+                  "Role expectations, goals, or KPIs as they\u2019re defined",
+                  "Positive feedback and recognition",
+                  "Anything said verbally that feels important",
+                ],
+              },
+              {
+                label: "Alert",
+                title: "Sensing a shift",
+                cadence: "After every notable interaction",
+                desc: "Something changed. Tone is different. Feedback contradicts what you heard before. Responsibilities are shifting without explanation. You\u2019re not sure yet, but something feels off. This is when consistent documentation matters most.",
+                captures: [
+                  "Feedback that contradicts previous praise",
+                  "Meetings canceled or rescheduled repeatedly",
+                  "Tasks removed or reassigned without discussion",
+                  "Changes in tone, access, or inclusion",
+                ],
+              },
+              {
+                label: "Active",
+                title: "On a PIP",
+                cadence: "After every interaction. Daily if possible.",
+                desc: "If your employer has put you on a formal plan, every conversation matters. Document each check-in, every piece of feedback, and especially any changes to the original goals or timeline. If goalposts move, your records will show it.",
+                captures: [
+                  "Each PIP check-in and what was discussed",
+                  "Goal changes, deadline shifts, or added criteria",
+                  "Verbal feedback vs. written feedback (note both)",
+                  "Your completed deliverables and any acknowledgment",
+                ],
+              },
+              {
+                label: "Urgent",
+                title: "Facing termination or severance",
+                cadence: "Immediately. Write everything you remember, then document every conversation going forward.",
+                desc: "Start with a brain dump. Write down every key event you can remember, even if you don\u2019t have exact dates. Then document everything going forward: conversations, offers, promises, and anything said in meetings. Your goal is to build the most complete timeline possible before things conclude.",
+                captures: [
+                  "Everything you remember from the past weeks and months",
+                  "Every conversation about your separation",
+                  "Verbal promises about references, severance, or benefits",
+                  "Any inconsistencies between what\u2019s said and what\u2019s written",
+                ],
+              },
+              {
+                label: "Maintenance",
+                title: "Things are fine, staying prepared",
+                cadence: "Once a week. Even a short entry counts.",
+                desc: "Nothing is wrong right now. Good. A weekly entry keeps your documentation current without taking much time. Note what you worked on, any feedback you received, and anything that felt worth remembering. If your situation changes, you won\u2019t be starting from scratch.",
+                captures: [
+                  "Weekly summary of work and feedback",
+                  "Any positive recognition or accomplishments",
+                  "Changes to team structure, reporting, or responsibilities",
+                  "\u201CNo notable events\u201D is a valid entry (consistency matters)",
+                ],
+              },
+            ].map((card, i) => (
+              <div
+                key={i}
+                style={{
+                  background: "#FAFAF9",
+                  border: "1px solid #F5F5F4",
+                  borderRadius: 10,
+                  padding: "20px 24px",
+                  marginBottom: 16,
+                  borderLeft: "3px solid #E7E5E4",
+                  transition: "border-left-color 0.2s",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderLeftColor = "#22C55E"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderLeftColor = "#E7E5E4"; }}
+              >
+                <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "#A8A29E", marginBottom: 6 }}>
+                  {card.label}
+                </div>
+                <div style={{ fontFamily: "var(--font-sans)", fontSize: 15, fontWeight: 700, color: "#1C1917", marginBottom: 4 }}>
+                  {card.title}
+                </div>
+                <div style={{ fontFamily: "var(--font-sans)", fontSize: 14, fontWeight: 600, color: "#22C55E", marginBottom: 10 }}>
+                  {card.cadence}
+                </div>
+                <p style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "#78716C", lineHeight: 1.6, margin: "0 0 14px" }}>
+                  {card.desc}
+                </p>
+                <div style={{ borderTop: "1px solid #E7E5E4", paddingTop: 12 }}>
+                  <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "#A8A29E", marginBottom: 8 }}>
+                    What to capture
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    {card.captures.map((c, j) => (
+                      <div key={j} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                        <div style={{ width: 5, height: 5, borderRadius: "50%", background: "#22C55E", flexShrink: 0, marginTop: 6 }} />
+                        <span style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "#57534E", lineHeight: 1.5 }}>{c}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            {/* Second pullquote */}
+            <div style={{
+              background: "#1C1917",
+              borderRadius: 10,
+              padding: "24px 28px",
+              margin: "28px 0",
+            }}>
+              <p style={{ fontSize: 16, fontWeight: 600, color: "#fff", fontFamily: "var(--font-sans)", lineHeight: 1.5, margin: 0, fontStyle: "italic" }}>
+                &ldquo;A record written the same day is always stronger than one written from memory weeks later.&rdquo;
+              </p>
+            </div>
+
+            {/* Bottom line card */}
+            <div style={{
+              background: "#F0FDF4",
+              border: "1px solid #BBF7D0",
+              borderRadius: 10,
+              padding: "20px 24px",
+              margin: "24px 0",
+            }}>
+              <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "#15803D", marginBottom: 8 }}>
+                The bottom line
+              </div>
+              <p style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "#15803D", lineHeight: 1.7, margin: 0 }}>
+                Document as close to the event as possible. Be factual. Be specific. Even a two-sentence record is better than nothing. The goal isn&apos;t perfection. It&apos;s having a written account that exists, with a timestamp, in your own words. That alone puts you ahead of most employees who have nothing.
+              </p>
+            </div>
+
+            <Ap>Ready to start? <TabLink href="/dashboard" label="Create a record" /></Ap>
           </>
         ),
       },

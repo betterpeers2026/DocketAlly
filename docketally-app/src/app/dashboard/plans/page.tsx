@@ -884,8 +884,9 @@ export default function PlansPage() {
                 margin: "0 auto 28px",
               }}
             >
-              PIPs, development plans, and performance targets all have goals
-              and deadlines. Track them here so nothing slips through the cracks.
+              Performance Improvement Plans (PIPs), development plans, and performance
+              targets all have goals and deadlines. Track them here so nothing slips
+              through the cracks.
             </p>
             <button
               onClick={() => {
@@ -1952,7 +1953,7 @@ export default function PlansPage() {
             Plans
           </h1>
           <p style={{ fontSize: 14, color: "var(--color-stone-600)", lineHeight: 1.6, fontFamily: "var(--font-sans)", maxWidth: 600 }}>
-            If you&apos;re on a PIP or formal plan, track its goals, deadlines, and check-ins. Goal changes are flagged automatically.
+            If you&apos;re on a Performance Improvement Plan (PIP) or formal plan, track its goals, deadlines, and check-ins. Goal changes are flagged automatically.
           </p>
         </div>
         <button

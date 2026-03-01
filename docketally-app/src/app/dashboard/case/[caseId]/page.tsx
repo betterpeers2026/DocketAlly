@@ -390,7 +390,7 @@ function detectPatterns(records: DocketRecord[]): DetectedPattern[] {
 
   const warningCount = records.filter((r) => WARNING_TYPES.has(r.entry_type)).length;
   if (warningCount > 0) {
-    patterns.push({ type: "warning", label: "Flagged Entries", detail: `${warningCount} of ${records.length} records are flagged entries (PIP, HR, Incident)` });
+    patterns.push({ type: "warning", label: "Flagged Entries", detail: `${warningCount} of ${records.length} records are flagged entries (Performance Improvement Plan, HR, Incident)` });
   }
 
   const peopleCounts: Record<string, number> = {};
