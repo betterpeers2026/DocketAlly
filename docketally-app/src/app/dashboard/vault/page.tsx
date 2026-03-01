@@ -374,7 +374,13 @@ export default function VaultPage() {
     for (let i = 0; i < pendingFiles.length; i++) {
       const pf = pendingFiles[i];
       const docId = crypto.randomUUID();
-      const path = `${userId}/${pf.file.name}`;
+      /* Sanitize filename for Supabase storage key: replace spaces with
+         underscores and strip characters that aren't alphanumeric, dash,
+         underscore, or dot. Keep original name for display in the DB. */
+      const safeName = pf.file.name
+        .replace(/\s+/g, "_")
+        .replace(/[^a-zA-Z0-9_\-\.]/g, "");
+      const path = `${userId}/${safeName}`;
 
       // Simulate progress: start
       setUploadingFiles((prev) =>

@@ -65,6 +65,7 @@ interface DocketRecord {
 interface VaultDocument {
   id: string;
   file_name: string;
+  file_url: string;
   category: string;
   linked_record_id: string | null;
   created_at: string;
@@ -342,6 +343,7 @@ export default function CaseFilePanel({
   const [planCheckins, setPlanCheckins] = useState<PlanCheckin[]>([]);
   const [loadingData, setLoadingData] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState(false);
+  const [generatingPacket, setGeneratingPacket] = useState(false);
   const [showCaseDropdown, setShowCaseDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -385,7 +387,7 @@ export default function CaseFilePanel({
         .eq("case_id", selectedCaseId),
       supabase
         .from("vault_documents")
-        .select("id, file_name, category, linked_record_id, created_at")
+        .select("id, file_name, file_url, category, linked_record_id, created_at")
         .eq("user_id", userId),
     ]);
 
@@ -521,6 +523,133 @@ export default function CaseFilePanel({
     el.style.maxHeight = prevMaxHeight;
     if (parent) { parent.style.cssText = prevParentStyle; }
     setGeneratingPdf(false);
+  }
+
+  // Attorney Packet (ZIP) generation
+  async function generatePacket() {
+    const el = docRef.current;
+    if (!el) return;
+    setGeneratingPacket(true);
+
+    try {
+      const JSZip = (await import("jszip")).default;
+      const zip = new JSZip();
+
+      const today = new Date().toISOString().split("T")[0];
+      const safeName = (caseData?.name || "Case").replace(/[^a-zA-Z0-9]/g, "-");
+      const folderName = `DocketAlly-${safeName}-${today}`;
+      const folder = zip.folder(folderName)!;
+
+      /* --- 1. Generate PDF in memory --- */
+      const parent = el.parentElement;
+      const prevParentStyle = parent ? parent.style.cssText : "";
+      if (parent) { parent.style.transform = "none"; parent.style.width = "720px"; }
+      const prevOverflow = el.style.overflow;
+      const prevMaxHeight = el.style.maxHeight;
+      el.style.overflow = "visible";
+      el.style.maxHeight = "none";
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const mod = await import("html2pdf.js");
+      const html2pdf = ((mod as any).default || mod) as any;
+      if (typeof html2pdf !== "function") throw new Error("html2pdf.js failed to load");
+
+      const pdfBlob: Blob = await html2pdf().set({
+        margin: [15, 15, 15, 15],
+        filename: `Case-File-${safeName}.pdf`,
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, scrollY: 0, windowWidth: 720 },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+        pagebreak: { mode: ["avoid-all", "css", "legacy"] },
+      }).from(el).outputPdf("blob");
+
+      el.style.overflow = prevOverflow;
+      el.style.maxHeight = prevMaxHeight;
+      if (parent) { parent.style.cssText = prevParentStyle; }
+
+      folder.file(`Case-File-${safeName}.pdf`, pdfBlob);
+
+      /* --- 2. Compute exhibit letters (same logic as CaseFileDocument) --- */
+      const sortedRecords = [...records].sort(
+        (a, b) => new Date(a.date + "T00:00:00").getTime() - new Date(b.date + "T00:00:00").getTime()
+      );
+      const exhibitMap = new Map<string, string>();
+      let letterIdx = 0;
+      for (const record of sortedRecords) {
+        const docs = linkedDocsMap[record.id] || [];
+        for (const doc of docs) {
+          if (!exhibitMap.has(doc.id)) {
+            let label = "";
+            let n = letterIdx;
+            do {
+              label = String.fromCharCode(65 + (n % 26)) + label;
+              n = Math.floor(n / 26) - 1;
+            } while (n >= 0);
+            exhibitMap.set(doc.id, label);
+            letterIdx++;
+          }
+        }
+      }
+
+      /* --- 3. Download vault files and add to Evidence folder --- */
+      if (exhibitMap.size > 0) {
+        const evidenceFolder = folder.folder("Evidence")!;
+        for (const doc of vaultDocs) {
+          if (!doc.file_url) continue;
+          const letter = exhibitMap.get(doc.id);
+          if (!letter) continue;
+          const ext = doc.file_name.includes(".") ? doc.file_name.substring(doc.file_name.lastIndexOf(".")) : "";
+          const baseName = doc.file_name.includes(".")
+            ? doc.file_name.substring(0, doc.file_name.lastIndexOf("."))
+            : doc.file_name;
+          const safeBase = baseName.replace(/[^a-zA-Z0-9_\-. ]/g, "_");
+          const fileName = `Ex-${letter}_${safeBase}${ext}`;
+
+          try {
+            const { data, error } = await supabase.storage
+              .from("vault-files")
+              .download(doc.file_url);
+            if (error || !data) {
+              console.error(`Failed to download ${doc.file_name}:`, error);
+              continue;
+            }
+            evidenceFolder.file(fileName, data);
+          } catch (err) {
+            console.error(`Error fetching ${doc.file_name}:`, err);
+          }
+        }
+      }
+
+      /* --- 4. README.txt --- */
+      const caseName = caseData?.name || "Case";
+      const readmeText = `Attorney Packet -- ${caseName}
+Generated by DocketAlly on ${today}.
+
+This packet contains:
+- Case File document (PDF) with full narrative, timeline, and analysis
+- Evidence folder with all referenced exhibits
+
+Exhibit letters in the Case File (Ex. A, Ex. B, etc.) correspond to file prefixes in the Evidence folder.
+
+DocketAlly provides documentation and risk awareness tools. This is not legal advice. Consult a qualified employment attorney for guidance specific to your situation.`;
+
+      folder.file("README.txt", readmeText);
+
+      /* --- 5. Generate and download ZIP --- */
+      const zipBlob = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(zipBlob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${folderName}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Attorney packet generation error:", err);
+    }
+
+    setGeneratingPacket(false);
   }
 
   const selectedCase = cases.find((c) => c.id === selectedCaseId);
@@ -1083,46 +1212,85 @@ export default function CaseFilePanel({
             )}
           </div>
 
-          {/* PDF button */}
-          <button
-            onClick={generatePdf}
-            disabled={generatingPdf || records.length === 0}
-            title="Export PDF"
-            style={{
-              background: "none",
-              border: "1px solid #E7E5E4",
-              borderRadius: 6,
-              cursor:
-                generatingPdf || records.length === 0
-                  ? "not-allowed"
-                  : "pointer",
-              padding: "5px 8px",
-              display: "flex",
-              alignItems: "center",
-              gap: 4,
-              fontSize: 11,
-              fontWeight: 600,
-              fontFamily: "var(--font-mono)",
-              color: "#78716C",
-              opacity: generatingPdf || records.length === 0 ? 0.4 : 1,
-            }}
-          >
-            <svg
-              width="12"
-              height="12"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+          {/* Export buttons */}
+          <div style={{ display: "flex", gap: 4 }}>
+            <button
+              onClick={generatePdf}
+              disabled={generatingPdf || records.length === 0}
+              title="Export PDF"
+              style={{
+                background: "none",
+                border: "1px solid #E7E5E4",
+                borderRadius: 6,
+                cursor:
+                  generatingPdf || records.length === 0
+                    ? "not-allowed"
+                    : "pointer",
+                padding: "5px 8px",
+                display: "flex",
+                alignItems: "center",
+                gap: 4,
+                fontSize: 11,
+                fontWeight: 600,
+                fontFamily: "var(--font-mono)",
+                color: "#78716C",
+                opacity: generatingPdf || records.length === 0 ? 0.4 : 1,
+              }}
             >
-              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
-            </svg>
-            {generatingPdf ? "..." : "PDF"}
-          </button>
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              {generatingPdf ? "..." : "PDF"}
+            </button>
+            <button
+              onClick={generatePacket}
+              disabled={generatingPacket || records.length === 0}
+              title="Download Attorney Packet (ZIP)"
+              style={{
+                background: "none",
+                border: "1px solid #E7E5E4",
+                borderRadius: 6,
+                cursor:
+                  generatingPacket || records.length === 0
+                    ? "not-allowed"
+                    : "pointer",
+                padding: "5px 8px",
+                display: "flex",
+                alignItems: "center",
+                gap: 4,
+                fontSize: 11,
+                fontWeight: 600,
+                fontFamily: "var(--font-mono)",
+                color: "#78716C",
+                opacity: generatingPacket || records.length === 0 ? 0.4 : 1,
+              }}
+            >
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />
+              </svg>
+              {generatingPacket ? "..." : "Packet"}
+            </button>
+          </div>
         </div>
 
         {/* Tab bar */}
