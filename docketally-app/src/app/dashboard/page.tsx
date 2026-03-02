@@ -255,6 +255,11 @@ export default function RecordPage() {
   const [files, setFiles] = useState<File[]>([]);
   const [formError, setFormError] = useState("");
 
+  // Inline "Create new case" from record dropdown
+  const [inlineCreateCase, setInlineCreateCase] = useState<string | null>(null); // recordId being linked
+  const [inlineCaseName, setInlineCaseName] = useState("");
+  const [inlineCaseSaving, setInlineCaseSaving] = useState(false);
+
   // Exhibit linking
   const [vaultFiles, setVaultFiles] = useState<VaultFile[]>([]);
   const [recordExhibits, setRecordExhibits] = useState<{
@@ -600,6 +605,43 @@ export default function RecordPage() {
       ...prev,
       [recordId]: [...(prev[recordId] || []), c],
     }));
+  }
+
+  async function createCaseAndLink(recordId: string) {
+    if (!userId || !inlineCaseName.trim()) return;
+    setInlineCaseSaving(true);
+
+    const { data: newCase } = await supabase
+      .from("cases")
+      .insert({
+        user_id: userId,
+        name: inlineCaseName.trim(),
+        case_type: "General",
+        case_types: ["General"],
+        status: "active",
+      })
+      .select()
+      .single();
+
+    if (newCase) {
+      await supabase.from("case_records").insert({
+        case_id: newCase.id,
+        record_id: recordId,
+        user_id: userId,
+      });
+
+      setCases((prev) => [newCase, ...prev]);
+      setRecordCaseMap((prev) => ({
+        ...prev,
+        [recordId]: [...(prev[recordId] || []), { id: newCase.id, name: newCase.name, case_type: newCase.case_type, case_types: newCase.case_types }],
+      }));
+    }
+
+    setInlineCaseName("");
+    setInlineCaseSaving(false);
+    setInlineCreateCase(null);
+    setAddCaseDropdown(null);
+    setCardCaseDropdown(null);
   }
 
   async function removeRecordFromCase(recordId: string, caseId: string) {
@@ -1950,7 +1992,7 @@ export default function RecordPage() {
                             <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" }}>
                               {(() => {
                                 const rc = recordCaseMap[record.id] || [];
-                                if (rc.length === 0 && cases.length > 0) {
+                                if (rc.length === 0) {
                                   return (
                                     <div style={{ position: "relative" }} ref={cardCaseDropdown === record.id ? cardCaseRef : undefined}>
                                       <button
@@ -1964,8 +2006,39 @@ export default function RecordPage() {
                                       {cardCaseDropdown === record.id && (
                                         <div
                                           onClick={(e) => e.stopPropagation()}
-                                          style={{ position: "absolute", bottom: "100%", left: 0, marginBottom: 4, background: "#fff", borderRadius: 10, border: "1px solid var(--color-stone-200)", boxShadow: "0 4px 16px rgba(0,0,0,0.1)", zIndex: 10, minWidth: 200, maxHeight: 200, overflow: "auto", padding: "6px 0" }}
+                                          style={{ position: "absolute", bottom: "100%", left: 0, marginBottom: 4, background: "#fff", borderRadius: 10, border: "1px solid var(--color-stone-200)", boxShadow: "0 4px 16px rgba(0,0,0,0.1)", zIndex: 10, minWidth: 200, maxHeight: 260, overflow: "auto", padding: "6px 0" }}
                                         >
+                                          {/* + Create new case */}
+                                          {inlineCreateCase === record.id ? (
+                                            <div style={{ padding: "8px 14px" }}>
+                                              <input
+                                                autoFocus
+                                                placeholder="Case name"
+                                                value={inlineCaseName}
+                                                onChange={(e) => setInlineCaseName(e.target.value)}
+                                                onKeyDown={(e) => { if (e.key === "Escape") { setInlineCreateCase(null); setInlineCaseName(""); } if (e.key === "Enter" && inlineCaseName.trim()) { createCaseAndLink(record.id); } }}
+                                                style={{ width: "100%", padding: "6px 10px", borderRadius: 6, border: "1px solid #D6D3D1", fontSize: 13, fontFamily: "var(--font-sans)", outline: "none", marginBottom: 8 }}
+                                              />
+                                              <button
+                                                onClick={() => createCaseAndLink(record.id)}
+                                                disabled={!inlineCaseName.trim() || inlineCaseSaving}
+                                                style={{ width: "100%", padding: "6px 0", borderRadius: 6, border: "none", background: inlineCaseName.trim() ? "#22C55E" : "#E7E5E4", color: inlineCaseName.trim() ? "#fff" : "#A8A29E", fontSize: 12, fontWeight: 600, fontFamily: "var(--font-sans)", cursor: inlineCaseName.trim() ? "pointer" : "default" }}
+                                              >
+                                                {inlineCaseSaving ? "Creating..." : "Create and link"}
+                                              </button>
+                                            </div>
+                                          ) : (
+                                            <button
+                                              onClick={(e) => { e.stopPropagation(); setInlineCreateCase(record.id); setInlineCaseName(""); }}
+                                              style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "8px 14px", background: "none", border: "none", fontSize: 13, fontFamily: "var(--font-sans)", color: "#22C55E", cursor: "pointer", textAlign: "left", fontWeight: 600 }}
+                                              onMouseEnter={(e) => { e.currentTarget.style.background = "#F0FDF4"; }}
+                                              onMouseLeave={(e) => { e.currentTarget.style.background = "none"; }}
+                                            >
+                                              + Create new case
+                                            </button>
+                                          )}
+                                          {/* Divider */}
+                                          {cases.length > 0 && <div style={{ height: 1, background: "#E7E5E4", margin: "4px 0" }} />}
                                           {cases.map((c) => {
                                             const isLinked = (recordCaseMap[record.id] || []).some((x) => x.id === c.id);
                                             return (
@@ -1985,7 +2058,6 @@ export default function RecordPage() {
                                     </div>
                                   );
                                 }
-                                if (rc.length === 0) return null;
                                 const shown = rc.length > 2 ? rc.slice(0, 2) : rc;
                                 const extra = rc.length > 2 ? rc.length - 2 : 0;
                                 return (
@@ -2487,104 +2559,180 @@ export default function RecordPage() {
                                   </span>
                                 ))}
                                 {/* Add to case dropdown */}
-                                {cases.filter((c) => !(recordCaseMap[record.id] || []).some((x) => x.id === c.id)).length > 0 && (
-                                  <div style={{ position: "relative" }} ref={addCaseDropdown === record.id ? addCaseRef : undefined}>
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setAddCaseDropdown(addCaseDropdown === record.id ? null : record.id);
-                                      }}
+                                <div style={{ position: "relative" }} ref={addCaseDropdown === record.id ? addCaseRef : undefined}>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setInlineCreateCase(null);
+                                      setInlineCaseName("");
+                                      setAddCaseDropdown(addCaseDropdown === record.id ? null : record.id);
+                                    }}
+                                    style={{
+                                      background: "none",
+                                      border: "1px dashed #D6D3D1",
+                                      borderRadius: 6,
+                                      cursor: "pointer",
+                                      padding: "3px 10px",
+                                      fontSize: 10,
+                                      fontFamily: "var(--font-mono)",
+                                      color: "#78716C",
+                                      fontWeight: 600,
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.style.borderColor = "#22C55E";
+                                      e.currentTarget.style.color = "#22C55E";
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.style.borderColor = "#D6D3D1";
+                                      e.currentTarget.style.color = "#78716C";
+                                    }}
+                                  >
+                                    + Add to Case
+                                  </button>
+                                  {addCaseDropdown === record.id && (
+                                    <div
+                                      onClick={(e) => e.stopPropagation()}
                                       style={{
-                                        background: "none",
-                                        border: "1px dashed #D6D3D1",
-                                        borderRadius: 6,
-                                        cursor: "pointer",
-                                        padding: "3px 10px",
-                                        fontSize: 10,
-                                        fontFamily: "var(--font-mono)",
-                                        color: "#78716C",
-                                        fontWeight: 600,
-                                      }}
-                                      onMouseEnter={(e) => {
-                                        e.currentTarget.style.borderColor = "#22C55E";
-                                        e.currentTarget.style.color = "#22C55E";
-                                      }}
-                                      onMouseLeave={(e) => {
-                                        e.currentTarget.style.borderColor = "#D6D3D1";
-                                        e.currentTarget.style.color = "#78716C";
+                                        position: "absolute",
+                                        top: "100%",
+                                        left: 0,
+                                        marginTop: 4,
+                                        background: "#fff",
+                                        borderRadius: 10,
+                                        border: "1px solid var(--color-stone-200)",
+                                        boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
+                                        zIndex: 10,
+                                        minWidth: 240,
+                                        maxHeight: 280,
+                                        overflow: "auto",
+                                        padding: "6px 0",
                                       }}
                                     >
-                                      + Add to Case
-                                    </button>
-                                    {addCaseDropdown === record.id && (
-                                      <div
-                                        onClick={(e) => e.stopPropagation()}
-                                        style={{
-                                          position: "absolute",
-                                          top: "100%",
-                                          left: 0,
-                                          marginTop: 4,
-                                          background: "#fff",
-                                          borderRadius: 10,
-                                          border: "1px solid var(--color-stone-200)",
-                                          boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
-                                          zIndex: 10,
-                                          minWidth: 200,
-                                          maxHeight: 200,
-                                          overflow: "auto",
-                                          padding: "6px 0",
-                                        }}
-                                      >
-                                        {cases
-                                          .filter((c) => !(recordCaseMap[record.id] || []).some((x) => x.id === c.id))
-                                          .map((c) => (
-                                          <button
-                                            key={c.id}
-                                            onClick={async (e) => {
-                                              e.stopPropagation();
-                                              await addRecordToCase(record.id, c.id);
-                                              setAddCaseDropdown(null);
-                                            }}
+                                      {/* Create new case */}
+                                      {inlineCreateCase === record.id ? (
+                                        <div style={{ padding: "8px 14px" }}>
+                                          <input
+                                            type="text"
+                                            value={inlineCaseName}
+                                            onChange={(e) => setInlineCaseName(e.target.value)}
+                                            placeholder="e.g. Company Name"
+                                            autoFocus
+                                            onKeyDown={(e) => { if (e.key === "Enter" && inlineCaseName.trim()) createCaseAndLink(record.id); }}
                                             style={{
-                                              display: "flex",
-                                              alignItems: "center",
-                                              gap: 8,
                                               width: "100%",
-                                              padding: "8px 14px",
-                                              background: "none",
-                                              border: "none",
+                                              padding: "8px 10px",
+                                              borderRadius: 7,
+                                              border: "1px solid #D6D3D1",
                                               fontSize: 13,
                                               fontFamily: "var(--font-sans)",
-                                              color: "var(--color-stone-700)",
-                                              cursor: "pointer",
-                                              textAlign: "left",
+                                              color: "#292524",
+                                              outline: "none",
+                                              marginBottom: 8,
+                                              boxSizing: "border-box",
                                             }}
-                                            onMouseEnter={(e) => { e.currentTarget.style.background = "var(--color-stone-50)"; }}
-                                            onMouseLeave={(e) => { e.currentTarget.style.background = "none"; }}
+                                            onFocus={(e) => { e.currentTarget.style.borderColor = "#22C55E"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(34,197,94,0.1)"; }}
+                                            onBlur={(e) => { e.currentTarget.style.borderColor = "#D6D3D1"; e.currentTarget.style.boxShadow = "none"; }}
+                                          />
+                                          <button
+                                            onClick={() => createCaseAndLink(record.id)}
+                                            disabled={!inlineCaseName.trim() || inlineCaseSaving}
+                                            style={{
+                                              width: "100%",
+                                              padding: "7px 12px",
+                                              borderRadius: 7,
+                                              border: "none",
+                                              background: inlineCaseName.trim() && !inlineCaseSaving ? "#22C55E" : "#D6D3D1",
+                                              color: "#fff",
+                                              fontSize: 12,
+                                              fontWeight: 600,
+                                              fontFamily: "var(--font-sans)",
+                                              cursor: inlineCaseName.trim() && !inlineCaseSaving ? "pointer" : "not-allowed",
+                                            }}
                                           >
-                                            <span style={{ fontWeight: 500 }}>{c.name}</span>
-                                            <span
-                                              style={{
-                                                fontSize: 9,
-                                                fontWeight: 700,
-                                                fontFamily: "var(--font-mono)",
-                                                color: "#57534E",
-                                                background: "#FAFAF9",
-                                                border: "1px solid #D6D3D1",
-                                                padding: "1px 6px",
-                                                borderRadius: 20,
-                                                textTransform: "uppercase",
-                                                letterSpacing: "0.02em",
-                                              }}
-                                            >
-                                              {c.case_types && c.case_types.length > 0 ? c.case_types[0] : c.case_type}
-                                            </span>
+                                            {inlineCaseSaving ? "Creating..." : "Create and link"}
                                           </button>
-                                        ))}
-                                      </div>
-                                    )}
-                                  </div>
-                                )}
+                                        </div>
+                                      ) : (
+                                        <button
+                                          onClick={() => setInlineCreateCase(record.id)}
+                                          style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: 8,
+                                            width: "100%",
+                                            padding: "8px 14px",
+                                            background: "none",
+                                            border: "none",
+                                            fontSize: 13,
+                                            fontWeight: 600,
+                                            fontFamily: "var(--font-sans)",
+                                            color: "#22C55E",
+                                            cursor: "pointer",
+                                            textAlign: "left",
+                                          }}
+                                          onMouseEnter={(e) => { e.currentTarget.style.background = "var(--color-stone-50)"; }}
+                                          onMouseLeave={(e) => { e.currentTarget.style.background = "none"; }}
+                                        >
+                                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                            <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+                                          </svg>
+                                          Create new case
+                                        </button>
+                                      )}
+                                      {/* Divider */}
+                                      {cases.filter((c) => !(recordCaseMap[record.id] || []).some((x) => x.id === c.id)).length > 0 && (
+                                        <div style={{ height: 1, background: "#E7E5E4", margin: "4px 14px" }} />
+                                      )}
+                                      {/* Existing cases */}
+                                      {cases
+                                        .filter((c) => !(recordCaseMap[record.id] || []).some((x) => x.id === c.id))
+                                        .map((c) => (
+                                        <button
+                                          key={c.id}
+                                          onClick={async (e) => {
+                                            e.stopPropagation();
+                                            await addRecordToCase(record.id, c.id);
+                                            setAddCaseDropdown(null);
+                                          }}
+                                          style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: 8,
+                                            width: "100%",
+                                            padding: "8px 14px",
+                                            background: "none",
+                                            border: "none",
+                                            fontSize: 13,
+                                            fontFamily: "var(--font-sans)",
+                                            color: "var(--color-stone-700)",
+                                            cursor: "pointer",
+                                            textAlign: "left",
+                                          }}
+                                          onMouseEnter={(e) => { e.currentTarget.style.background = "var(--color-stone-50)"; }}
+                                          onMouseLeave={(e) => { e.currentTarget.style.background = "none"; }}
+                                        >
+                                          <span style={{ fontWeight: 500 }}>{c.name}</span>
+                                          <span
+                                            style={{
+                                              fontSize: 9,
+                                              fontWeight: 700,
+                                              fontFamily: "var(--font-mono)",
+                                              color: "#57534E",
+                                              background: "#FAFAF9",
+                                              border: "1px solid #D6D3D1",
+                                              padding: "1px 6px",
+                                              borderRadius: 20,
+                                              textTransform: "uppercase",
+                                              letterSpacing: "0.02em",
+                                            }}
+                                          >
+                                            {c.case_types && c.case_types.length > 0 ? c.case_types[0] : c.case_type}
+                                          </span>
+                                        </button>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           )}
