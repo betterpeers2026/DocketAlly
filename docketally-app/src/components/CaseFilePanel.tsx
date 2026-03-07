@@ -105,10 +105,10 @@ interface PlanGoal {
 interface PlanCheckin {
   id: string;
   plan_id: string;
-  checkin_date: string;
+  date: string;
   summary: string;
   manager_feedback: string | null;
-  private_notes: string | null;
+  your_notes: string | null;
   linked_record_id: string | null;
   created_at: string;
   expectations_changed?: boolean;

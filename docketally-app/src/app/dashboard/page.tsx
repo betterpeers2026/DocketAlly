@@ -254,6 +254,7 @@ export default function RecordPage() {
   // Form
   const [formData, setFormData] = useState<FormData>(EMPTY_FORM);
   const [files, setFiles] = useState<File[]>([]);
+  const [fileDragOver, setFileDragOver] = useState(false);
   const [formError, setFormError] = useState("");
 
   // Inline "Create new case" from record dropdown
@@ -1114,6 +1115,8 @@ export default function RecordPage() {
               }
               style={{
                 ...inputStyle,
+                height: "auto",
+                padding: "12px 14px",
                 cursor: "pointer",
                 color: formData.entry_type ? "#292524" : "#78716C",
                 appearance: "none",
@@ -1474,20 +1477,32 @@ export default function RecordPage() {
             <label style={labelStyle}>Attachments</label>
             <div
               style={{
-                border: "2px dashed var(--color-stone-300)",
+                border: fileDragOver ? "2px solid #22C55E" : "2px dashed var(--color-stone-300)",
                 borderRadius: 10,
                 padding: "20px 14px",
                 textAlign: "center",
                 cursor: "pointer",
                 position: "relative",
+                background: fileDragOver ? "#F0FDF4" : "transparent",
+                transition: "border 0.15s, background 0.15s",
               }}
               onClick={() => document.getElementById("file-input")?.click()}
+              onDragEnter={(e) => { e.preventDefault(); e.stopPropagation(); setFileDragOver(true); }}
+              onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+              onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); setFileDragOver(false); }}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setFileDragOver(false);
+                const dropped = Array.from(e.dataTransfer.files);
+                if (dropped.length > 0) setFiles((prev) => [...prev, ...dropped]);
+              }}
             >
               <input
                 id="file-input"
                 type="file"
                 multiple
-                onChange={(e) => setFiles(Array.from(e.target.files || []))}
+                onChange={(e) => { setFiles((prev) => [...prev, ...Array.from(e.target.files || [])]); e.target.value = ""; }}
                 style={{
                   position: "absolute",
                   top: 0,
@@ -1503,7 +1518,7 @@ export default function RecordPage() {
                 height="24"
                 viewBox="0 0 24 24"
                 fill="none"
-                stroke="var(--color-stone-300)"
+                stroke={fileDragOver ? "#22C55E" : "var(--color-stone-300)"}
                 strokeWidth="1.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -1516,24 +1531,44 @@ export default function RecordPage() {
               <div
                 style={{
                   fontSize: 13,
-                  color: "var(--color-stone-500)",
+                  color: fileDragOver ? "#16A34A" : "var(--color-stone-500)",
                   fontFamily: "var(--font-sans)",
                 }}
               >
-                Click to upload files
+                {fileDragOver ? "Drop to attach" : "Click or drag files to upload"}
               </div>
             </div>
             {files.length > 0 && (
               <div
                 style={{
                   marginTop: 10,
-                  fontSize: 13,
-                  color: "var(--color-stone-600)",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 4,
                 }}
               >
                 {files.map((f, i) => (
-                  <div key={i} style={{ padding: "2px 0" }}>
-                    {f.name} ({formatFileSize(f.size)})
+                  <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 10px", background: "#FAFAF9", borderRadius: 6, border: "1px solid #F5F5F4" }}>
+                    <span style={{ fontSize: 13, color: "var(--color-stone-600)", fontFamily: "var(--font-sans)" }}>
+                      {f.name} <span style={{ color: "var(--color-stone-400)" }}>({formatFileSize(f.size)})</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); setFiles((prev) => prev.filter((_, idx) => idx !== i)); }}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        padding: "2px 6px",
+                        fontSize: 16,
+                        color: "var(--color-stone-400)",
+                        lineHeight: 1,
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.color = "#DC2626"; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.color = "var(--color-stone-400)"; }}
+                    >
+                      &times;
+                    </button>
                   </div>
                 ))}
               </div>

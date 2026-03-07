@@ -1,0 +1,1 @@
+ALTER TABLE plans ALTER COLUMN end_date DROP NOT NULL;

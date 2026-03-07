@@ -21,7 +21,7 @@ interface Plan {
   plan_name: string;
   plan_type: string;
   start_date: string;
-  end_date: string;
+  end_date: string | null;
   status: string;
   notes: string | null;
   case_id: string | null;
@@ -302,6 +302,7 @@ export default function PlansPage() {
 
   const [expandedCheckin, setExpandedCheckin] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
   const [confirmDeletePlanId, setConfirmDeletePlanId] = useState<string | null>(null);
 
   // Per-plan truncation
@@ -414,19 +415,26 @@ export default function PlansPage() {
   /* ----- plan helpers ----- */
   function getPlanProgress(plan: Plan) {
     const start = new Date(plan.start_date + "T00:00:00").getTime();
+    if (!plan.end_date) {
+      const now = Date.now();
+      const elapsed = Math.max(0, Math.round((now - start) / 86400000));
+      return { daysRemaining: null, totalDays: null, pct: null, elapsedDays: elapsed };
+    }
     const end = new Date(plan.end_date + "T00:00:00").getTime();
     const now = Date.now();
     const totalDays = Math.max(1, Math.round((end - start) / 86400000));
     const elapsed = Math.round((now - start) / 86400000);
     const daysRemaining = Math.max(0, totalDays - elapsed);
     const pct = Math.min(100, Math.max(0, Math.round((elapsed / totalDays) * 100)));
-    return { daysRemaining, totalDays, pct };
+    return { daysRemaining, totalDays, pct, elapsedDays: elapsed };
   }
 
   function getPlanStatus(plan: Plan, goals: PlanGoal[], checkins: PlanCheckin[]) {
     if (plan.status === "completed") return "completed";
-    const end = new Date(plan.end_date + "T00:00:00").getTime();
-    if (Date.now() > end) return "expired";
+    if (plan.end_date) {
+      const end = new Date(plan.end_date + "T00:00:00").getTime();
+      if (Date.now() > end) return "expired";
+    }
     // All goals met → completed
     if (goals.length > 0 && goals.every((g) => g.status === "met" || g.status === "completed")) return "completed";
     // Has checkins or goals → in progress
@@ -450,14 +458,14 @@ export default function PlansPage() {
 
   /* ----- handlers ----- */
   async function savePlan() {
-    if (!userId || !planForm.start_date || !planForm.end_date) return;
+    if (!userId || !planForm.start_date) return;
     setSaving(true);
 
     const payload = {
       plan_name: planForm.plan_name,
       plan_type: planForm.plan_type,
       start_date: planForm.start_date,
-      end_date: planForm.end_date,
+      end_date: planForm.end_date || null,
       notes: planForm.notes || null,
       case_id: planForm.case_id || null,
       plan_initiator: planForm.plan_initiator || null,
@@ -525,7 +533,9 @@ export default function PlansPage() {
   async function saveGoal(planId: string) {
     if (!userId || !goalForm.title) return;
     setSaving(true);
+    setSaveError("");
 
+    let error;
     if (editingGoalId) {
       const updatePayload: Record<string, unknown> = {
         title: goalForm.title,
@@ -553,12 +563,12 @@ export default function PlansPage() {
         }
       }
 
-      await supabase
+      ({ error } = await supabase
         .from("plan_goals")
         .update(updatePayload)
-        .eq("id", editingGoalId);
+        .eq("id", editingGoalId));
     } else {
-      await supabase.from("plan_goals").insert({
+      ({ error } = await supabase.from("plan_goals").insert({
         plan_id: planId,
         user_id: userId,
         title: goalForm.title,
@@ -567,7 +577,14 @@ export default function PlansPage() {
         deadline: goalForm.deadline || null,
         status: goalForm.status,
         dispute_reason: null,
-      });
+      }));
+    }
+
+    if (error) {
+      console.error("saveGoal error:", error);
+      setSaveError("Failed to save goal. Please try again.");
+      setSaving(false);
+      return;
     }
 
     setShowGoalForm(null);
@@ -580,12 +597,13 @@ export default function PlansPage() {
   async function reviseGoal(goalId: string, planId: string) {
     if (!reviseForm.new_description) return;
     setSaving(true);
+    setSaveError("");
 
     const planGoals = goalsMap[planId] ?? [];
     const goal = planGoals.find((g) => g.id === goalId);
     if (!goal) return;
 
-    await supabase
+    const { error } = await supabase
       .from("plan_goals")
       .update({
         original_description: goal.original_description || goal.description,
@@ -596,6 +614,13 @@ export default function PlansPage() {
         updated_at: new Date().toISOString(),
       })
       .eq("id", goalId);
+
+    if (error) {
+      console.error("reviseGoal error:", error);
+      setSaveError("Failed to revise goal. Please try again.");
+      setSaving(false);
+      return;
+    }
 
     setShowReviseForm(null);
     setReviseForm({ new_description: "", revision_notes: "", revised_date: todayStr() });
@@ -613,8 +638,9 @@ export default function PlansPage() {
   async function saveCheckin(planId: string) {
     if (!userId || !checkinForm.summary) return;
     setSaving(true);
+    setSaveError("");
 
-    await supabase.from("plan_checkins").insert({
+    const { error } = await supabase.from("plan_checkins").insert({
       plan_id: planId,
       user_id: userId,
       date: checkinForm.date,
@@ -625,6 +651,13 @@ export default function PlansPage() {
       expectations_changed: checkinForm.expectations_changed,
       expectation_change_detail: checkinForm.expectations_changed ? (checkinForm.expectation_change_detail || null) : null,
     });
+
+    if (error) {
+      console.error("saveCheckin error:", error);
+      setSaveError("Failed to save check-in. Please try again.");
+      setSaving(false);
+      return;
+    }
 
     setShowCheckinForm(null);
     setCheckinForm({ date: todayStr(), summary: "", manager_feedback: "", your_notes: "", linked_record_id: "", expectations_changed: false, expectation_change_detail: "" });
@@ -666,7 +699,7 @@ export default function PlansPage() {
       plan_type: plan.plan_type || "pip",
       plan_name: plan.plan_name,
       start_date: plan.start_date,
-      end_date: plan.end_date,
+      end_date: plan.end_date || "",
       notes: plan.notes || "",
       case_id: plan.case_id || "",
       plan_initiator: plan.plan_initiator || "",
@@ -848,13 +881,12 @@ export default function PlansPage() {
                 style={{
                   marginTop: 10,
                   background: "#FAFAF9",
-                  border: "1px solid #F5F5F4",
-                  borderLeft: "3px solid #22C55E",
-                  borderRadius: 8,
-                  padding: "12px 16px",
+                  borderLeft: "3px solid #86EFAC",
+                  borderRadius: 4,
+                  padding: "10px 14px",
                 }}
               >
-                <p style={{ fontSize: 12, color: "var(--color-stone-500)", fontFamily: "var(--font-sans)", lineHeight: 1.5, margin: 0 }}>
+                <p style={{ fontSize: 11, color: "#A8A29E", fontFamily: "var(--font-sans)", lineHeight: 1.5, margin: 0 }}>
                   This field matters because the employer&apos;s original reasoning becomes the baseline. If their justification changes later, your records will show the shift.
                 </p>
               </div>
@@ -863,13 +895,13 @@ export default function PlansPage() {
             {/* Stated Consequences */}
             <div
               style={{
-                background: "#FEF2F2",
-                border: "1px solid #FECACA",
-                borderRadius: 10,
-                padding: "18px 20px",
+                background: "#FAFAF9",
+                borderLeft: "3px solid #F87171",
+                borderRadius: 6,
+                padding: "16px 18px",
               }}
             >
-              <label style={{ ...labelStyle, color: "#DC2626" }}>Stated consequences if goals are not met</label>
+              <label style={{ ...labelStyle, color: "#78716C" }}>Stated consequences if goals are not met</label>
               <RichTextarea
                 value={planForm.stated_consequences}
                 onChange={(v) => setPlanForm({ ...planForm, stated_consequences: v })}
@@ -912,7 +944,7 @@ export default function PlansPage() {
                 />
               </div>
               <div>
-                <label style={labelStyle}>End Date</label>
+                <label style={labelStyle}>End Date <span style={{ fontWeight: 400, color: "var(--color-stone-400)" }}>(optional)</span></label>
                 <input
                   type="date"
                   value={planForm.end_date}
@@ -964,10 +996,10 @@ export default function PlansPage() {
               </button>
               <button
                 onClick={savePlan}
-                disabled={saving || !planForm.start_date || !planForm.end_date}
+                disabled={saving || !planForm.start_date}
                 style={{
                   ...btnGreen,
-                  opacity: saving || !planForm.start_date || !planForm.end_date ? 0.5 : 1,
+                  opacity: saving || !planForm.start_date ? 0.5 : 1,
                 }}
               >
                 {saving ? "Saving..." : editingPlanId ? "Update Plan" : "Save Plan"}
@@ -1153,10 +1185,10 @@ export default function PlansPage() {
     const isExpanded = expandedPlanId === plan.id;
 
     const start = new Date(plan.start_date + "T00:00:00");
-    const end = new Date(plan.end_date + "T00:00:00");
-    const durationDays = Math.round((end.getTime() - start.getTime()) / 86400000);
+    const end = plan.end_date ? new Date(plan.end_date + "T00:00:00") : null;
+    const durationDays = end ? Math.round((end.getTime() - start.getTime()) / 86400000) : null;
     const startStr = start.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-    const endStr = end.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    const endStr = end ? end.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Ongoing";
     const goalCount = planGoals.length;
     const revisionCount = revisions.length;
     const checkinCount = planCheckins.length;
@@ -1180,7 +1212,7 @@ export default function PlansPage() {
                 (planForm.plan_name !== plan.plan_name ||
                   planForm.plan_type !== plan.plan_type ||
                   planForm.start_date !== plan.start_date ||
-                  planForm.end_date !== plan.end_date ||
+                  planForm.end_date !== (plan.end_date || "") ||
                   planForm.notes !== (plan.notes || "") ||
                   planForm.case_id !== (plan.case_id || "") ||
                   planForm.plan_initiator !== (plan.plan_initiator || "") ||
@@ -1254,8 +1286,10 @@ export default function PlansPage() {
           </div>
           {/* Stats row */}
           <p style={{ fontSize: 12, color: "var(--color-stone-500)", fontFamily: "var(--font-mono)", margin: "8px 0 0", lineHeight: 1.6 }}>
-            {startStr} &rarr; {endStr} &middot; {durationDays} day{durationDays !== 1 ? "s" : ""}
-            {(pStatus === "in_progress" || pStatus === "not_started") && <> &middot; {progress.daysRemaining} remaining</>}
+            {startStr} &rarr; {endStr}
+            {durationDays != null && <> &middot; {durationDays} day{durationDays !== 1 ? "s" : ""}</>}
+            {durationDays == null && <> &middot; {progress.elapsedDays} day{progress.elapsedDays !== 1 ? "s" : ""} so far</>}
+            {progress.daysRemaining != null && (pStatus === "in_progress" || pStatus === "not_started") && <> &middot; {progress.daysRemaining} remaining</>}
             {goalCount > 0 && <> &middot; {goalCount} goal{goalCount !== 1 ? "s" : ""}</>}
             {checkinCount > 0 && <> &middot; {checkinCount} check-in{checkinCount !== 1 ? "s" : ""}</>}
             {revisionCount > 0 && <> &middot; {revisionCount} revision{revisionCount !== 1 ? "s" : ""}</>}
@@ -1310,7 +1344,7 @@ export default function PlansPage() {
                   />
                 </div>
                 <div>
-                  <label style={labelStyle}>End Date</label>
+                  <label style={labelStyle}>End Date <span style={{ fontWeight: 400, color: "var(--color-stone-400)" }}>(optional)</span></label>
                   <input
                     type="date"
                     value={planForm.end_date}
@@ -1324,27 +1358,38 @@ export default function PlansPage() {
             </div>
 
             {/* Progress bar */}
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+            {progress.pct != null ? (
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                  <span style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--color-stone-600)", textTransform: "uppercase", letterSpacing: "0.06em", fontWeight: 700 }}>
+                    Progress
+                  </span>
+                  <span style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--color-stone-600)" }}>
+                    {pStatus === "completed" ? "100" : progress.pct}%
+                  </span>
+                </div>
+                <div style={{ width: "100%", height: 6, borderRadius: 3, background: "var(--color-stone-100)" }}>
+                  <div
+                    style={{
+                      width: `${pStatus === "completed" ? 100 : progress.pct}%`,
+                      height: "100%",
+                      borderRadius: 3,
+                      background: pStatus === "expired" ? "#EF4444" : "var(--color-green)",
+                      transition: "width 0.3s",
+                    }}
+                  />
+                </div>
+              </div>
+            ) : (
+              <div style={{ marginBottom: 16 }}>
                 <span style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--color-stone-600)", textTransform: "uppercase", letterSpacing: "0.06em", fontWeight: 700 }}>
-                  Progress
+                  Ongoing
                 </span>
-                <span style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--color-stone-600)" }}>
-                  {pStatus === "completed" ? "100" : progress.pct}%
+                <span style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--color-stone-500)", marginLeft: 8 }}>
+                  {progress.elapsedDays} day{progress.elapsedDays !== 1 ? "s" : ""} since start
                 </span>
               </div>
-              <div style={{ width: "100%", height: 6, borderRadius: 3, background: "var(--color-stone-100)" }}>
-                <div
-                  style={{
-                    width: `${pStatus === "completed" ? 100 : progress.pct}%`,
-                    height: "100%",
-                    borderRadius: 3,
-                    background: pStatus === "expired" ? "#EF4444" : "var(--color-green)",
-                    transition: "width 0.3s",
-                  }}
-                />
-              </div>
-            </div>
+            )}
 
             {/* Notes */}
             <div style={{ marginBottom: 20 }}>
@@ -1412,13 +1457,12 @@ export default function PlansPage() {
                   style={{
                     marginTop: 10,
                     background: "#FAFAF9",
-                    border: "1px solid #F5F5F4",
-                    borderLeft: "3px solid #22C55E",
-                    borderRadius: 8,
-                    padding: "12px 16px",
+                    borderLeft: "3px solid #86EFAC",
+                    borderRadius: 4,
+                    padding: "10px 14px",
                   }}
                 >
-                  <p style={{ fontSize: 12, color: "var(--color-stone-500)", fontFamily: "var(--font-sans)", lineHeight: 1.5, margin: 0 }}>
+                  <p style={{ fontSize: 11, color: "#A8A29E", fontFamily: "var(--font-sans)", lineHeight: 1.5, margin: 0 }}>
                     This field matters because the employer&apos;s original reasoning becomes the baseline. If their justification changes later, your records will show the shift.
                   </p>
                 </div>
@@ -1427,13 +1471,13 @@ export default function PlansPage() {
               {/* Stated Consequences */}
               <div
                 style={{
-                  background: "#FEF2F2",
-                  border: "1px solid #FECACA",
-                  borderRadius: 10,
-                  padding: "18px 20px",
+                  background: "#FAFAF9",
+                  borderLeft: "3px solid #F87171",
+                  borderRadius: 6,
+                  padding: "16px 18px",
                 }}
               >
-                <label style={{ ...labelStyle, color: "#DC2626" }}>Stated consequences if goals are not met</label>
+                <label style={{ ...labelStyle, color: "#78716C" }}>Stated consequences if goals are not met</label>
                 <RichTextarea
                   value={planForm.stated_consequences}
                   onChange={(v) => setPlanForm({ ...planForm, stated_consequences: v })}
@@ -1478,10 +1522,10 @@ export default function PlansPage() {
                 )}
                 <button
                   onClick={savePlan}
-                  disabled={saving || !planForm.start_date || !planForm.end_date}
+                  disabled={saving || !planForm.start_date}
                   style={{
                     ...btnGreen,
-                    opacity: saving || !planForm.start_date || !planForm.end_date ? 0.5 : 1,
+                    opacity: saving || !planForm.start_date ? 0.5 : 1,
                   }}
                 >
                   {saving ? "Saving..." : "Save Changes"}
@@ -1490,7 +1534,7 @@ export default function PlansPage() {
             </div>
 
             {/* ---- GOALS SECTION ---- */}
-            <div style={{ marginTop: 24, paddingTop: 24, borderTop: "1px solid var(--color-stone-100)" }}>
+            <div style={{ marginTop: 32, paddingTop: 28, borderTop: "1px solid var(--color-stone-200)" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
                 <h2 style={{ fontFamily: "var(--font-sans)", fontSize: 18, fontWeight: 600, color: "#292524", margin: 0 }}>
                   Goals
@@ -1611,9 +1655,12 @@ export default function PlansPage() {
                       </div>
                     )}
 
+                    {saveError && (
+                      <p style={{ fontSize: 13, color: "#EF4444", fontFamily: "var(--font-sans)", margin: "0 0 10px" }}>{saveError}</p>
+                    )}
                     <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
                       <button
-                        onClick={() => { setShowGoalForm(null); setEditingGoalId(null); }}
+                        onClick={() => { setShowGoalForm(null); setEditingGoalId(null); setSaveError(""); }}
                         style={btnOutline}
                       >
                         Cancel
@@ -1638,7 +1685,7 @@ export default function PlansPage() {
                   </p>
                 </div>
               ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                   {planGoals.map((goal) => {
                     const isGoalExpanded = expandedGoals[goal.id] ?? false;
                     const goalOverflow = goalOverflows[goal.id] ?? false;
@@ -1654,14 +1701,11 @@ export default function PlansPage() {
                           padding: "16px 20px",
                         }}
                       >
-                        {/* Row 1: title + badge | action buttons */}
-                        <div className="da-goal-header" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 4 }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", flex: 1, minWidth: 0 }}>
-                            <h3 style={{ fontSize: 15, fontWeight: 600, color: "#292524", fontFamily: "var(--font-sans)", margin: 0 }}>
-                              {goal.title}
-                            </h3>
-                            <span style={getStatusBadge(goal.status)}>{statusLabel(goal.status)}</span>
-                          </div>
+                        {/* Row 1: title | action buttons */}
+                        <div className="da-goal-header" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+                          <h3 style={{ fontSize: 15, fontWeight: 600, color: "#292524", fontFamily: "var(--font-sans)", margin: 0, flex: 1, minWidth: 0 }}>
+                            {goal.title}
+                          </h3>
                           <div className="da-goal-actions" style={{ display: "flex", gap: 4, flexShrink: 0 }}>
                             <button
                               onClick={() => openReviseGoal(goal)}
@@ -1726,32 +1770,34 @@ export default function PlansPage() {
                           </div>
                         </div>
 
+                        {/* Row 2: Status badge + deadline metadata line */}
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6, marginBottom: 8 }}>
+                          <span style={getStatusBadge(goal.status)}>{statusLabel(goal.status)}</span>
+                          {goal.deadline && (
+                            <span style={{ fontSize: 11, color: "var(--color-stone-500)", fontFamily: "var(--font-mono)" }}>
+                              Due {formatDate(goal.deadline)}
+                            </span>
+                          )}
+                        </div>
+
                         {/* Disputed reason callout */}
                         {goal.status === "disputed" && goal.dispute_reason && (
                           <div
                             style={{
-                              background: "#FEF2F2",
-                              border: "1px solid #FECACA",
-                              borderRadius: 8,
-                              padding: "12px 16px",
-                              marginTop: 8,
-                              marginBottom: 4,
+                              background: "#FAFAF9",
+                              borderLeft: "3px solid #EF4444",
+                              borderRadius: 4,
+                              padding: "10px 14px",
+                              marginBottom: 8,
                             }}
                           >
-                            <span style={{ fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", color: "#DC2626", textTransform: "uppercase", letterSpacing: "0.04em", display: "block", marginBottom: 4 }}>
+                            <span style={{ fontSize: 9, fontWeight: 700, fontFamily: "var(--font-mono)", color: "#A8A29E", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: 4 }}>
                               Dispute Reason
                             </span>
-                            <div style={{ fontSize: 13, color: "#292524", fontFamily: "var(--font-sans)", lineHeight: 1.5 }}>
+                            <div style={{ fontSize: 13, color: "#57534E", fontFamily: "var(--font-sans)", lineHeight: 1.5 }}>
                               {renderMarkdown(goal.dispute_reason)}
                             </div>
                           </div>
-                        )}
-
-                        {/* Row 2: Deadline */}
-                        {goal.deadline && (
-                          <p style={{ fontSize: 12, color: "#292524", fontFamily: "var(--font-mono)", margin: "0 0 8px 0" }}>
-                            Deadline: {formatDate(goal.deadline)}
-                          </p>
                         )}
 
                         {/* Revision display */}
@@ -1869,8 +1915,11 @@ export default function PlansPage() {
                                   onBlur={blurInput}
                                 />
                               </div>
+                              {saveError && (
+                                <p style={{ fontSize: 13, color: "#EF4444", fontFamily: "var(--font-sans)", margin: "0 0 10px" }}>{saveError}</p>
+                              )}
                               <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-                                <button onClick={() => setShowReviseForm(null)} style={btnOutline}>
+                                <button onClick={() => { setShowReviseForm(null); setSaveError(""); }} style={btnOutline}>
                                   Cancel
                                 </button>
                                 <button
@@ -1885,9 +1934,9 @@ export default function PlansPage() {
                           </div>
                         )}
 
-                        {/* Row 3: Description (truncated to 2 lines) */}
+                        {/* Description (truncated to 2 lines) */}
                         {!goal.original_description && goal.description && (
-                          <div style={{ marginTop: goal.deadline ? 0 : 8 }}>
+                          <div>
                             <p
                               ref={(el) => { goalRefs.current[goal.id] = el; }}
                               style={{
@@ -1926,9 +1975,9 @@ export default function PlansPage() {
                           </div>
                         )}
                         {goal.success_criteria && (
-                          <div style={{ marginTop: 8 }}>
-                            <span style={{ fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", color: "#292524", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                              Success Criteria:
+                          <div style={{ marginTop: 14 }}>
+                            <span style={{ fontSize: 9, fontWeight: 700, fontFamily: "var(--font-mono)", color: "#A8A29E", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                              Success Criteria
                             </span>
                             <div style={{ fontSize: 13, color: "var(--color-stone-600)", fontFamily: "var(--font-sans)", lineHeight: 1.5, marginTop: 4 }}>
                               {renderMarkdown(goal.success_criteria!)}
@@ -1943,7 +1992,7 @@ export default function PlansPage() {
             </div>
 
             {/* ---- CHECK-INS SECTION ---- */}
-            <div style={{ marginTop: 32, paddingTop: 24, borderTop: "1px solid var(--color-stone-100)" }}>
+            <div style={{ marginTop: 40, paddingTop: 28, borderTop: "1px solid var(--color-stone-200)" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
                 <h2 style={{ fontFamily: "var(--font-sans)", fontSize: 18, fontWeight: 600, color: "#292524", margin: 0 }}>
                   Check-Ins
@@ -2086,8 +2135,11 @@ export default function PlansPage() {
                         ))}
                       </select>
                     </div>
+                    {saveError && (
+                      <p style={{ fontSize: 13, color: "#EF4444", fontFamily: "var(--font-sans)", margin: "0 0 10px" }}>{saveError}</p>
+                    )}
                     <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
-                      <button onClick={() => setShowCheckinForm(null)} style={btnOutline}>
+                      <button onClick={() => { setShowCheckinForm(null); setSaveError(""); }} style={btnOutline}>
                         Cancel
                       </button>
                       <button
@@ -2266,7 +2318,7 @@ export default function PlansPage() {
             </div>
 
             {/* ---- GOAL REVISION HISTORY ---- */}
-            <div style={{ marginTop: 32, paddingTop: 24, borderTop: "1px solid var(--color-stone-100)" }}>
+            <div style={{ marginTop: 40, paddingTop: 28, borderTop: "1px solid var(--color-stone-200)" }}>
               <h2 style={{ fontFamily: "var(--font-sans)", fontSize: 18, fontWeight: 600, color: "#292524", marginBottom: 16 }}>
                 Goal Revision History
               </h2>

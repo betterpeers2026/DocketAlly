@@ -98,10 +98,11 @@ interface PlanGoal {
 interface PlanCheckin {
   id: string;
   plan_id: string;
-  checkin_date: string;
+  date: string;
   summary: string;
   manager_feedback: string | null;
-  private_notes: string | null;
+  your_notes: string | null;
+  linked_record_id: string | null;
   expectations_changed?: boolean;
   expectation_change_detail?: string | null;
 }
@@ -1409,7 +1410,7 @@ export default function CaseFileDocument({
           plans.map((plan) => {
             const goals = planGoals.filter((g) => g.plan_id === plan.id);
             const checkins = planCheckins.filter((c) => c.plan_id === plan.id).sort(
-              (a, b) => new Date(a.checkin_date + "T00:00:00").getTime() - new Date(b.checkin_date + "T00:00:00").getTime()
+              (a, b) => new Date(a.date + "T00:00:00").getTime() - new Date(b.date + "T00:00:00").getTime()
             );
             const totalDays = plan.end_date ? safeDaysBetween(plan.start_date, plan.end_date) : null;
             const elapsed = safeDaysBetween(plan.start_date, new Date().toISOString().split("T")[0]);
@@ -1667,7 +1668,7 @@ export default function CaseFileDocument({
                       <div key={checkin.id} style={{ padding: "12px 0", borderBottom: "1px solid #F5F5F4", pageBreakInside: "avoid" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
                           <span style={{ fontSize: 12, fontFamily: "var(--font-mono)", fontWeight: 600, color: "#22C55E" }}>
-                            {formatDate(checkin.checkin_date)}
+                            {formatDate(checkin.date)}
                           </span>
                           {checkin.expectations_changed && (
                             <span style={{

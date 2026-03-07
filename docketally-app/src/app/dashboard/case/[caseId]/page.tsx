@@ -107,10 +107,10 @@ interface PlanGoal {
 interface PlanCheckin {
   id: string;
   plan_id: string;
-  checkin_date: string;
+  date: string;
   summary: string;
   manager_feedback: string | null;
-  private_notes: string | null;
+  your_notes: string | null;
   linked_record_id: string | null;
   created_at: string;
 }
@@ -552,7 +552,7 @@ function detectPlanContradictions(plans: Plan[], goals: PlanGoal[], checkins: Pl
       if (plan && (plan.status === "expired" || plan.status === "failed")) {
         const hasPositive = POSITIVE_FEEDBACK_KEYWORDS.some((kw) => checkin.manager_feedback!.toLowerCase().includes(kw));
         if (hasPositive) {
-          contradictions.push({ type: "plan", detail: `Positive feedback in check-in on ${formatDate(checkin.checkin_date)} contradicts plan outcome (${plan.status}) (${plan.name})` });
+          contradictions.push({ type: "plan", detail: `Positive feedback in check-in on ${formatDate(checkin.date)} contradicts plan outcome (${plan.status}) (${plan.name})` });
         }
       }
     }
@@ -977,7 +977,7 @@ export default function CaseDetailPage() {
       if (planIds.length > 0) {
         const [goalsRes, checkinsRes] = await Promise.all([
           supabase.from("plan_goals").select("*").in("plan_id", planIds).order("created_at", { ascending: true }),
-          supabase.from("plan_checkins").select("*").in("plan_id", planIds).order("checkin_date", { ascending: true }),
+          supabase.from("plan_checkins").select("*").in("plan_id", planIds).order("date", { ascending: true }),
         ]);
         if (!goalsRes.error && goalsRes.data) setPlanGoals(goalsRes.data);
         if (!checkinsRes.error && checkinsRes.data) setPlanCheckins(checkinsRes.data);
@@ -1311,9 +1311,9 @@ export default function CaseDetailPage() {
       if (plan.end_date && plan.status !== "active" && dateInRange(plan.end_date)) items.push({ kind: "plan-end", date: plan.end_date, plan });
     });
     planCheckins.forEach((checkin) => {
-      if (dateInRange(checkin.checkin_date)) {
+      if (dateInRange(checkin.date)) {
         const plan = plans.find((p) => p.id === checkin.plan_id);
-        items.push({ kind: "checkin", date: checkin.checkin_date, checkin, planName: plan?.name || "Plan", planType: plan?.plan_type });
+        items.push({ kind: "checkin", date: checkin.date, checkin, planName: plan?.name || "Plan", planType: plan?.plan_type });
       }
     });
     planGoals.forEach((goal) => {
