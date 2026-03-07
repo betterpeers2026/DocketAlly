@@ -24,6 +24,7 @@ interface CaseData {
   case_type: string;
   case_types: string[];
   status: string;
+  employee_name: string | null;
   description: string | null;
   start_date: string | null;
   employer: string | null;
@@ -80,6 +81,9 @@ interface Plan {
   status: string;
   created_at: string;
   updated_at: string;
+  plan_initiator?: string | null;
+  employer_stated_reason?: string | null;
+  stated_consequences?: string | null;
 }
 
 interface PlanGoal {
@@ -93,6 +97,9 @@ interface PlanGoal {
   revision_notes: string | null;
   created_at: string;
   updated_at: string;
+  dispute_reason?: string | null;
+  original_goal_snapshot?: { title: string; description: string | null; success_criteria: string | null; deadline: string | null; frozen_at: string } | null;
+  modified_at?: string | null;
 }
 
 interface PlanCheckin {
@@ -104,6 +111,8 @@ interface PlanCheckin {
   private_notes: string | null;
   linked_record_id: string | null;
   created_at: string;
+  expectations_changed?: boolean;
+  expectation_change_detail?: string | null;
 }
 
 /* ------------------------------------------------------------------ */
@@ -124,7 +133,7 @@ const WARNING_TYPES = new Set([
 ]);
 
 interface DetectedPattern {
-  type: "frequency" | "warning" | "people" | "gap" | "plan";
+  type: "frequency" | "event_types" | "people" | "gap" | "plan" | "escalation";
   label: string;
   detail: string;
 }
@@ -227,15 +236,19 @@ function detectPatterns(records: DocketRecord[]): DetectedPattern[] {
     patterns.push({ type: "frequency", label: "Recording Frequency", detail });
   }
 
-  const warningCount = records.filter((r) => WARNING_TYPES.has(r.entry_type)).length;
-  if (warningCount > 0) {
-    patterns.push({ type: "warning", label: "Flagged Entries", detail: `${warningCount} of ${records.length} records are flagged entries (Performance Improvement Plan, HR, Incident)` });
+  // Event Types (data-driven breakdown)
+  const typeCounts: Record<string, number> = {};
+  records.forEach((r) => { typeCounts[r.entry_type] = (typeCounts[r.entry_type] || 0) + 1; });
+  const typeEntries = Object.entries(typeCounts).sort((a, b) => b[1] - a[1]);
+  if (typeEntries.length > 0) {
+    const detail = typeEntries.map(([type, count]) => `${count} ${type}${count !== 1 && !type.endsWith("s") ? "s" : ""}`).join(", ");
+    patterns.push({ type: "event_types", label: "Event Types", detail });
   }
 
   const peopleCounts: Record<string, number> = {};
   records.forEach((r) => {
     if (r.people) {
-      r.people.split(/[,;]/).map((p) => p.trim()).filter(Boolean).forEach((name) => { peopleCounts[name] = (peopleCounts[name] || 0) + 1; });
+      r.people.split(";").map((p) => p.trim()).filter(Boolean).forEach((name) => { peopleCounts[name] = (peopleCounts[name] || 0) + 1; });
     }
   });
   const topPeople = Object.entries(peopleCounts).sort((a, b) => b[1] - a[1]).slice(0, 3);
@@ -244,14 +257,19 @@ function detectPatterns(records: DocketRecord[]): DetectedPattern[] {
     patterns.push({ type: "people", label: "Key People", detail });
   }
 
+  // Timeline Gaps (14+ days, consolidated)
   const sorted = [...records].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  const gaps: string[] = [];
   for (let i = 1; i < sorted.length; i++) {
     const prev = new Date(sorted[i - 1].date + "T00:00:00");
     const curr = new Date(sorted[i].date + "T00:00:00");
-    const gap = (curr.getTime() - prev.getTime()) / 86400000;
-    if (gap > 14) {
-      patterns.push({ type: "gap", label: "Recording Gap", detail: `No records between ${formatDate(sorted[i - 1].date)} and ${formatDate(sorted[i].date)} (${Math.round(gap)} days)` });
+    const gapDays = (curr.getTime() - prev.getTime()) / 86400000;
+    if (gapDays >= 14) {
+      gaps.push(`No documentation between ${formatDate(sorted[i - 1].date)} and ${formatDate(sorted[i].date)} (${Math.round(gapDays)} days)`);
     }
+  }
+  if (gaps.length > 0) {
+    patterns.push({ type: "gap", label: "Timeline Gaps", detail: gaps.join("\n") });
   }
 
   return patterns;
@@ -372,7 +390,8 @@ export default function CaseFilePanel({
 
   // Fetch case data when selection changes
   const fetchCaseData = useCallback(async () => {
-    if (!selectedCaseId || !userId) return;
+    console.log("[CaseFilePanel] fetchCaseData called with selectedCaseId:", selectedCaseId, "userId:", userId);
+    if (!selectedCaseId || !userId) { console.log("[CaseFilePanel] SKIPPED: missing selectedCaseId or userId"); return; }
 
     // Only show loading spinner on the first fetch, not on interval refetches
     if (!hasFetchedRef.current) {
@@ -391,23 +410,28 @@ export default function CaseFilePanel({
         .eq("user_id", userId),
     ]);
 
+    console.log("[CaseFilePanel] case_records links:", { data: linksRes.data, error: linksRes.error, selectedCaseId });
+
     if (caseRes.data) setCaseData(caseRes.data);
     if (vaultRes.data) setVaultDocs(vaultRes.data);
 
-    // Fetch records linked to this case
+    // Fetch records linked to this case via junction table
     if (linksRes.data && linksRes.data.length > 0) {
       const recordIds = linksRes.data.map(
         (l: { record_id: string }) => l.record_id
       );
-      const { data: recs } = await supabase
+      console.log("[CaseFilePanel] recordIds from junction table:", recordIds);
+      const { data: recs, error: recsErr } = await supabase
         .from("records")
         .select("*")
         .in("id", recordIds)
         .order("date", { ascending: true })
         .order("created_at", { ascending: true });
+      console.log("[CaseFilePanel] records fetched:", { count: recs?.length, error: recsErr });
       if (recs) setRecords(recs);
       else setRecords([]);
     } else {
+      console.log("[CaseFilePanel] No links found in case_records for case:", selectedCaseId);
       setRecords([]);
     }
 
@@ -950,6 +974,7 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
     }
 
     infoRows.push(
+      { label: "Employee", value: caseData.employee_name || "--" },
       { label: "Employer", value: caseData.employer || "--" },
       { label: "Role", value: caseData.role || "--" },
       { label: "Department", value: caseData.department || "--" },

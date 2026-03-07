@@ -120,15 +120,16 @@ function getBadgeStyle(entryType: string): React.CSSProperties {
 function parsePeople(peopleStr: string | null): string[] {
   if (!peopleStr) return [];
   return peopleStr
-    .split(",")
+    .split(";")
     .map((p) => p.trim())
     .filter(Boolean);
 }
 
 function getInitials(name: string): string {
-  const parts = name.trim().split(/\s+/);
+  const namePart = name.includes(",") ? name.split(",")[0].trim() : name.trim();
+  const parts = namePart.split(/\s+/);
   if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-  return name.trim().slice(0, 2).toUpperCase();
+  return namePart.slice(0, 2).toUpperCase();
 }
 
 const AVATAR_COLOR = "#1c1917";
@@ -305,8 +306,7 @@ export default function RecordPage() {
     if (!userId) return;
     const { data: links } = await supabase
       .from("case_records")
-      .select("record_id, cases(id, name, case_type, case_types)")
-      .eq("user_id", userId);
+      .select("record_id, cases(id, name, case_type, case_types)");
     if (!links) return;
 
     const map: { [recordId: string]: CaseBasic[] } = {};
@@ -516,15 +516,28 @@ export default function RecordPage() {
   }
 
   async function uploadFiles(recordId: string, uid: string) {
-    for (const file of files) {
-      const path = `${uid}/${file.name}`;
+    // Refresh session to ensure auth token is current
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session) {
+      console.error("[uploadFiles] auth session error:", sessionError || "No active session");
+      setFormError("Authentication expired. Please refresh the page and log in again.");
+      return;
+    }
 
+    for (const file of files) {
+      const safeName = file.name
+        .replace(/\s+/g, "_")
+        .replace(/[^a-zA-Z0-9_\-\.]/g, "");
+      const path = `${uid}/${safeName}`;
+
+      console.log("[uploadFiles] uploading:", path, "| bucket = record-files");
       const { error: storageError } = await supabase.storage
         .from("record-files")
         .upload(path, file, { upsert: true });
 
       if (storageError) {
-        console.error("Record storage upload error:", storageError);
+        console.error("[uploadFiles] storage error:", storageError.message);
+        setFormError(`Failed to upload "${file.name}": ${storageError.message}`);
         continue;
       }
 
@@ -538,7 +551,8 @@ export default function RecordPage() {
       });
 
       if (insertError) {
-        console.error("Record attachment insert error:", insertError);
+        console.error("[uploadFiles] insert error:", insertError.message);
+        setFormError(`Failed to save "${file.name}": ${insertError.message}`);
       }
     }
   }
@@ -598,7 +612,6 @@ export default function RecordPage() {
     await supabase.from("case_records").insert({
       case_id: caseId,
       record_id: recordId,
-      user_id: userId,
     });
 
     setRecordCaseMap((prev) => ({
@@ -627,7 +640,6 @@ export default function RecordPage() {
       await supabase.from("case_records").insert({
         case_id: newCase.id,
         record_id: recordId,
-        user_id: userId,
       });
 
       setCases((prev) => [newCase, ...prev]);
@@ -732,7 +744,6 @@ export default function RecordPage() {
         const links = formData.case_ids.map((caseId) => ({
           case_id: caseId,
           record_id: newRecord.id,
-          user_id: userId,
         }));
         await supabase.from("case_records").insert(links);
 
@@ -808,7 +819,6 @@ export default function RecordPage() {
         const links = toAdd.map((caseId) => ({
           case_id: caseId,
           record_id: updated.id,
-          user_id: userId,
         }));
         await supabase.from("case_records").insert(links);
       }
@@ -1097,44 +1107,30 @@ export default function RecordPage() {
           {/* Entry Type */}
           <div style={{ marginBottom: 20 }}>
             <label style={labelStyle}>Entry Type (Optional)</label>
-            <div style={{ position: "relative" }}>
-              <select
-                value={formData.entry_type}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, entry_type: e.target.value }))
-                }
-                style={{
-                  ...inputStyle,
-                  cursor: "pointer",
-                  color: formData.entry_type ? "#292524" : "transparent",
-                }}
-              >
-                <option value="">
-                  Select entry type...
+            <select
+              value={formData.entry_type}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, entry_type: e.target.value }))
+              }
+              style={{
+                ...inputStyle,
+                cursor: "pointer",
+                color: formData.entry_type ? "#292524" : "#78716C",
+                appearance: "none",
+                WebkitAppearance: "none",
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2378716C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+                backgroundRepeat: "no-repeat",
+                backgroundPosition: "right 14px center",
+                paddingRight: 36,
+              }}
+            >
+              <option value="">Select entry type...</option>
+              {ENTRY_TYPES.map((et) => (
+                <option key={et} value={et}>
+                  {et}
                 </option>
-                {ENTRY_TYPES.map((et) => (
-                  <option key={et} value={et}>
-                    {et}
-                  </option>
-                ))}
-              </select>
-              {!formData.entry_type && (
-                <span
-                  style={{
-                    position: "absolute",
-                    left: 14,
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    color: "#78716C",
-                    pointerEvents: "none",
-                    fontSize: 15,
-                    fontFamily: "var(--font-sans)",
-                  }}
-                >
-                  Select entry type...
-                </span>
-              )}
-            </div>
+              ))}
+            </select>
             <p style={{ fontSize: 13, color: "#A8A29E", fontFamily: "var(--font-sans)", marginTop: 8, marginBottom: 0 }}>
               Most records don&apos;t need an event type. Use these only when something specific has occurred.
             </p>

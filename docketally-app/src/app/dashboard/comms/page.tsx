@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useSubscription } from "@/components/SubscriptionProvider";
 import { hasActiveAccess } from "@/lib/subscription";
@@ -18,12 +19,15 @@ interface Template {
   category: TemplateCategory;
   tag: "Critical" | "Weekly" | "Strategic";
   body: string;
+  whyItMatters?: string;
 }
 
 type TemplateCategory =
+  | "Confirm in Writing"
   | "Responding to a PIP"
   | "Meeting Follow-Ups"
   | "Escalation & HR"
+  | "Retaliation Concern"
   | "Severance & Exit"
   | "Feedback & Reviews"
   | "Role & Compensation"
@@ -34,66 +38,153 @@ type TemplateCategory =
 /* ------------------------------------------------------------------ */
 
 const CATEGORIES: TemplateCategory[] = [
-  "Responding to a PIP",
   "Meeting Follow-Ups",
-  "Escalation & HR",
-  "Severance & Exit",
+  "Confirm in Writing",
   "Feedback & Reviews",
+  "Responding to a PIP",
+  "Escalation & HR",
+  "Retaliation Concern",
   "Role & Compensation",
   "Workplace Changes",
+  "Severance & Exit",
 ];
 
-function getTagStyle(tag: string): React.CSSProperties {
-  if (tag === "Critical") {
-    return {
-      display: "inline-block",
-      padding: "3px 8px",
-      borderRadius: 4,
-      fontSize: 9,
-      fontWeight: 700,
-      fontFamily: "var(--font-mono)",
-      letterSpacing: "0.06em",
-      whiteSpace: "nowrap",
-      textTransform: "uppercase",
-      color: "#991B1B",
-      background: "#FEF2F2",
-      border: "1px solid #FECACA",
-    };
-  }
-  if (tag === "Strategic") {
-    return {
-      display: "inline-block",
-      padding: "3px 8px",
-      borderRadius: 4,
-      fontSize: 9,
-      fontWeight: 700,
-      fontFamily: "var(--font-mono)",
-      letterSpacing: "0.06em",
-      whiteSpace: "nowrap",
-      textTransform: "uppercase",
-      color: "#15803D",
-      background: "#F0FDF4",
-      border: "1px solid #BBF7D0",
-    };
-  }
-  // Weekly
-  return {
-    display: "inline-block",
-    padding: "3px 8px",
-    borderRadius: 4,
-    fontSize: 9,
-    fontWeight: 700,
-    fontFamily: "var(--font-mono)",
-    letterSpacing: "0.06em",
-    whiteSpace: "nowrap",
-    textTransform: "uppercase",
-    color: "#57534E",
-    background: "#F5F5F4",
-    border: "1px solid #E7E5E4",
-  };
-}
 
 const TEMPLATES: Template[] = [
+  /* ---- Confirm in Writing ---- */
+  {
+    id: "ciw-verbal-summary",
+    title: "Summary of Verbal Conversation",
+    description:
+      "After a verbal meeting or discussion, send a written summary of what was said and agreed to. Creates a timestamped record of the conversation.",
+    category: "Confirm in Writing",
+    tag: "Strategic",
+    whyItMatters:
+      "Verbal conversations are the most common source of 'I never said that' disputes. A summary email sent the same day is timestamped, specific, and hard to deny.",
+    body: `Subject: Summary of our conversation on [date]
+
+Hi [name],
+
+Thank you for taking the time to meet with me today. I wanted to follow up with a written summary to make sure we're on the same page.
+
+Here is my understanding of what we discussed:
+
+[Summarize key points, decisions, or commitments in clear, factual language. Use specific details: dates, deliverables, next steps.]
+
+My understanding of the next steps is:
+
+[List any action items, deadlines, or follow-up meetings that were agreed to.]
+
+If I've misunderstood anything or you'd like to clarify, please let me know. Otherwise I'll proceed based on the above.
+
+Thank you,
+[Your name]`,
+  },
+  {
+    id: "ciw-scope-clarification",
+    title: "Scope Clarification After Verbal Feedback",
+    description:
+      "When feedback is vague or broad, ask for specific examples, measurable standards, and timelines in writing.",
+    category: "Confirm in Writing",
+    tag: "Strategic",
+    whyItMatters:
+      "Vague feedback like 'you need to be more proactive' or 'improve your communication' can mean anything. Without specifics, the standard becomes whatever your manager decides it means later. This email asks for clarity in a professional, non-confrontational way.",
+    body: `Subject: Following up on your feedback
+
+Hi [name],
+
+Thank you for the feedback you shared during our [meeting/conversation] on [date]. I want to make sure I address it effectively.
+
+To help me focus my efforts, could you clarify a few things?
+
+1. Are there specific examples of where I fell short, so I can understand the context?
+
+2. What does success look like going forward? Are there measurable outcomes or deliverables I should target?
+
+3. Is there a timeline I should be working toward?
+
+I want to get this right and make sure we're aligned on expectations. I appreciate any additional detail you can share.
+
+Thank you,
+[Your name]`,
+  },
+  {
+    id: "ciw-expectation-reset",
+    title: "Expectation Reset Email",
+    description:
+      "When performance expectations shift without documentation, restate what was originally agreed to and ask for confirmation.",
+    category: "Confirm in Writing",
+    tag: "Critical",
+    whyItMatters:
+      "When expectations change without a clear conversation or written update, this email puts the original agreement on the record and asks whether the new direction is intentional. It prevents moving goalposts.",
+    body: `Subject: Confirming current expectations
+
+Hi [name],
+
+I want to make sure I'm focused on the right priorities. When we initially discussed my goals on [date], my understanding was:
+
+[List the original expectations, deliverables, or success criteria as they were communicated to you.]
+
+Recently, I've noticed some of the expectations may have shifted:
+
+[Describe what changed: new tasks, different metrics, revised deadlines, or conflicting direction.]
+
+I want to make sure I'm working toward the right targets. Could you confirm whether the original expectations still apply, or whether we should update them? I'm happy to set up time to discuss if that's easier.
+
+Thank you,
+[Your name]`,
+  },
+  {
+    id: "ciw-performance-metric",
+    title: "Performance Metric Confirmation",
+    description:
+      "Ask your manager to confirm what specific metrics, deliverables, or criteria will be used to evaluate your success.",
+    category: "Confirm in Writing",
+    tag: "Strategic",
+    whyItMatters:
+      "If your performance will be evaluated, you deserve to know what you're being measured against. This email puts the criteria in writing before the evaluation happens, not after.",
+    body: `Subject: Confirming performance criteria
+
+Hi [name],
+
+As I continue working toward my goals for this [quarter/review period], I want to make sure I have a clear understanding of how my performance will be evaluated.
+
+Could you confirm the specific metrics, deliverables, or criteria that will be used? If there's a formal rubric or evaluation framework, I'd appreciate seeing it in advance so I can make sure I'm tracking against the right benchmarks.
+
+If any of the criteria have changed since our last conversation on [date], I'd like to understand what's different so I can adjust accordingly.
+
+Thank you,
+[Your name]`,
+  },
+  {
+    id: "ciw-follow-up-unanswered",
+    title: "Follow Up on Unanswered Concern",
+    description:
+      "After raising a concern to HR or management and receiving no response, send a professional follow-up documenting the original concern and timeline.",
+    category: "Confirm in Writing",
+    tag: "Critical",
+    whyItMatters:
+      "Institutional silence is common. This creates a paper trail showing you raised the issue, waited a reasonable amount of time, and followed up professionally.",
+    body: `Subject: Following up on my concern from [date]
+
+Hi [name],
+
+I'm following up on the concern I raised on [date] regarding [brief description of the issue].
+
+I understand these matters take time to review, but I wanted to check in on the status. It has been [number] days since I submitted my concern, and I have not yet received a response or update.
+
+Could you let me know where things stand? Specifically:
+
+1. Has the concern been received and reviewed?
+2. Is there a timeline for next steps?
+3. Is there anything additional you need from me?
+
+I appreciate your attention to this.
+
+Thank you,
+[Your name]`,
+  },
+
   /* ---- Responding to a PIP ---- */
   {
     id: "pip-acknowledgment",
@@ -347,7 +438,7 @@ Thanks for your time,
     title: "Retaliation Concern",
     description:
       "Flag changes in your treatment following a complaint or protected activity so they can be addressed early.",
-    category: "Escalation & HR",
+    category: "Retaliation Concern",
     tag: "Critical",
     body: `Subject: Following Up on a Previous Conversation
 
@@ -367,6 +458,58 @@ I'm still committed to resolving the original matter constructively. Could we to
 
 Thanks,
 [Your Name]`,
+  },
+  {
+    id: "investigation-outcome",
+    title: "Request for Investigation Outcome",
+    description:
+      "After filing a complaint, request confirmation of investigation findings and any action taken.",
+    category: "Escalation & HR",
+    tag: "Strategic",
+    whyItMatters:
+      "Many employees file complaints and never hear back. This formally requests closure documentation and puts the organization on record about whether they investigated.",
+    body: `Subject: Request for update on investigation
+
+Hi [name],
+
+I filed a formal concern on [date] regarding [brief description]. I understand an investigation may have been conducted, and I'm writing to request an update on the outcome.
+
+Specifically, I'd like to know:
+
+1. Was an investigation conducted?
+2. What were the findings?
+3. Were any corrective or remedial actions taken?
+
+I understand there may be confidentiality considerations, but I would appreciate any information you're able to share about the resolution.
+
+Thank you,
+[Your name]`,
+  },
+  {
+    id: "internal-escalation",
+    title: "Internal Escalation Before External Filing",
+    description:
+      "Formally state your intention to escalate concerns internally before considering external remedies.",
+    category: "Escalation & HR",
+    tag: "Critical",
+    whyItMatters:
+      "This shows good faith and protects against 'failure to use internal process' defenses. It gives the organization a documented opportunity to address the issue.",
+    body: `Subject: Formal internal escalation
+
+Hi [name],
+
+I am writing to formally escalate a concern that I have previously raised through [describe prior steps: conversations with manager, HR complaint, etc.] on [dates].
+
+Despite these efforts, the issue has not been resolved. Before considering any external options, I want to give [company name] every opportunity to address this internally.
+
+I am requesting:
+
+[List what you need: a meeting, a formal review, a specific corrective action, or a written response by a specific date.]
+
+I believe this can be resolved internally and I am committed to working through the appropriate channels. I would appreciate a response by [date].
+
+Thank you,
+[Your name]`,
   },
 
   /* ---- Severance & Exit ---- */
@@ -447,6 +590,57 @@ Reminders:
 - Be warm and professional throughout
 - Don't sign anything new without reading it carefully
 - Take notes after the meeting while details are fresh`,
+  },
+  {
+    id: "severance-review-extension",
+    title: "Severance Review Extension Request",
+    description:
+      "Request additional time to review a severance agreement with legal counsel.",
+    category: "Severance & Exit",
+    tag: "Strategic",
+    whyItMatters:
+      "Severance deadlines can feel pressured. This is a standard, professional request that most employers will grant.",
+    body: `Subject: Request for extension to review severance agreement
+
+Hi [name],
+
+Thank you for providing the severance agreement on [date]. I want to give this document the careful consideration it deserves.
+
+I am requesting an extension of [number] business days to review the agreement with [my attorney/legal counsel] before signing. I want to make sure I fully understand the terms and can proceed with confidence.
+
+Please confirm whether this extension is acceptable. I appreciate your understanding.
+
+Thank you,
+[Your name]`,
+  },
+  {
+    id: "benefit-continuation",
+    title: "Benefit Continuation Clarification",
+    description:
+      "Clarify COBRA eligibility, bonus status, stock vesting timelines, and other benefit details after separation.",
+    category: "Severance & Exit",
+    tag: "Strategic",
+    whyItMatters:
+      "Employees frequently miss money and benefits because the details aren't confirmed in writing. This puts the specifics on the record.",
+    body: `Subject: Clarification on benefits and compensation
+
+Hi [name],
+
+As I prepare for my transition, I'd like to confirm a few details about my benefits and compensation:
+
+1. Health insurance: What is my last day of coverage? When does COBRA eligibility begin, and what will the monthly cost be?
+
+2. Bonus: Am I eligible for any prorated bonus for the current [quarter/year]? If so, when would it be paid?
+
+3. Equity: What happens to my unvested [stock options/RSUs]? Is there an accelerated vesting provision in the severance agreement?
+
+4. PTO: Will unused PTO be paid out? If so, how many hours are on record?
+
+5. Other benefits: Are there any other benefits, stipends, or reimbursements I should be aware of before my last day?
+
+I'd appreciate written confirmation on these items. Thank you for your help.
+
+[Your name]`,
   },
 
   /* ---- Feedback & Reviews ---- */
@@ -846,6 +1040,51 @@ const TEMPLATE_TIPS: Record<string, string[]> = {
     "Your employer is legally required to engage in a conversation about accommodations",
     "Keep the email brief. Details can be discussed in person",
   ],
+  "ciw-verbal-summary": [
+    "Send the same day while details are fresh and accurate",
+    "Use specific language: names, dates, deliverables. Specificity is what makes it useful",
+    "Ending with 'let me know if I misunderstood' invites correction without confrontation",
+  ],
+  "ciw-scope-clarification": [
+    "Frame it as wanting to succeed, not as challenging the feedback",
+    "Asking for measurable standards protects both sides",
+    "Send within 48 hours while the conversation is still recent",
+  ],
+  "ciw-expectation-reset": [
+    "Reference the original conversation with a date so it's clear what you're comparing to",
+    "Keep the tone neutral. You're asking for clarity, not accusing anyone of changing the rules",
+    "Offering to meet shows you want resolution, not a paper trail",
+  ],
+  "ciw-performance-metric": [
+    "Send this before the evaluation period, not after you receive results",
+    "Asking for the rubric in advance is a reasonable, professional request",
+    "This email is especially important if goals were set verbally",
+  ],
+  "ciw-follow-up-unanswered": [
+    "Wait at least 5 business days before following up. It shows patience",
+    "Include the exact date you originally raised the concern. Precision matters",
+    "Numbered questions make it easy for the recipient to respond point by point",
+  ],
+  "investigation-outcome": [
+    "You have the right to ask about the outcome of a complaint you filed",
+    "The organization may not share every detail, but they should confirm whether they investigated",
+    "Keep the tone professional. You're requesting information, not making accusations",
+  ],
+  "internal-escalation": [
+    "Document every internal step before considering external options",
+    "Including a requested response date creates a reasonable timeline",
+    "This email shows good faith and can protect you later if external filing becomes necessary",
+  ],
+  "severance-review-extension": [
+    "Most employers will grant a reasonable extension. It's a standard request",
+    "You typically have at least 21 days to review, and 45 days if you're over 40",
+    "Never sign a severance agreement without reading it carefully first",
+  ],
+  "benefit-continuation": [
+    "Get every financial detail in writing before your last day",
+    "Ask about COBRA timing early. There can be a gap in coverage if you wait",
+    "Unused PTO payout policies vary by state. Confirm what applies to you",
+  ],
 };
 
 /* ------------------------------------------------------------------ */
@@ -855,6 +1094,8 @@ const TEMPLATE_TIPS: Record<string, string[]> = {
 export default function CommsPage() {
   const subscription = useSubscription();
   if (!hasActiveAccess(subscription)) return <ProGate feature="Comms" />;
+
+  const router = useRouter();
 
   const [activeCategory, setActiveCategory] = useState<TemplateCategory | "All">(
     "All"
@@ -871,6 +1112,8 @@ export default function CommsPage() {
 
   // Toast state
   const [showToast, setShowToast] = useState(false);
+  const [showRecordToast, setShowRecordToast] = useState(false);
+  const [savingRecord, setSavingRecord] = useState(false);
 
   // Auth for education card
   const supabase = createClient();
@@ -908,6 +1151,20 @@ export default function CommsPage() {
     setFilledValues({});
     setEditingIndex(null);
     setShowToast(false);
+    window.history.pushState({ commsTemplate: true }, "");
+  }, []);
+
+  // Handle browser back button when viewing a template
+  useEffect(() => {
+    function handlePopState() {
+      setSelectedTemplate(null);
+      setIsEditMode(false);
+      setFilledValues({});
+      setEditingIndex(null);
+      setShowToast(false);
+    }
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
   // Build final text with filled placeholder values
@@ -935,13 +1192,28 @@ export default function CommsPage() {
     setTimeout(() => setShowToast(false), 2000);
   }
 
+  // Save as Record
+  async function saveAsRecord() {
+    if (!selectedTemplate || !commsUserId || savingRecord) return;
+    setSavingRecord(true);
+    const text = getTextWithFilledValues(selectedTemplate.body);
+    const { error } = await supabase.from("records").insert({
+      user_id: commsUserId,
+      title: selectedTemplate.title,
+      entry_type: "Written Communication",
+      date: new Date().toISOString().split("T")[0],
+      narrative: text,
+    });
+    setSavingRecord(false);
+    if (!error) {
+      setShowRecordToast(true);
+      setTimeout(() => setShowRecordToast(false), 3000);
+    }
+  }
+
   // Back to list
   function backToList() {
-    setSelectedTemplate(null);
-    setIsEditMode(false);
-    setFilledValues({});
-    setEditingIndex(null);
-    setShowToast(false);
+    window.history.back();
   }
 
   // Auto-focus edit input
@@ -1154,9 +1426,6 @@ export default function CommsPage() {
                 >
                   {selectedTemplate.title}
                 </h1>
-                <span style={getTagStyle(selectedTemplate.tag)}>
-                  {selectedTemplate.tag}
-                </span>
               </div>
               <p
                 style={{
@@ -1254,6 +1523,60 @@ export default function CommsPage() {
             <span style={{ fontSize: 12, color: "#92400E", fontFamily: "var(--font-sans)" }}>
               Click any highlighted field to fill in your details
             </span>
+          </div>
+        )}
+
+        {/* Why this matters */}
+        {selectedTemplate.whyItMatters && (
+          <div
+            style={{
+              background: "#F0FDF4",
+              border: "1px solid #BBF7D0",
+              borderRadius: 10,
+              padding: "14px 18px",
+              marginTop: 16,
+              marginBottom: 0,
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 10,
+              fontSize: 13,
+              color: "#15803D",
+              fontFamily: "var(--font-sans)",
+              lineHeight: 1.6,
+            }}
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#22C55E"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ flexShrink: 0, marginTop: 2 }}
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="16" x2="12" y2="12" />
+              <line x1="12" y1="8" x2="12.01" y2="8" />
+            </svg>
+            <div>
+              <span
+                style={{
+                  fontWeight: 700,
+                  fontSize: 11,
+                  fontFamily: "var(--font-mono)",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.06em",
+                  color: "#16A34A",
+                  display: "block",
+                  marginBottom: 4,
+                }}
+              >
+                Why this matters
+              </span>
+              {selectedTemplate.whyItMatters}
+            </div>
           </div>
         )}
 
@@ -1367,6 +1690,108 @@ export default function CommsPage() {
                 </li>
               ))}
             </ul>
+          </div>
+        )}
+
+        {/* Bottom action buttons */}
+        <div
+          style={{
+            display: "flex",
+            gap: 10,
+            marginTop: 20,
+            justifyContent: "flex-end",
+          }}
+        >
+          <button
+            onClick={saveAsRecord}
+            disabled={savingRecord}
+            style={{
+              background: "transparent",
+              border: "1px solid #D6D3D1",
+              borderRadius: 8,
+              padding: "10px 18px",
+              cursor: savingRecord ? "default" : "pointer",
+              fontFamily: "var(--font-sans)",
+              fontSize: 13,
+              fontWeight: 600,
+              color: savingRecord ? "#A8A29E" : "#57534E",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              opacity: savingRecord ? 0.7 : 1,
+            }}
+            onMouseEnter={(e) => {
+              if (!savingRecord) {
+                e.currentTarget.style.borderColor = "#D6D3D1";
+                e.currentTarget.style.background = "var(--color-stone-50)";
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!savingRecord) {
+                e.currentTarget.style.borderColor = "#D6D3D1";
+                e.currentTarget.style.background = "transparent";
+              }
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" />
+              <polyline points="17 21 17 13 7 13 7 21" />
+              <polyline points="7 3 7 8 15 8" />
+            </svg>
+            {savingRecord ? "Saving..." : "Save as Record"}
+          </button>
+          <button
+            onClick={copyToClipboard}
+            style={{
+              background: "#22C55E",
+              border: "none",
+              borderRadius: 8,
+              padding: "10px 18px",
+              cursor: "pointer",
+              fontFamily: "var(--font-sans)",
+              fontSize: 13,
+              fontWeight: 600,
+              color: "#FFFFFF",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "#16A34A";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "#22C55E";
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+              <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+            </svg>
+            Copy Template
+          </button>
+        </div>
+
+        {/* Record saved toast */}
+        {showRecordToast && (
+          <div
+            style={{
+              position: "fixed",
+              bottom: 24,
+              left: "50%",
+              transform: "translateX(-50%)",
+              background: "#292524",
+              color: "#fff",
+              fontFamily: "var(--font-sans)",
+              fontSize: 13,
+              fontWeight: 600,
+              padding: "10px 20px",
+              borderRadius: 8,
+              boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+              zIndex: 9999,
+              animation: "toastFade 3s ease forwards",
+            }}
+          >
+            Saved as a record
           </div>
         )}
 
@@ -1505,9 +1930,7 @@ export default function CommsPage() {
                 style={{
                   padding: "8px 14px",
                   borderRadius: 20,
-                  border: isActive
-                    ? "1px solid var(--color-green)"
-                    : "1px solid var(--color-stone-300)",
+                  border: isActive ? "1px solid var(--color-green)" : "1px solid var(--color-stone-300)",
                   background: isActive ? "var(--color-green-soft)" : "#fff",
                   color: isActive ? "var(--color-green-text)" : "var(--color-stone-700)",
                   fontSize: 12,
@@ -1617,6 +2040,9 @@ export default function CommsPage() {
                 marginBottom: 14,
                 paddingBottom: 8,
                 borderBottom: "1px solid var(--color-stone-100)",
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
               }}
             >
               {group.category}
@@ -1667,9 +2093,6 @@ export default function CommsPage() {
                       }
                     }}
                   >
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <span style={getTagStyle(template.tag)}>{template.tag}</span>
-                    </div>
                     <div
                       style={{
                         fontSize: 15,

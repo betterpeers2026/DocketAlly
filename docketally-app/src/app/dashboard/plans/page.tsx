@@ -25,6 +25,9 @@ interface Plan {
   status: string;
   notes: string | null;
   case_id: string | null;
+  plan_initiator: string | null;
+  employer_stated_reason: string | null;
+  stated_consequences: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -48,6 +51,9 @@ interface PlanGoal {
   original_description: string | null;
   revised_date: string | null;
   revision_notes: string | null;
+  dispute_reason: string | null;
+  original_goal_snapshot: { title: string; description: string | null; success_criteria: string | null; deadline: string | null; frozen_at: string } | null;
+  modified_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -61,6 +67,8 @@ interface PlanCheckin {
   manager_feedback: string | null;
   your_notes: string | null;
   linked_record_id: string | null;
+  expectations_changed: boolean;
+  expectation_change_detail: string | null;
   created_at: string;
 }
 
@@ -80,9 +88,21 @@ const PLAN_TYPES = [
   { value: "role_transition", label: "Role Transition", shortLabel: "Transition", description: "Role change, transfer, or new responsibilities plan", defaultName: "Role Transition Plan" },
   { value: "accommodation", label: "Reasonable Accommodation", shortLabel: "Accommodation", description: "ADA or workplace accommodation agreement and tracking", defaultName: "Reasonable Accommodation Plan" },
   { value: "return_to_work", label: "Return-to-Work", shortLabel: "RTW", description: "Plan for returning after leave, accommodation, or suspension", defaultName: "Return-to-Work Plan" },
+  { value: "coaching", label: "Coaching Plan", shortLabel: "Coaching", description: "Informal or semi-formal improvement plan. Often precedes a formal Performance Improvement Plan (PIP). Document it now so you have a record if expectations escalate.", defaultName: "Coaching Plan" },
   { value: "pip", label: "Performance Improvement Plan", shortLabel: "PIP", description: "Formal performance improvement plan with measurable goals and deadlines", defaultName: "Performance Improvement Plan" },
   { value: "corrective", label: "Corrective Action", shortLabel: "Corrective", description: "Formal corrective action for policy or conduct issues", defaultName: "Corrective Action Plan" },
   { value: "probation", label: "Probationary Period", shortLabel: "Probation", description: "New hire or extended probationary review period", defaultName: "Probationary Period" },
+  { value: "retaliation", label: "Retaliation Monitoring", shortLabel: "Retaliation", description: "Track changes in treatment, tone, access, or responsibilities after filing a complaint or engaging in protected activity.", defaultName: "Retaliation Monitoring Plan" },
+  { value: "leave", label: "Leave of Absence", shortLabel: "Leave", description: "Track approval terms, duration, benefits continuation, and return-to-work expectations for FMLA, medical, parental, or personal leave.", defaultName: "Leave of Absence Plan" },
+  { value: "other", label: "Other", shortLabel: "Other", description: "Any plan type not listed above", defaultName: "Plan" },
+] as const;
+
+const GOAL_STATUSES = [
+  { value: "not_started", label: "Not Started", bg: "#F5F5F4", color: "#44403C", border: "#D6D3D1" },
+  { value: "in_progress", label: "In Progress", bg: "#EFF6FF", color: "#3B82F6", border: "#BFDBFE" },
+  { value: "completed", label: "Completed", bg: "#F0FDF4", color: "#16A34A", border: "#BBF7D0" },
+  { value: "disputed", label: "Disputed", bg: "#FEF2F2", color: "#EF4444", border: "#FECACA" },
+  { value: "modified", label: "Modified", bg: "#FFFBEB", color: "#B45309", border: "#FDE68A" },
 ] as const;
 
 function getTypeInfo(planType: string) {
@@ -195,11 +215,17 @@ function getStatusBadge(status: string): React.CSSProperties {
   if (status === "revised") {
     return { ...base, color: "#92400E", background: "#FFFBEB", border: "1px solid #FDE68A" };
   }
+  if (status === "disputed") {
+    return { ...base, color: "#EF4444", background: "#FEF2F2", border: "1px solid #FECACA", fontWeight: 600 };
+  }
+  if (status === "modified") {
+    return { ...base, color: "#B45309", background: "#FFFBEB", border: "1px solid #FDE68A" };
+  }
   if (status === "in_progress") {
-    return { ...base, color: "#16A34A", background: "#F0FDF4", border: "1px solid #BBF7D0" };
+    return { ...base, color: "#3B82F6", background: "#EFF6FF", border: "1px solid #BFDBFE" };
   }
   // not_started / default
-  return { ...base, color: "#78716C", background: "#F5F5F4", border: "1px solid #D6D3D1" };
+  return { ...base, color: "#44403C", background: "#F5F5F4", border: "1px solid #D6D3D1" };
 }
 
 function statusLabel(s: string): string {
@@ -239,6 +265,9 @@ export default function PlansPage() {
     end_date: "",
     notes: "",
     case_id: "",
+    plan_initiator: "",
+    employer_stated_reason: "",
+    stated_consequences: "",
   });
   const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
 
@@ -249,7 +278,8 @@ export default function PlansPage() {
     description: "",
     success_criteria: "",
     deadline: "",
-    status: "in_progress",
+    status: "not_started",
+    dispute_reason: "",
   });
 
   const [showReviseForm, setShowReviseForm] = useState<string | null>(null);
@@ -266,6 +296,8 @@ export default function PlansPage() {
     manager_feedback: "",
     your_notes: "",
     linked_record_id: "",
+    expectations_changed: false,
+    expectation_change_detail: "",
   });
 
   const [expandedCheckin, setExpandedCheckin] = useState<string | null>(null);
@@ -355,14 +387,6 @@ export default function PlansPage() {
       setCheckinsMap({});
     }
 
-    // Auto-expand the first active plan if none expanded
-    if (allPlans.length > 0) {
-      const active = allPlans.filter((p) => p.status !== "completed");
-      if (active.length === 1) {
-        setExpandedPlanId((prev) => prev ?? active[0].id);
-      }
-    }
-
     setLoading(false);
   }, [userId, supabase]);
 
@@ -404,7 +428,7 @@ export default function PlansPage() {
     const end = new Date(plan.end_date + "T00:00:00").getTime();
     if (Date.now() > end) return "expired";
     // All goals met → completed
-    if (goals.length > 0 && goals.every((g) => g.status === "met")) return "completed";
+    if (goals.length > 0 && goals.every((g) => g.status === "met" || g.status === "completed")) return "completed";
     // Has checkins or goals → in progress
     if (checkins.length > 0 || goals.length > 0) return "in_progress";
     return "not_started";
@@ -429,37 +453,47 @@ export default function PlansPage() {
     if (!userId || !planForm.start_date || !planForm.end_date) return;
     setSaving(true);
 
+    const payload = {
+      plan_name: planForm.plan_name,
+      plan_type: planForm.plan_type,
+      start_date: planForm.start_date,
+      end_date: planForm.end_date,
+      notes: planForm.notes || null,
+      case_id: planForm.case_id || null,
+      plan_initiator: planForm.plan_initiator || null,
+      employer_stated_reason: planForm.employer_stated_reason || null,
+      stated_consequences: planForm.stated_consequences || null,
+    };
+
     if (editingPlanId) {
-      await supabase
+      const { error } = await supabase
         .from("plans")
-        .update({
-          plan_name: planForm.plan_name,
-          plan_type: planForm.plan_type,
-          start_date: planForm.start_date,
-          end_date: planForm.end_date,
-          notes: planForm.notes || null,
-          case_id: planForm.case_id || null,
-          updated_at: new Date().toISOString(),
-        })
+        .update({ ...payload, updated_at: new Date().toISOString() })
         .eq("id", editingPlanId);
+      if (error) {
+        console.error("[savePlan] update error:", error.message, error.details, error.hint);
+        setSaving(false);
+        return;
+      }
     } else {
-      await supabase.from("plans").insert({
+      const { error } = await supabase.from("plans").insert({
         user_id: userId,
-        plan_name: planForm.plan_name,
-        plan_type: planForm.plan_type,
-        start_date: planForm.start_date,
-        end_date: planForm.end_date,
-        notes: planForm.notes || null,
-        case_id: planForm.case_id || null,
+        ...payload,
       });
+      if (error) {
+        console.error("[savePlan] insert error:", error.message, error.details, error.hint);
+        setSaving(false);
+        return;
+      }
     }
 
     if (showPlanForm) {
       /* Modal save (new plan) — close everything */
       setShowPlanForm(false);
-      setEditingPlanId(null);
     }
-    /* Inline save — keep card expanded and editable */
+    /* Collapse card after save */
+    setEditingPlanId(null);
+    setExpandedPlanId(null);
     setSaving(false);
     await fetchAll();
   }
@@ -470,6 +504,8 @@ export default function PlansPage() {
       .from("plans")
       .update({ status: "completed", updated_at: new Date().toISOString() })
       .eq("id", planId);
+    setEditingPlanId(null);
+    setExpandedPlanId(null);
     setSaving(false);
     await fetchAll();
   }
@@ -491,16 +527,35 @@ export default function PlansPage() {
     setSaving(true);
 
     if (editingGoalId) {
+      const updatePayload: Record<string, unknown> = {
+        title: goalForm.title,
+        description: goalForm.description || null,
+        success_criteria: goalForm.success_criteria || null,
+        deadline: goalForm.deadline || null,
+        status: goalForm.status,
+        dispute_reason: goalForm.status === "disputed" ? (goalForm.dispute_reason || null) : null,
+        updated_at: new Date().toISOString(),
+      };
+
+      // When transitioning to "modified", snapshot the existing goal data
+      if (goalForm.status === "modified") {
+        const planGoals = goalsMap[planId] ?? [];
+        const existingGoal = planGoals.find((g) => g.id === editingGoalId);
+        if (existingGoal && !existingGoal.original_goal_snapshot) {
+          updatePayload.original_goal_snapshot = {
+            title: existingGoal.title,
+            description: existingGoal.description || null,
+            success_criteria: existingGoal.success_criteria || null,
+            deadline: existingGoal.deadline || null,
+            frozen_at: new Date().toISOString(),
+          };
+          updatePayload.modified_at = new Date().toISOString();
+        }
+      }
+
       await supabase
         .from("plan_goals")
-        .update({
-          title: goalForm.title,
-          description: goalForm.description || null,
-          success_criteria: goalForm.success_criteria || null,
-          deadline: goalForm.deadline || null,
-          status: goalForm.status,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updatePayload)
         .eq("id", editingGoalId);
     } else {
       await supabase.from("plan_goals").insert({
@@ -510,12 +565,14 @@ export default function PlansPage() {
         description: goalForm.description || null,
         success_criteria: goalForm.success_criteria || null,
         deadline: goalForm.deadline || null,
+        status: goalForm.status,
+        dispute_reason: null,
       });
     }
 
     setShowGoalForm(null);
     setEditingGoalId(null);
-    setGoalForm({ title: "", description: "", success_criteria: "", deadline: "", status: "in_progress" });
+    setGoalForm({ title: "", description: "", success_criteria: "", deadline: "", status: "not_started", dispute_reason: "" });
     setSaving(false);
     await fetchAll();
   }
@@ -565,10 +622,12 @@ export default function PlansPage() {
       manager_feedback: checkinForm.manager_feedback || null,
       your_notes: checkinForm.your_notes || null,
       linked_record_id: checkinForm.linked_record_id || null,
+      expectations_changed: checkinForm.expectations_changed,
+      expectation_change_detail: checkinForm.expectations_changed ? (checkinForm.expectation_change_detail || null) : null,
     });
 
     setShowCheckinForm(null);
-    setCheckinForm({ date: todayStr(), summary: "", manager_feedback: "", your_notes: "", linked_record_id: "" });
+    setCheckinForm({ date: todayStr(), summary: "", manager_feedback: "", your_notes: "", linked_record_id: "", expectations_changed: false, expectation_change_detail: "" });
     setSaving(false);
     await fetchAll();
   }
@@ -588,6 +647,7 @@ export default function PlansPage() {
       success_criteria: goal.success_criteria || "",
       deadline: goal.deadline || "",
       status: goal.status,
+      dispute_reason: goal.dispute_reason || "",
     });
     setShowGoalForm(planId);
   }
@@ -609,6 +669,9 @@ export default function PlansPage() {
       end_date: plan.end_date,
       notes: plan.notes || "",
       case_id: plan.case_id || "",
+      plan_initiator: plan.plan_initiator || "",
+      employer_stated_reason: plan.employer_stated_reason || "",
+      stated_consequences: plan.stated_consequences || "",
     });
     setEditingPlanId(plan.id);
     setExpandedPlanId(plan.id);
@@ -746,6 +809,79 @@ export default function PlansPage() {
             </div>
           </div>
         )}
+
+        {/* Plan Context Fields */}
+        <div style={cardStyle}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            {/* Plan Initiator */}
+            <div>
+              <label style={labelStyle}>Who initiated this plan?</label>
+              <select
+                value={planForm.plan_initiator}
+                onChange={(e) => setPlanForm({ ...planForm, plan_initiator: e.target.value })}
+                style={{ ...inputStyle, cursor: "pointer" }}
+              >
+                <option value="">Select (optional)</option>
+                <option value="manager">Manager</option>
+                <option value="hr">HR / Human Resources</option>
+                <option value="employee">Employee (self-initiated)</option>
+                <option value="mutual">Mutual agreement</option>
+              </select>
+              <p style={{ fontSize: 12, color: "var(--color-stone-500)", marginTop: 6, fontFamily: "var(--font-sans)" }}>
+                This matters for context if this documentation is ever reviewed.
+              </p>
+            </div>
+
+            {/* Employer Stated Reason */}
+            <div>
+              <label style={labelStyle}>Employer&apos;s stated reason for this plan</label>
+              <RichTextarea
+                value={planForm.employer_stated_reason}
+                onChange={(v) => setPlanForm({ ...planForm, employer_stated_reason: v })}
+                placeholder="Write the reason your employer gave for initiating this plan, as close to their exact language as possible. For example: 'Placed on PIP due to concerns about communication and missed project deadlines.'"
+                style={textareaStyle}
+              />
+              <p style={{ fontSize: 12, color: "var(--color-stone-500)", marginTop: 6, fontFamily: "var(--font-sans)" }}>
+                Capture this in their words, not yours. This freezes the stated justification at the time the plan was created.
+              </p>
+              <div
+                style={{
+                  marginTop: 10,
+                  background: "#FAFAF9",
+                  border: "1px solid #F5F5F4",
+                  borderLeft: "3px solid #22C55E",
+                  borderRadius: 8,
+                  padding: "12px 16px",
+                }}
+              >
+                <p style={{ fontSize: 12, color: "var(--color-stone-500)", fontFamily: "var(--font-sans)", lineHeight: 1.5, margin: 0 }}>
+                  This field matters because the employer&apos;s original reasoning becomes the baseline. If their justification changes later, your records will show the shift.
+                </p>
+              </div>
+            </div>
+
+            {/* Stated Consequences */}
+            <div
+              style={{
+                background: "#FEF2F2",
+                border: "1px solid #FECACA",
+                borderRadius: 10,
+                padding: "18px 20px",
+              }}
+            >
+              <label style={{ ...labelStyle, color: "#DC2626" }}>Stated consequences if goals are not met</label>
+              <RichTextarea
+                value={planForm.stated_consequences}
+                onChange={(v) => setPlanForm({ ...planForm, stated_consequences: v })}
+                placeholder="What did your employer say would happen if you don't meet the plan's goals? For example: 'Failure to meet expectations may result in further disciplinary action, up to and including termination.'"
+                style={{ ...textareaStyle, background: "#fff" }}
+              />
+              <p style={{ fontSize: 12, color: "var(--color-stone-500)", marginTop: 6, fontFamily: "var(--font-sans)" }}>
+                Use their exact language if possible. If nothing was stated explicitly, write &quot;No consequences were stated in writing.&quot;
+              </p>
+            </div>
+          </div>
+        </div>
 
         <div style={cardStyle}>
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
@@ -890,7 +1026,7 @@ export default function PlansPage() {
             </p>
             <button
               onClick={() => {
-                setPlanForm({ plan_type: "development", plan_name: "Development Plan", start_date: todayStr(), end_date: "", notes: "", case_id: "" });
+                setPlanForm({ plan_type: "development", plan_name: "Development Plan", start_date: todayStr(), end_date: "", notes: "", case_id: "", plan_initiator: "", employer_stated_reason: "", stated_consequences: "" });
                 setEditingPlanId(null);
                 setShowPlanForm(true);
               }}
@@ -1046,7 +1182,10 @@ export default function PlansPage() {
                   planForm.start_date !== plan.start_date ||
                   planForm.end_date !== plan.end_date ||
                   planForm.notes !== (plan.notes || "") ||
-                  planForm.case_id !== (plan.case_id || ""));
+                  planForm.case_id !== (plan.case_id || "") ||
+                  planForm.plan_initiator !== (plan.plan_initiator || "") ||
+                  planForm.employer_stated_reason !== (plan.employer_stated_reason || "") ||
+                  planForm.stated_consequences !== (plan.stated_consequences || ""));
               if (dirty) {
                 savePlan();
               } else {
@@ -1236,6 +1375,77 @@ export default function PlansPage() {
               )}
             </div>
 
+            {/* Plan Context Fields */}
+            <div style={{ marginBottom: 20, display: "flex", flexDirection: "column", gap: 20 }}>
+              {/* Plan Initiator */}
+              <div>
+                <label style={labelStyle}>Who initiated this plan?</label>
+                <select
+                  value={planForm.plan_initiator}
+                  onChange={(e) => setPlanForm({ ...planForm, plan_initiator: e.target.value })}
+                  style={{ ...inputStyle, cursor: "pointer" }}
+                >
+                  <option value="">Select (optional)</option>
+                  <option value="manager">Manager</option>
+                  <option value="hr">HR / Human Resources</option>
+                  <option value="employee">Employee (self-initiated)</option>
+                  <option value="mutual">Mutual agreement</option>
+                </select>
+                <p style={{ fontSize: 12, color: "var(--color-stone-500)", marginTop: 6, fontFamily: "var(--font-sans)" }}>
+                  This matters for context if this documentation is ever reviewed.
+                </p>
+              </div>
+
+              {/* Employer Stated Reason */}
+              <div>
+                <label style={labelStyle}>Employer&apos;s stated reason for this plan</label>
+                <RichTextarea
+                  value={planForm.employer_stated_reason}
+                  onChange={(v) => setPlanForm({ ...planForm, employer_stated_reason: v })}
+                  placeholder="Write the reason your employer gave for initiating this plan, as close to their exact language as possible. For example: 'Placed on PIP due to concerns about communication and missed project deadlines.'"
+                  style={textareaStyle}
+                />
+                <p style={{ fontSize: 12, color: "var(--color-stone-500)", marginTop: 6, fontFamily: "var(--font-sans)" }}>
+                  Capture this in their words, not yours. This freezes the stated justification at the time the plan was created.
+                </p>
+                <div
+                  style={{
+                    marginTop: 10,
+                    background: "#FAFAF9",
+                    border: "1px solid #F5F5F4",
+                    borderLeft: "3px solid #22C55E",
+                    borderRadius: 8,
+                    padding: "12px 16px",
+                  }}
+                >
+                  <p style={{ fontSize: 12, color: "var(--color-stone-500)", fontFamily: "var(--font-sans)", lineHeight: 1.5, margin: 0 }}>
+                    This field matters because the employer&apos;s original reasoning becomes the baseline. If their justification changes later, your records will show the shift.
+                  </p>
+                </div>
+              </div>
+
+              {/* Stated Consequences */}
+              <div
+                style={{
+                  background: "#FEF2F2",
+                  border: "1px solid #FECACA",
+                  borderRadius: 10,
+                  padding: "18px 20px",
+                }}
+              >
+                <label style={{ ...labelStyle, color: "#DC2626" }}>Stated consequences if goals are not met</label>
+                <RichTextarea
+                  value={planForm.stated_consequences}
+                  onChange={(v) => setPlanForm({ ...planForm, stated_consequences: v })}
+                  placeholder="What did your employer say would happen if you don't meet the plan's goals? For example: 'Failure to meet expectations may result in further disciplinary action, up to and including termination.'"
+                  style={{ ...textareaStyle, background: "#fff" }}
+                />
+                <p style={{ fontSize: 12, color: "var(--color-stone-500)", marginTop: 6, fontFamily: "var(--font-sans)" }}>
+                  Use their exact language if possible. If nothing was stated explicitly, write &quot;No consequences were stated in writing.&quot;
+                </p>
+              </div>
+            </div>
+
             {/* Action buttons */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
               <button
@@ -1288,7 +1498,7 @@ export default function PlansPage() {
                 <button
                   onClick={() => {
                     setEditingGoalId(null);
-                    setGoalForm({ title: "", description: "", success_criteria: "", deadline: "", status: "in_progress" });
+                    setGoalForm({ title: "", description: "", success_criteria: "", deadline: "", status: "not_started", dispute_reason: "" });
                     setShowGoalForm(plan.id);
                   }}
                   style={{ ...btnGreen, padding: "8px 16px", fontSize: 13 }}
@@ -1343,24 +1553,64 @@ export default function PlansPage() {
                           onBlur={blurInput}
                         />
                       </div>
-                      {editingGoalId && (
-                        <div>
-                          <label style={labelStyle}>Status</label>
-                          <select
-                            value={goalForm.status}
-                            onChange={(e) => setGoalForm({ ...goalForm, status: e.target.value })}
-                            style={inputStyle}
-                            onFocus={focusInput}
-                            onBlur={blurInput}
-                          >
-                            <option value="in_progress">In Progress</option>
-                            <option value="met">Met</option>
-                            <option value="not_met">Not Met</option>
-                            <option value="revised">Revised</option>
-                          </select>
+                      <div>
+                        <label style={labelStyle}>Status</label>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                          {GOAL_STATUSES.map((s) => {
+                            const active = goalForm.status === s.value;
+                            return (
+                              <button
+                                key={s.value}
+                                type="button"
+                                onClick={() => {
+                                  const updates: Record<string, string> = { status: s.value };
+                                  if (s.value !== "disputed") updates.dispute_reason = "";
+                                  setGoalForm({ ...goalForm, ...updates });
+                                }}
+                                style={{
+                                  padding: "6px 14px",
+                                  borderRadius: 20,
+                                  border: `1.5px solid ${active ? s.border : "#D6D3D1"}`,
+                                  background: active ? s.bg : "#fff",
+                                  color: active ? s.color : "#78716C",
+                                  fontSize: 13,
+                                  fontWeight: active ? 600 : 500,
+                                  fontFamily: "var(--font-sans)",
+                                  cursor: "pointer",
+                                  transition: "all 0.15s",
+                                }}
+                              >
+                                {s.label}
+                              </button>
+                            );
+                          })}
                         </div>
-                      )}
+                      </div>
                     </div>
+
+                    {/* Disputed Reason */}
+                    {goalForm.status === "disputed" && (
+                      <div
+                        style={{
+                          background: "#FEF2F2",
+                          border: "1px solid #FECACA",
+                          borderRadius: 10,
+                          padding: "18px 20px",
+                        }}
+                      >
+                        <label style={{ ...labelStyle, color: "#EF4444" }}>Why are you disputing this goal?</label>
+                        <RichTextarea
+                          value={goalForm.dispute_reason}
+                          onChange={(v) => setGoalForm({ ...goalForm, dispute_reason: v })}
+                          placeholder="Explain what you disagree with. For example: 'Manager marked this as not met, but my project management logs show I responded to 94% of client emails within 4 hours during the review period.'"
+                          style={{ ...textareaStyle, background: "#fff" }}
+                        />
+                        <p style={{ fontSize: 12, color: "var(--color-stone-500)", marginTop: 6, fontFamily: "var(--font-sans)" }}>
+                          This note is timestamped and attached to the goal. It becomes part of your case file if this plan is linked to a case.
+                        </p>
+                      </div>
+                    )}
+
                     <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
                       <button
                         onClick={() => { setShowGoalForm(null); setEditingGoalId(null); }}
@@ -1400,7 +1650,7 @@ export default function PlansPage() {
                           background: "#fff",
                           borderRadius: 10,
                           border: "1px solid #D6D3D1",
-                          borderLeft: goal.status === "revised" ? "3px solid #FDE68A" : goal.status === "met" ? "3px solid #BBF7D0" : goal.status === "not_met" ? "3px solid #FECACA" : "3px solid var(--color-stone-300)",
+                          borderLeft: goal.status === "revised" ? "3px solid #FDE68A" : goal.status === "met" || goal.status === "completed" ? "3px solid #BBF7D0" : goal.status === "not_met" ? "3px solid #FECACA" : goal.status === "disputed" ? "3px solid #EF4444" : goal.status === "modified" ? "3px solid #F59E0B" : "3px solid var(--color-stone-300)",
                           padding: "16px 20px",
                         }}
                       >
@@ -1476,6 +1726,27 @@ export default function PlansPage() {
                           </div>
                         </div>
 
+                        {/* Disputed reason callout */}
+                        {goal.status === "disputed" && goal.dispute_reason && (
+                          <div
+                            style={{
+                              background: "#FEF2F2",
+                              border: "1px solid #FECACA",
+                              borderRadius: 8,
+                              padding: "12px 16px",
+                              marginTop: 8,
+                              marginBottom: 4,
+                            }}
+                          >
+                            <span style={{ fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", color: "#DC2626", textTransform: "uppercase", letterSpacing: "0.04em", display: "block", marginBottom: 4 }}>
+                              Dispute Reason
+                            </span>
+                            <div style={{ fontSize: 13, color: "#292524", fontFamily: "var(--font-sans)", lineHeight: 1.5 }}>
+                              {renderMarkdown(goal.dispute_reason)}
+                            </div>
+                          </div>
+                        )}
+
                         {/* Row 2: Deadline */}
                         {goal.deadline && (
                           <p style={{ fontSize: 12, color: "#292524", fontFamily: "var(--font-mono)", margin: "0 0 8px 0" }}>
@@ -1510,6 +1781,52 @@ export default function PlansPage() {
                                 <span style={{ fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", color: "#15803D", textTransform: "uppercase", letterSpacing: "0.04em", display: "block", marginBottom: 4 }}>After</span>
                                 <div style={{ fontSize: 13, color: "#292524", fontFamily: "var(--font-sans)", lineHeight: 1.5 }}>
                                   {renderMarkdown(goal.description || "")}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Modified goal snapshot comparison */}
+                        {goal.status === "modified" && goal.original_goal_snapshot && (
+                          <div style={{ border: "1px solid #E7E5E4", borderRadius: 8, overflow: "hidden", marginBottom: 8, marginTop: 8 }}>
+                            <div style={{ padding: "10px 14px", background: "#FFFBEB", borderBottom: "1px solid #E7E5E4", display: "flex", alignItems: "center", gap: 8 }}>
+                              <span style={{ fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", color: "#B45309", textTransform: "uppercase", letterSpacing: "0.04em" }}>Modified</span>
+                              {goal.modified_at && (
+                                <span style={{ fontSize: 11, color: "var(--color-stone-500)", fontFamily: "var(--font-mono)" }}>
+                                  {formatDate(goal.modified_at)}
+                                </span>
+                              )}
+                            </div>
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
+                              <div style={{ padding: "10px 14px", background: "#FEF2F2", borderRight: "1px solid #E7E5E4" }}>
+                                <span style={{ fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", color: "#991B1B", textTransform: "uppercase", letterSpacing: "0.04em", display: "block", marginBottom: 4 }}>Original</span>
+                                <div style={{ fontSize: 13, color: "#292524", fontFamily: "var(--font-sans)", lineHeight: 1.5 }}>
+                                  <strong>{goal.original_goal_snapshot.title}</strong>
+                                  {goal.original_goal_snapshot.description && (
+                                    <div style={{ marginTop: 4 }}>{renderMarkdown(goal.original_goal_snapshot.description)}</div>
+                                  )}
+                                  {goal.original_goal_snapshot.success_criteria && (
+                                    <div style={{ marginTop: 4, fontSize: 12, color: "var(--color-stone-600)" }}>Criteria: {goal.original_goal_snapshot.success_criteria}</div>
+                                  )}
+                                  {goal.original_goal_snapshot.deadline && (
+                                    <div style={{ marginTop: 4, fontSize: 12, color: "var(--color-stone-600)" }}>Deadline: {formatDate(goal.original_goal_snapshot.deadline)}</div>
+                                  )}
+                                </div>
+                              </div>
+                              <div style={{ padding: "10px 14px", background: "#FFFBEB" }}>
+                                <span style={{ fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", color: "#B45309", textTransform: "uppercase", letterSpacing: "0.04em", display: "block", marginBottom: 4 }}>Current</span>
+                                <div style={{ fontSize: 13, color: "#292524", fontFamily: "var(--font-sans)", lineHeight: 1.5 }}>
+                                  <strong>{goal.title}</strong>
+                                  {goal.description && (
+                                    <div style={{ marginTop: 4 }}>{renderMarkdown(goal.description)}</div>
+                                  )}
+                                  {goal.success_criteria && (
+                                    <div style={{ marginTop: 4, fontSize: 12, color: "var(--color-stone-600)" }}>Criteria: {goal.success_criteria}</div>
+                                  )}
+                                  {goal.deadline && (
+                                    <div style={{ marginTop: 4, fontSize: 12, color: "var(--color-stone-600)" }}>Deadline: {formatDate(goal.deadline)}</div>
+                                  )}
                                 </div>
                               </div>
                             </div>
@@ -1633,7 +1950,7 @@ export default function PlansPage() {
                 </h2>
                 <button
                   onClick={() => {
-                    setCheckinForm({ date: todayStr(), summary: "", manager_feedback: "", your_notes: "", linked_record_id: "" });
+                    setCheckinForm({ date: todayStr(), summary: "", manager_feedback: "", your_notes: "", linked_record_id: "", expectations_changed: false, expectation_change_detail: "" });
                     setShowCheckinForm(plan.id);
                   }}
                   style={{ ...btnGreen, padding: "8px 16px", fontSize: 13 }}
@@ -1675,6 +1992,74 @@ export default function PlansPage() {
                         style={textareaStyle}
                       />
                     </div>
+
+                    {/* Expectation Changes */}
+                    <div>
+                      <span style={{ ...labelStyle, marginBottom: 0 }}>Expectation Changes</span>
+                      <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 10 }}>
+                        <button
+                          type="button"
+                          onClick={() => setCheckinForm({ ...checkinForm, expectations_changed: !checkinForm.expectations_changed, expectation_change_detail: checkinForm.expectations_changed ? "" : checkinForm.expectation_change_detail })}
+                          style={{
+                            position: "relative",
+                            width: 40,
+                            height: 22,
+                            borderRadius: 11,
+                            border: "none",
+                            background: checkinForm.expectations_changed ? "#22C55E" : "#D6D3D1",
+                            cursor: "pointer",
+                            transition: "background 0.2s",
+                            flexShrink: 0,
+                            padding: 0,
+                          }}
+                        >
+                          <span
+                            style={{
+                              position: "absolute",
+                              top: 2,
+                              left: checkinForm.expectations_changed ? 20 : 2,
+                              width: 18,
+                              height: 18,
+                              borderRadius: "50%",
+                              background: "#fff",
+                              boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+                              transition: "left 0.2s",
+                            }}
+                          />
+                        </button>
+                        <div>
+                          <p style={{ fontSize: 14, fontWeight: 500, color: "#292524", fontFamily: "var(--font-sans)", margin: 0 }}>
+                            Did expectations or success criteria change during this check-in?
+                          </p>
+                          <p style={{ fontSize: 12, color: "var(--color-stone-500)", fontFamily: "var(--font-sans)", margin: "4px 0 0 0" }}>
+                            Track when goalposts move. This becomes part of your documentation.
+                          </p>
+                        </div>
+                      </div>
+                      {checkinForm.expectations_changed && (
+                        <div
+                          style={{
+                            marginTop: 12,
+                            background: "#FFFBEB",
+                            border: "1px solid #FDE68A",
+                            borderRadius: 10,
+                            padding: "18px 20px",
+                          }}
+                        >
+                          <label style={{ ...labelStyle, color: "#B45309", fontWeight: 600, fontSize: 13, fontFamily: "var(--font-sans)", textTransform: "none", letterSpacing: "normal" }}>What changed?</label>
+                          <RichTextarea
+                            value={checkinForm.expectation_change_detail}
+                            onChange={(v) => setCheckinForm({ ...checkinForm, expectation_change_detail: v })}
+                            placeholder="Describe what shifted. New criteria, different deadlines, added requirements, changed metrics."
+                            style={{ ...textareaStyle, background: "#fff" }}
+                          />
+                          <p style={{ fontSize: 12, color: "var(--color-stone-500)", marginTop: 6, fontFamily: "var(--font-sans)" }}>
+                            Be specific. Note whether this was communicated verbally or in writing, and whether the original criteria were formally updated.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
                     <div>
                       <label style={labelStyle}>Your Notes</label>
                       <RichTextarea
@@ -1770,6 +2155,22 @@ export default function PlansPage() {
                                   Linked
                                 </span>
                               )}
+                              {ci.expectations_changed && (
+                                <span style={{
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  padding: "2px 8px",
+                                  borderRadius: 12,
+                                  fontSize: 10,
+                                  fontWeight: 700,
+                                  fontFamily: "var(--font-mono)",
+                                  color: "#B45309",
+                                  background: "#FFFBEB",
+                                  border: "1px solid #FDE68A",
+                                }}>
+                                  Expectations Changed
+                                </span>
+                              )}
                             </div>
                             <p style={{
                               fontSize: 13,
@@ -1820,6 +2221,22 @@ export default function PlansPage() {
                                 <span style={{ ...labelStyle, marginBottom: 4 }}>Your Notes</span>
                                 <div style={{ fontSize: 13, color: "var(--color-stone-700)", fontFamily: "var(--font-sans)", lineHeight: 1.6, margin: 0 }}>
                                   {renderMarkdown(ci.your_notes)}
+                                </div>
+                              </div>
+                            )}
+                            {ci.expectations_changed && ci.expectation_change_detail && (
+                              <div
+                                style={{
+                                  marginBottom: 12,
+                                  background: "#FFFBEB",
+                                  border: "1px solid #FDE68A",
+                                  borderRadius: 8,
+                                  padding: "12px 16px",
+                                }}
+                              >
+                                <span style={{ ...labelStyle, marginBottom: 4, color: "#B45309" }}>Expectation Changes</span>
+                                <div style={{ fontSize: 13, color: "#292524", fontFamily: "var(--font-sans)", lineHeight: 1.6, margin: 0 }}>
+                                  {renderMarkdown(ci.expectation_change_detail)}
                                 </div>
                               </div>
                             )}
@@ -1958,7 +2375,7 @@ export default function PlansPage() {
         </div>
         <button
           onClick={() => {
-            setPlanForm({ plan_type: "pip", plan_name: "Performance Improvement Plan", start_date: todayStr(), end_date: "", notes: "", case_id: "" });
+            setPlanForm({ plan_type: "pip", plan_name: "Performance Improvement Plan", start_date: todayStr(), end_date: "", notes: "", case_id: "", plan_initiator: "", employer_stated_reason: "", stated_consequences: "" });
             setEditingPlanId(null);
             setShowPlanForm(true);
           }}

@@ -54,7 +54,7 @@ const WHATS_NEXT = [
 const STEP_HEADLINES: { text: string; green: string }[] = [
   { text: "What you write down today can {green} tomorrow.", green: "protect you" },
   { text: "Your situation. Your words. Your record.", green: "" },
-  { text: "The first entry is the hardest. After this, it gets easier.", green: "" },
+  { text: "Your words. Your record. Start with what happened most recently.", green: "" },
   { text: "Your case file is already building.", green: "" },
 ];
 
@@ -162,7 +162,6 @@ export default function OnboardingPage() {
       await supabase.from("case_records").insert({
         case_id: newCase.id,
         record_id: newRecord.id,
-        user_id: userId,
       });
     }
 

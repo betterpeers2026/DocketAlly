@@ -244,7 +244,7 @@ export default function CaseViewPage() {
         const caseRecords = caseRecordIds.map((rid) => recordMap.get(rid)).filter(Boolean) as { id: string; date: string; people: string | null }[];
         const peopleSet = new Set<string>();
         caseRecords.forEach((r) => {
-          if (r.people) r.people.split(",").forEach((p) => { const t = p.trim(); if (t) peopleSet.add(t); });
+          if (r.people) r.people.split(";").forEach((p) => { const t = p.trim(); if (t) peopleSet.add(t); });
         });
         let daySpan = 0;
         if (caseRecords.length >= 2) {

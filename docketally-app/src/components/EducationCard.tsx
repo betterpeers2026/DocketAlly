@@ -1,7 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
+
+/* ------------------------------------------------------------------ */
+/*  Stable Supabase client (created once, shared across instances)     */
+/* ------------------------------------------------------------------ */
+
+const supabase = createClient();
 
 /* ------------------------------------------------------------------ */
 /*  Props                                                              */
@@ -21,53 +27,84 @@ interface EducationCardProps {
 /* ------------------------------------------------------------------ */
 
 export default function EducationCard({ pageKey, label, title, description, steps, userId }: EducationCardProps) {
-  const supabase = createClient();
   const [visible, setVisible] = useState(false);
   const [dismissed, setDismissed] = useState(true); // hide by default until loaded
+  const dismissingRef = useRef(false);
 
   // Check if this card was already dismissed
   useEffect(() => {
     if (!userId) return;
+    let cancelled = false;
+
     async function check() {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("profiles")
         .select("dismissed_edu_cards")
         .eq("id", userId)
         .single();
-      const cards = (data?.dismissed_edu_cards as string[] | null) ?? [];
+
+      if (cancelled) return;
+
+      if (error) {
+        // Column may not exist yet; keep card hidden to avoid flash
+        console.error("[EducationCard] fetch error:", error.message);
+        return;
+      }
+
+      const cards = Array.isArray(data?.dismissed_edu_cards) ? (data.dismissed_edu_cards as string[]) : [];
       if (cards.includes(pageKey)) {
         setDismissed(true);
       } else {
         setDismissed(false);
-        // Trigger entrance animation after a tick
         requestAnimationFrame(() => {
           requestAnimationFrame(() => setVisible(true));
         });
       }
     }
+
     check();
-  }, [userId, pageKey, supabase]);
+    return () => { cancelled = true; };
+  }, [userId, pageKey]);
 
   async function handleDismiss() {
+    if (dismissingRef.current) return;
+    dismissingRef.current = true;
+
+    // Fade out immediately
     setVisible(false);
-    // Wait for fade-out
-    setTimeout(async () => {
-      setDismissed(true);
-      if (!userId) return;
-      // Append this pageKey to dismissed_edu_cards array
-      const { data } = await supabase
+
+    // Hide locally after animation
+    setTimeout(() => setDismissed(true), 200);
+
+    if (!userId) return;
+
+    // Persist dismissal to Supabase
+    try {
+      const { data, error: fetchError } = await supabase
         .from("profiles")
         .select("dismissed_edu_cards")
         .eq("id", userId)
         .single();
-      const current = (data?.dismissed_edu_cards as string[] | null) ?? [];
+
+      if (fetchError) {
+        console.error("[EducationCard] dismiss fetch error:", fetchError.message);
+        return;
+      }
+
+      const current = Array.isArray(data?.dismissed_edu_cards) ? (data.dismissed_edu_cards as string[]) : [];
       if (!current.includes(pageKey)) {
-        await supabase
+        const { error: updateError } = await supabase
           .from("profiles")
           .update({ dismissed_edu_cards: [...current, pageKey] })
           .eq("id", userId);
+
+        if (updateError) {
+          console.error("[EducationCard] dismiss update error:", updateError.message);
+        }
       }
-    }, 200);
+    } catch (err) {
+      console.error("[EducationCard] dismiss exception:", err);
+    }
   }
 
   if (dismissed) return null;

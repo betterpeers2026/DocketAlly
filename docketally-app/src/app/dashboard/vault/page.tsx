@@ -177,6 +177,7 @@ export default function VaultPage() {
   const [editingDoc, setEditingDoc] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [dropzoneHover, setDropzoneHover] = useState(false);
   const [recentlyUploaded, setRecentlyUploaded] = useState<Set<string>>(new Set());
 
   // Search & filter
@@ -1266,17 +1267,19 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
               setDragOver(false);
               handleFileSelect(e.dataTransfer.files);
             }}
+            onMouseEnter={() => setDropzoneHover(true)}
+            onMouseLeave={() => setDropzoneHover(false)}
             onClick={() => fileInputRef.current?.click()}
             style={{
-              background: dragOver ? "#DCFCE7" : "#F0FDF4",
-              border: dragOver ? "2px dashed #22C55E" : "2px dashed #BBF7D0",
+              background: dragOver ? "#DCFCE7" : dropzoneHover ? "#F7FEF9" : "#F0FDF4",
+              border: dragOver ? "2px dashed #22C55E" : dropzoneHover ? "2px dashed #86EFAC" : "2px dashed #BBF7D0",
               borderRadius: 14,
               padding: "40px 24px",
               textAlign: "center",
               cursor: "pointer",
               transition: "all 0.15s ease",
               marginBottom: 28,
-              boxShadow: dragOver ? "0 0 0 4px rgba(34,197,94,0.08)" : "none",
+              boxShadow: dragOver ? "0 0 0 4px rgba(34,197,94,0.08)" : dropzoneHover ? "0 0 0 3px rgba(34,197,94,0.05)" : "none",
             }}
           >
             <input

@@ -176,7 +176,7 @@ export default function Sidebar({ user, subscription }: { user: User; subscripti
       supabase.from("records").select("date").eq("user_id", user.id).order("date", { ascending: true }),
       supabase.from("vault_documents").select("id").eq("user_id", user.id).limit(1),
       supabase.from("cases").select("employer, role").eq("user_id", user.id),
-      supabase.from("profiles").select("onboarding_checklist").eq("id", user.id).single(),
+      supabase.from("profiles").select("onboarding_checklist, checklist_dismissed").eq("id", user.id).single(),
     ]);
 
     // Doc strength
@@ -194,7 +194,8 @@ export default function Sidebar({ user, subscription }: { user: User; subscripti
 
     // Checklist
     const stored = profileRes.data?.onboarding_checklist as Record<string, boolean> | null;
-    if (stored?.completed) {
+    const dismissed = profileRes.data?.checklist_dismissed === true;
+    if (stored?.completed || dismissed) {
       setChecklistHidden(true);
       setChecklistAllDone(true);
       return;
@@ -231,6 +232,11 @@ export default function Sidebar({ user, subscription }: { user: User; subscripti
     fetchSidebarData();
   }, [fetchSidebarData]);
 
+  async function dismissChecklist() {
+    setChecklistHidden(true);
+    await supabase.from("profiles").update({ checklist_dismissed: true }).eq("id", user.id);
+  }
+
   // Close sidebar on navigation
   useEffect(() => {
     setSidebarOpen(false);
@@ -245,17 +251,8 @@ export default function Sidebar({ user, subscription }: { user: User; subscripti
     router.push("/login");
   }
 
-  async function handleCasesClick() {
-    const { data, error } = await supabase
-      .from("cases")
-      .select("id")
-      .eq("user_id", user.id)
-      .limit(2);
-    if (!error && data && data.length === 1) {
-      router.push(`/dashboard/case/${data[0].id}`);
-    } else {
-      router.push("/dashboard/case");
-    }
+  function handleCasesClick() {
+    router.push("/dashboard/case");
     setSidebarOpen(false);
   }
 
@@ -539,13 +536,37 @@ export default function Sidebar({ user, subscription }: { user: User; subscripti
           padding: 16,
         }}>
           {/* Header */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10, position: "relative" }}>
             <span style={{ fontFamily: "var(--font-sans)", fontSize: 13, fontWeight: 700, color: "#fff" }}>
               Getting started
             </span>
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 700, color: "#A8A29E", letterSpacing: "0.04em" }}>
-              {Object.values(checklistDone).filter(Boolean).length} of 4
-            </span>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 700, color: "#A8A29E", letterSpacing: "0.04em" }}>
+                {Object.values(checklistDone).filter(Boolean).length} of 4
+              </span>
+              <button
+                onClick={(e) => { e.stopPropagation(); dismissChecklist(); }}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: 4,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "rgba(255,255,255,0.3)",
+                  transition: "color 0.15s",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = "rgba(255,255,255,0.6)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(255,255,255,0.3)"; }}
+                aria-label="Dismiss checklist"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
           </div>
           {/* Progress bar */}
           <div style={{ height: 3, borderRadius: 2, background: "rgba(255,255,255,0.08)", marginBottom: 14 }}>

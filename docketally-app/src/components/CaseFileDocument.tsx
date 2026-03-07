@@ -13,6 +13,7 @@ interface CaseData {
   case_type: string;
   case_types: string[];
   status: string;
+  employee_name: string | null;
   description: string | null;
   start_date: string | null;
   employment_end_date: string | null;
@@ -55,7 +56,7 @@ interface VaultDocument {
 }
 
 interface DetectedPattern {
-  type: "frequency" | "warning" | "people" | "gap" | "plan";
+  type: "frequency" | "event_types" | "people" | "gap" | "plan" | "escalation";
   label: string;
   detail: string;
 }
@@ -73,6 +74,9 @@ interface Plan {
   end_date: string | null;
   status: string;
   created_at: string;
+  plan_initiator?: string | null;
+  employer_stated_reason?: string | null;
+  stated_consequences?: string | null;
 }
 
 interface PlanGoal {
@@ -86,6 +90,9 @@ interface PlanGoal {
   original_description: string | null;
   revised_date: string | null;
   revision_notes: string | null;
+  dispute_reason?: string | null;
+  original_goal_snapshot?: { title: string; description: string | null; success_criteria: string | null; deadline: string | null; frozen_at: string } | null;
+  modified_at?: string | null;
 }
 
 interface PlanCheckin {
@@ -95,6 +102,8 @@ interface PlanCheckin {
   summary: string;
   manager_feedback: string | null;
   private_notes: string | null;
+  expectations_changed?: boolean;
+  expectation_change_detail?: string | null;
 }
 
 export interface CaseFileDocumentProps {
@@ -530,7 +539,7 @@ function getInitials(name: string): string {
 function parsePeopleList(peopleStr: string | null): string[] {
   if (!peopleStr) return [];
   return peopleStr
-    .split(",")
+    .split(";")
     .map((p) => p.trim())
     .filter(Boolean);
 }
@@ -556,12 +565,11 @@ function findSupportingRecordIds(
       }
       break;
     }
-    case "warning": {
+    case "event_types": {
+      // All records contribute to the event types breakdown
       for (const r of records) {
-        if (WARNING_TYPES.has(r.entry_type)) {
-          const rid = recordIdMap.get(r.id);
-          if (rid) ids.add(rid);
-        }
+        const rid = recordIdMap.get(r.id);
+        if (rid) ids.add(rid);
       }
       break;
     }
@@ -791,11 +799,20 @@ export default function CaseFileDocument({
         )}
 
         <div style={{ maxWidth: 500 }}>
+          {/* Employee name row */}
+          <div style={{ display: "flex", padding: "12px 0", borderBottom: "1px solid #F5F5F4" }}>
+            <div style={{ width: 180, fontSize: 13, color: "#292524", flexShrink: 0 }}>Employee</div>
+            {caseData?.employee_name ? (
+              <div style={{ fontSize: 15, fontWeight: 600 }}>{caseData.employee_name}</div>
+            ) : (
+              <div style={{ fontSize: 15, fontWeight: 400, color: "#A8A29E", fontStyle: "italic" }}>[Name not provided]</div>
+            )}
+          </div>
           {[
             { l: "Employer", v: caseData?.employer || "-" },
             { l: "Role", v: caseData?.role || "-" },
             { l: "Employment period", v: caseData?.start_date ? `${formatDate(caseData.start_date)} to ${caseData?.employment_end_date ? formatDate(caseData.employment_end_date) : "present"}` : "-" },
-            { l: "Documentation coverage", v: firstDate && lastDate ? `${formatDate(firstDate)} to ${formatDate(lastDate)}` : "-" },
+            ...(records.length >= 2 && firstDate && lastDate && daySpan > 0 ? [{ l: "Documentation coverage", v: `${formatDate(firstDate)} to ${formatDate(lastDate)} (${daySpan} days)` }] : []),
             { l: "Records", v: records.length > 0 ? `${records.length} entr${records.length !== 1 ? "ies" : "y"} over ${daySpan} days` : "-" },
             { l: "Patterns identified", v: patterns.length > 0 || contradictions.length > 0 ? `${confirmedCount} confirmed, ${signalCount} signal${signalCount !== 1 ? "s" : ""}` : "None identified" },
             { l: "Evidence files", v: linkedDocs.length > 0 ? `${linkedDocs.length} file${linkedDocs.length !== 1 ? "s" : ""} referenced` : "None linked" },
@@ -1400,54 +1417,101 @@ export default function CaseFileDocument({
             const dateRangeInvalid = plan.end_date && safeDaysBetween(plan.start_date, plan.end_date) === null;
             const revisedGoals = goals.filter((g) => g.revised_date || g.original_description);
 
+            const planTypeLabels: Record<string, string> = {
+              development: "Development Plan",
+              role_transition: "Role Transition",
+              accommodation: "Reasonable Accommodation",
+              return_to_work: "Return-to-Work",
+              coaching: "Coaching Plan",
+              pip: "Performance Improvement Plan",
+              corrective: "Corrective Action",
+              probation: "Probationary Period",
+              retaliation: "Retaliation Monitoring",
+              leave: "Leave of Absence",
+              other: "Other",
+            };
+            const planTypeDisplay = plan.plan_type ? (planTypeLabels[plan.plan_type] || plan.plan_type.replace(/_/g, " ")) : "Plan";
+
+            const initiatorLabels: Record<string, string> = {
+              manager: "Manager",
+              hr: "HR / Human Resources",
+              employee: "Employee (self-initiated)",
+              mutual: "Mutual agreement",
+            };
+
             return (
               <div key={plan.id} style={{ marginBottom: 36, padding: 24, borderRadius: 10, border: "1px solid #E7E5E4", background: "#fff", pageBreakInside: "avoid" }}>
-                {/* Plan name - prominent heading */}
-                <h3 style={{ fontFamily: "var(--font-serif)", fontSize: 22, fontWeight: 800, color: "#292524", marginBottom: 12 }}>{plan.name}</h3>
 
-                {/* Type + Status + date range */}
-                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12, flexWrap: "wrap" }}>
+                {/* Plan Header Block */}
+                <h3 style={{ fontFamily: "var(--font-serif)", fontSize: 22, fontWeight: 800, color: "#292524", marginBottom: 8 }}>{plan.name}</h3>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4, flexWrap: "wrap" }}>
                   <span style={{
                     fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.04em",
-                    color: "#16A34A",
+                    padding: "3px 10px", borderRadius: 5, background: "#F5F5F4", border: "1px solid #E7E5E4", color: "#57534E",
                   }}>
-                    {plan.plan_type ? plan.plan_type.replace(/_/g, " ") : "plan"}
+                    {planTypeDisplay}
                   </span>
                   <span style={{
-                    fontSize: 10,
-                    fontWeight: 700,
-                    fontFamily: "var(--font-mono)",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.04em",
-                    padding: "3px 10px",
-                    borderRadius: 5,
+                    fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.04em",
+                    padding: "3px 10px", borderRadius: 5,
                     background: plan.status === "completed" ? "#DCFCE7" : plan.status === "active" ? "#F0FDF4" : "#F5F5F4",
                     border: plan.status === "completed" ? "1px solid #86EFAC" : plan.status === "active" ? "1px solid #BBF7D0" : "1px solid #D6D3D1",
                     color: plan.status === "completed" ? "#15803D" : plan.status === "active" ? "#16A34A" : "#78716C",
                   }}>
                     {plan.status}
                   </span>
-                  <span style={{ fontSize: 13, color: "#57534E" }}>
-                    {formatDate(plan.start_date)}
-                    {plan.end_date && ` to ${formatDate(plan.end_date)}`}
-                    {dateRangeInvalid ? (
-                      <span style={{ color: "#D97706", fontWeight: 600, marginLeft: 6 }}>Date range needs review</span>
-                    ) : (
-                      totalDays !== null && totalDays > 0 && ` \u00b7 ${totalDays} days`
-                    )}
-                  </span>
                 </div>
+                <div style={{ fontSize: 13, color: "#57534E", fontFamily: "var(--font-serif)", lineHeight: 1.6, marginBottom: 4 }}>
+                  {formatDate(plan.start_date)} to {plan.end_date ? formatDate(plan.end_date) : "Present"}
+                  {!dateRangeInvalid && totalDays !== null && totalDays > 0 && ` \u00b7 ${totalDays} days`}
+                  {dateRangeInvalid && (
+                    <span style={{ color: "#D97706", fontWeight: 600, marginLeft: 6 }}>Date range needs review</span>
+                  )}
+                </div>
+                {plan.plan_initiator && (
+                  <div style={{ fontSize: 13, color: "#57534E", fontFamily: "var(--font-serif)", lineHeight: 1.6, marginBottom: 4 }}>
+                    Initiated by: {initiatorLabels[plan.plan_initiator] || plan.plan_initiator}
+                  </div>
+                )}
 
                 {/* Progress bar */}
                 {totalDays !== null && totalDays > 0 && !dateRangeInvalid && (
-                  <div style={{ height: 6, background: "#E7E5E4", borderRadius: 3, marginBottom: 20, overflow: "hidden" }}>
+                  <div style={{ height: 6, background: "#E7E5E4", borderRadius: 3, marginTop: 12, marginBottom: 20, overflow: "hidden" }}>
                     <div style={{ height: "100%", width: `${progressPct}%`, background: "#22C55E", borderRadius: 3 }} />
+                  </div>
+                )}
+
+                {/* Employer's Stated Reason */}
+                {plan.employer_stated_reason && (
+                  <div style={{ marginBottom: 16, marginTop: 16 }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.06em", color: "#78716C", marginBottom: 6 }}>
+                      Employer&apos;s Stated Reason
+                    </div>
+                    <div style={{ paddingLeft: 14, borderLeft: "3px solid #D6D3D1" }}>
+                      <p style={{ fontSize: 13, fontFamily: "var(--font-serif)", lineHeight: 1.7, color: "#292524", margin: 0, fontStyle: "italic" }}>
+                        {plan.employer_stated_reason}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Stated Consequences */}
+                {plan.stated_consequences && (
+                  <div style={{ marginBottom: 16 }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.06em", color: "#DC2626", marginBottom: 6 }}>
+                      Stated Consequences If Goals Are Not Met
+                    </div>
+                    <div style={{ paddingLeft: 14, borderLeft: "3px solid #FECACA" }}>
+                      <p style={{ fontSize: 13, fontFamily: "var(--font-serif)", lineHeight: 1.7, color: "#292524", margin: 0, fontStyle: "italic" }}>
+                        {plan.stated_consequences}
+                      </p>
+                    </div>
                   </div>
                 )}
 
                 {/* Goals */}
                 {goals.length > 0 && (
-                  <div style={{ marginBottom: 16 }}>
+                  <div style={{ marginBottom: 16, marginTop: 20 }}>
                     <div style={{ ...dLabel, marginBottom: 10 }}>Goals ({goals.length})</div>
                     {goals.map((goal) => {
                       const isRevised = !!(goal.revised_date || goal.original_description);
@@ -1458,11 +1522,11 @@ export default function CaseFileDocument({
                           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
                             <span style={{
                               fontSize: 11, fontWeight: 600, fontFamily: "var(--font-mono)", padding: "1px 6px", borderRadius: 3, textTransform: "uppercase",
-                              background: goal.status === "completed" ? "#F0FDF4" : goal.status === "missed" ? "#FEF2F2" : "#F5F5F4",
-                              border: goal.status === "completed" ? "1px solid #BBF7D0" : goal.status === "missed" ? "1px solid #FECACA" : "1px solid #E7E5E4",
-                              color: goal.status === "completed" ? "#15803D" : goal.status === "missed" ? "#DC2626" : "#57534E",
+                              background: goal.status === "completed" || goal.status === "met" ? "#F0FDF4" : goal.status === "missed" || goal.status === "not_met" ? "#FEF2F2" : goal.status === "disputed" ? "#FEF2F2" : goal.status === "modified" ? "#FFFBEB" : goal.status === "in_progress" ? "#EFF6FF" : "#F5F5F4",
+                              border: goal.status === "completed" || goal.status === "met" ? "1px solid #BBF7D0" : goal.status === "missed" || goal.status === "not_met" ? "1px solid #FECACA" : goal.status === "disputed" ? "1px solid #FECACA" : goal.status === "modified" ? "1px solid #FDE68A" : goal.status === "in_progress" ? "1px solid #BFDBFE" : "1px solid #E7E5E4",
+                              color: goal.status === "completed" || goal.status === "met" ? "#15803D" : goal.status === "missed" || goal.status === "not_met" ? "#DC2626" : goal.status === "disputed" ? "#EF4444" : goal.status === "modified" ? "#B45309" : goal.status === "in_progress" ? "#3B82F6" : "#57534E",
                             }}>
-                              {goal.status}
+                              {goal.status.replace(/_/g, " ")}
                             </span>
                             {isRevised && (
                               <span style={{ fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.04em", padding: "1px 6px", borderRadius: 3, color: "#D97706", background: "#FFFBEB", border: "1px solid #FDE68A" }}>
@@ -1474,12 +1538,63 @@ export default function CaseFileDocument({
                             )}
                           </div>
 
-                          {/* Goal title / description */}
-                          <p style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.6, color: "#292524", marginBottom: isRevised ? 12 : 0 }}>{goalTitle}</p>
+                          {/* Goal title */}
+                          <p style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.6, color: "#292524", fontFamily: "var(--font-serif)", marginBottom: 4 }}>{goalTitle}</p>
+
+                          {/* Goal description (if different from title) */}
+                          {goal.description && goal.description !== goalTitle && (
+                            <p style={{ fontSize: 13, lineHeight: 1.6, color: "#57534E", fontFamily: "var(--font-serif)", marginBottom: 4 }}>{goal.description}</p>
+                          )}
+
+                          {/* Success criteria */}
+                          {goal.success_criteria && (
+                            <div style={{ marginTop: 6, marginBottom: 8 }}>
+                              <div style={{ fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.04em", color: "#78716C", marginBottom: 4 }}>Success Criteria</div>
+                              <p style={{ fontSize: 13, lineHeight: 1.6, color: "#57534E", fontFamily: "var(--font-serif)", margin: 0 }}>{goal.success_criteria}</p>
+                            </div>
+                          )}
+
+                          {/* Disputed reason */}
+                          {goal.status === "disputed" && goal.dispute_reason && (
+                            <div style={{ padding: "10px 14px", borderRadius: 6, background: "#FEF2F2", border: "1px solid #FECACA", marginTop: 8, marginBottom: 4 }}>
+                              <div style={{ fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.04em", color: "#DC2626", marginBottom: 4 }}>Employee Dispute Note</div>
+                              <p style={{ fontSize: 13, lineHeight: 1.6, color: "#292524", fontFamily: "var(--font-serif)", margin: 0 }}>{goal.dispute_reason}</p>
+                            </div>
+                          )}
+
+                          {/* Modified goal snapshot */}
+                          {goal.status === "modified" && goal.original_goal_snapshot && (
+                            <div style={{ borderRadius: 8, overflow: "hidden", border: "1px solid #E7E5E4", borderLeft: "3px solid #F59E0B", marginTop: 8, marginBottom: 4 }}>
+                              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
+                                <div style={{ padding: "10px 14px", background: "#FEF2F2", borderRight: "1px solid #E7E5E4" }}>
+                                  <div style={{ fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", color: "#DC2626", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 6 }}>Original</div>
+                                  <p style={{ fontSize: 13, fontWeight: 600, lineHeight: 1.6, color: "#292524", fontFamily: "var(--font-serif)", margin: 0 }}>{goal.original_goal_snapshot.title}</p>
+                                  {goal.original_goal_snapshot.description && (
+                                    <p style={{ fontSize: 12, lineHeight: 1.5, color: "#57534E", fontFamily: "var(--font-serif)", margin: "4px 0 0" }}>{goal.original_goal_snapshot.description}</p>
+                                  )}
+                                  {goal.original_goal_snapshot.success_criteria && (
+                                    <p style={{ fontSize: 11, color: "#78716C", fontFamily: "var(--font-mono)", margin: "4px 0 0" }}>Criteria: {goal.original_goal_snapshot.success_criteria}</p>
+                                  )}
+                                </div>
+                                <div style={{ padding: "10px 14px", background: "#FFFBEB" }}>
+                                  <div style={{ fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", color: "#B45309", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 6 }}>
+                                    Revised {goal.modified_at ? formatDate(goal.modified_at) : ""}
+                                  </div>
+                                  <p style={{ fontSize: 13, fontWeight: 600, lineHeight: 1.6, color: "#292524", fontFamily: "var(--font-serif)", margin: 0 }}>{goalTitle}</p>
+                                  {goal.description && goal.description !== goalTitle && (
+                                    <p style={{ fontSize: 12, lineHeight: 1.5, color: "#57534E", fontFamily: "var(--font-serif)", margin: "4px 0 0" }}>{goal.description}</p>
+                                  )}
+                                  {goal.success_criteria && (
+                                    <p style={{ fontSize: 11, color: "#78716C", fontFamily: "var(--font-mono)", margin: "4px 0 0" }}>Criteria: {goal.success_criteria}</p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          )}
 
                           {/* Revision block */}
                           {isRevised && goal.original_description && (
-                            <div style={{ borderRadius: 8, overflow: "hidden", border: "1px solid #E7E5E4", borderLeft: "3px solid #22C55E", marginBottom: goal.success_criteria ? 12 : 0 }}>
+                            <div style={{ borderRadius: 8, overflow: "hidden", border: "1px solid #E7E5E4", borderLeft: "3px solid #22C55E", marginTop: 8, marginBottom: 4 }}>
                               {/* Revision header */}
                               <div style={{ padding: "8px 14px", background: "#fff", borderBottom: "1px solid #E7E5E4", display: "flex", alignItems: "center", gap: 8 }}>
                                 <span style={{ fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.04em", color: "#16A34A" }}>
@@ -1495,38 +1610,30 @@ export default function CaseFileDocument({
                               <div style={{ padding: "12px 14px 14px", background: "#fff" }}>
                                 {/* Revision note */}
                                 {goal.revision_notes && (
-                                  <p style={{ fontSize: 13, lineHeight: 1.6, margin: "0 0 12px", fontFamily: "var(--font-sans)", fontStyle: "italic", color: "#44403C" }}>
+                                  <p style={{ fontSize: 13, lineHeight: 1.6, margin: "0 0 12px", fontFamily: "var(--font-serif)", fontStyle: "italic", color: "#44403C" }}>
                                     &ldquo;{goal.revision_notes}&rdquo;
                                   </p>
                                 )}
 
-                                {/* Before / After comparison — always shown */}
+                                {/* Before / After comparison */}
                                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                                   <div style={{ padding: "10px 14px", borderRadius: 6, background: "#FEF2F2", border: "1px solid #FECACA" }}>
                                     <div style={{ fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", color: "#DC2626", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 6 }}>Before</div>
-                                    <p style={{ fontSize: 13, lineHeight: 1.6, color: "#57534E", margin: 0 }}>{goal.original_description}</p>
+                                    <p style={{ fontSize: 13, lineHeight: 1.6, color: "#57534E", fontFamily: "var(--font-serif)", margin: 0 }}>{goal.original_description}</p>
                                   </div>
                                   <div style={{ padding: "10px 14px", borderRadius: 6, background: "#F0FDF4", border: "1px solid #BBF7D0" }}>
                                     <div style={{ fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", color: "#16A34A", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 6 }}>After</div>
-                                    <p style={{ fontSize: 13, lineHeight: 1.6, color: "#292524", margin: 0 }}>{goal.description}</p>
+                                    <p style={{ fontSize: 13, lineHeight: 1.6, color: "#292524", fontFamily: "var(--font-serif)", margin: 0 }}>{goal.description}</p>
                                   </div>
                                 </div>
 
                                 {/* Identical text note */}
                                 {goal.original_description === goal.description && (
-                                  <p style={{ fontSize: 11, color: "#A8A29E", fontFamily: "var(--font-sans)", fontStyle: "italic", marginTop: 8, marginBottom: 0, lineHeight: 1.5, background: "none" }}>
+                                  <p style={{ fontSize: 11, color: "#A8A29E", fontFamily: "var(--font-serif)", fontStyle: "italic", marginTop: 8, marginBottom: 0, lineHeight: 1.5, background: "none" }}>
                                     No text changes detected. Revision may reflect updated deadlines, criteria, or expectations.
                                   </p>
                                 )}
                               </div>
-                            </div>
-                          )}
-
-                          {/* Success criteria */}
-                          {goal.success_criteria && (
-                            <div style={{ marginTop: isRevised ? 0 : 10 }}>
-                              <div style={{ fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.04em", color: "#78716C", marginBottom: 4 }}>Success Criteria</div>
-                              <p style={{ fontSize: 13, lineHeight: 1.6, color: "#57534E", margin: 0 }}>{goal.success_criteria}</p>
                             </div>
                           )}
 
@@ -1554,16 +1661,35 @@ export default function CaseFileDocument({
 
                 {/* Check-ins */}
                 {checkins.length > 0 && (
-                  <div>
+                  <div style={{ marginTop: 20 }}>
                     <div style={{ ...dLabel, marginBottom: 10 }}>Check-ins ({checkins.length})</div>
                     {checkins.map((checkin) => (
-                      <div key={checkin.id} style={{ padding: "10px 0", borderBottom: "1px solid #F5F5F4" }}>
-                        <div style={{ fontSize: 12, fontFamily: "var(--font-mono)", fontWeight: 600, color: "#22C55E", marginBottom: 4 }}>
-                          {formatDate(checkin.checkin_date)}
+                      <div key={checkin.id} style={{ padding: "12px 0", borderBottom: "1px solid #F5F5F4", pageBreakInside: "avoid" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                          <span style={{ fontSize: 12, fontFamily: "var(--font-mono)", fontWeight: 600, color: "#22C55E" }}>
+                            {formatDate(checkin.checkin_date)}
+                          </span>
+                          {checkin.expectations_changed && (
+                            <span style={{
+                              fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", padding: "1px 6px", borderRadius: 3, textTransform: "uppercase",
+                              color: "#B45309", background: "#FFFBEB", border: "1px solid #FDE68A",
+                            }}>
+                              Expectations Changed
+                            </span>
+                          )}
                         </div>
-                        <p style={{ fontSize: 14, lineHeight: 1.6, color: "#292524" }}>{checkin.summary}</p>
+                        <p style={{ fontSize: 13, lineHeight: 1.7, color: "#292524", fontFamily: "var(--font-serif)" }}>{checkin.summary}</p>
                         {checkin.manager_feedback && (
-                          <p style={{ fontSize: 13, color: "#57534E", marginTop: 4 }}>Manager feedback: {checkin.manager_feedback}</p>
+                          <div style={{ marginTop: 6 }}>
+                            <div style={{ fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.04em", color: "#78716C", marginBottom: 2 }}>Manager Feedback</div>
+                            <p style={{ fontSize: 13, lineHeight: 1.6, color: "#57534E", fontFamily: "var(--font-serif)", margin: 0 }}>{checkin.manager_feedback}</p>
+                          </div>
+                        )}
+                        {checkin.expectations_changed && checkin.expectation_change_detail && (
+                          <div style={{ marginTop: 8, padding: "10px 14px", borderRadius: 6, background: "#FFFBEB", border: "1px solid #FDE68A" }}>
+                            <div style={{ fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.06em", color: "#B45309", marginBottom: 4 }}>Expectation Change Noted</div>
+                            <p style={{ fontSize: 13, lineHeight: 1.7, color: "#292524", fontFamily: "var(--font-serif)", margin: 0 }}>{checkin.expectation_change_detail}</p>
+                          </div>
                         )}
                       </div>
                     ))}

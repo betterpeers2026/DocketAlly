@@ -20,6 +20,7 @@ interface CaseData {
   case_type: string;
   case_types: string[];
   status: string;
+  employee_name: string | null;
   description: string | null;
   start_date: string | null;
   employment_end_date: string | null;
@@ -68,7 +69,7 @@ interface VaultDocument {
 }
 
 interface DetectedPattern {
-  type: "frequency" | "warning" | "people" | "gap" | "plan";
+  type: "frequency" | "event_types" | "people" | "gap" | "plan" | "escalation";
   label: string;
   detail: string;
 }
@@ -276,13 +277,14 @@ function resolveTypes(c: { case_types?: string[]; case_type?: string } | null): 
 
 function parsePeople(peopleStr: string | null): string[] {
   if (!peopleStr) return [];
-  return peopleStr.split(",").map((p) => p.trim()).filter(Boolean);
+  return peopleStr.split(";").map((p) => p.trim()).filter(Boolean);
 }
 
 function getInitials(name: string): string {
-  const parts = name.trim().split(/\s+/);
+  const namePart = name.includes(",") ? name.split(",")[0].trim() : name.trim();
+  const parts = namePart.split(/\s+/);
   if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-  return name.trim().slice(0, 2).toUpperCase();
+  return namePart.slice(0, 2).toUpperCase();
 }
 
 const AVATAR_COLOR = "#1c1917";
@@ -372,11 +374,15 @@ const filterInputStyle: React.CSSProperties = {
 /*  Pattern Detection                                                  */
 /* ------------------------------------------------------------------ */
 
+const LOWER_SEVERITY = new Set(["1:1 Meeting", "Written Communication", "Feedback Received", "Positive Evidence", "Self-Documentation"]);
+const HIGHER_SEVERITY = new Set(["Incident", "HR Interaction", "PIP Conversation", "Role/Responsibility Change"]);
+
 function detectPatterns(records: DocketRecord[]): DetectedPattern[] {
   if (records.length === 0) return [];
   const patterns: DetectedPattern[] = [];
   const now = new Date();
 
+  // Card 1: Recording Frequency
   const last7 = records.filter((r) => (now.getTime() - new Date(r.date + "T00:00:00").getTime()) / 86400000 <= 7).length;
   const last14 = records.filter((r) => (now.getTime() - new Date(r.date + "T00:00:00").getTime()) / 86400000 <= 14).length;
   const last30 = records.filter((r) => (now.getTime() - new Date(r.date + "T00:00:00").getTime()) / 86400000 <= 30).length;
@@ -388,30 +394,62 @@ function detectPatterns(records: DocketRecord[]): DetectedPattern[] {
     patterns.push({ type: "frequency", label: "Recording Frequency", detail });
   }
 
-  const warningCount = records.filter((r) => WARNING_TYPES.has(r.entry_type)).length;
-  if (warningCount > 0) {
-    patterns.push({ type: "warning", label: "Flagged Entries", detail: `${warningCount} of ${records.length} records are flagged entries (Performance Improvement Plan, HR, Incident)` });
+  // Card 2: Event Types (data-driven, replaces hardcoded Flagged Entries)
+  const typeCounts: Record<string, number> = {};
+  records.forEach((r) => { typeCounts[r.entry_type] = (typeCounts[r.entry_type] || 0) + 1; });
+  const typeEntries = Object.entries(typeCounts).sort((a, b) => b[1] - a[1]);
+  if (typeEntries.length > 0) {
+    const detail = typeEntries.map(([type, count]) => `${count} ${type}${count !== 1 && !type.endsWith("s") ? "s" : ""}`).join(", ");
+    patterns.push({ type: "event_types", label: "Event Types", detail });
   }
 
+  // Card 3: Key People
   const peopleCounts: Record<string, number> = {};
   records.forEach((r) => {
     if (r.people) {
-      r.people.split(/[,;]/).map((p) => p.trim()).filter(Boolean).forEach((name) => { peopleCounts[name] = (peopleCounts[name] || 0) + 1; });
+      r.people.split(";").map((p) => p.trim()).filter(Boolean).forEach((name) => { peopleCounts[name] = (peopleCounts[name] || 0) + 1; });
     }
   });
   const topPeople = Object.entries(peopleCounts).sort((a, b) => b[1] - a[1]).slice(0, 3);
   if (topPeople.length > 0) {
-    const detail = topPeople.map(([name, count]) => `${name} (${count} record${count !== 1 ? "s" : ""})`).join(", ");
+    const detail = topPeople.map(([name, count]) => `${name} (${count} record${count !== 1 ? "s" : ""})`).join("; ");
     patterns.push({ type: "people", label: "Key People", detail });
   }
 
+  // Card 4: Timeline Gaps (14+ days, consolidated into one card)
   const sorted = [...records].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  const gaps: string[] = [];
   for (let i = 1; i < sorted.length; i++) {
     const prev = new Date(sorted[i - 1].date + "T00:00:00");
     const curr = new Date(sorted[i].date + "T00:00:00");
-    const gap = (curr.getTime() - prev.getTime()) / 86400000;
-    if (gap > 14) {
-      patterns.push({ type: "gap", label: "Recording Gap", detail: `No records between ${formatDate(sorted[i - 1].date)} and ${formatDate(sorted[i].date)} (${Math.round(gap)} days)` });
+    const gapDays = (curr.getTime() - prev.getTime()) / 86400000;
+    if (gapDays >= 14) {
+      gaps.push(`No documentation between ${formatDate(sorted[i - 1].date)} and ${formatDate(sorted[i].date)} (${Math.round(gapDays)} days)`);
+    }
+  }
+  if (gaps.length > 0) {
+    patterns.push({ type: "gap", label: "Timeline Gaps", detail: gaps.join("\n") });
+  }
+
+  // Card 5: Escalation Pattern (lower to higher severity shift)
+  const chronological = [...records].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  if (chronological.length >= 3) {
+    let lastLowerIdx = -1;
+    const higherAfterLower: DocketRecord[] = [];
+
+    for (let i = 0; i < chronological.length; i++) {
+      if (LOWER_SEVERITY.has(chronological[i].entry_type)) {
+        lastLowerIdx = i;
+      } else if (HIGHER_SEVERITY.has(chronological[i].entry_type) && lastLowerIdx >= 0) {
+        higherAfterLower.push(chronological[i]);
+      }
+    }
+
+    if (higherAfterLower.length >= 2) {
+      const higherTypes = [...new Set(higherAfterLower.map((r) => r.entry_type))];
+      const firstLower = chronological.find((r) => LOWER_SEVERITY.has(r.entry_type));
+      const detail = `Record types shifted from lower-severity entries (e.g. ${firstLower?.entry_type || "1:1 Meeting"}) to higher-severity entries (${higherTypes.join(", ")}) across ${higherAfterLower.length + 1}+ records`;
+      patterns.push({ type: "escalation", label: "Escalation Pattern", detail });
     }
   }
 
@@ -828,7 +866,7 @@ export default function CaseDetailPage() {
 
   // Case info edit
   const [editingCaseInfo, setEditingCaseInfo] = useState(false);
-  const [editForm, setEditForm] = useState({ employer: "", role: "", department: "", location: "", key_people: "", description: "", start_date: "", employment_end_date: "", case_types: [] as string[], protected_classes: [] as string[], impact_statement: "", case_theory_protected_activity: "", case_theory_employer_response: "", case_theory_connection: "", case_theory_outcome: "", case_status: "", open_questions: "" });
+  const [editForm, setEditForm] = useState({ employee_name: "", employer: "", role: "", department: "", location: "", key_people: "", description: "", start_date: "", employment_end_date: "", case_types: [] as string[], protected_classes: [] as string[], impact_statement: "", case_theory_protected_activity: "", case_theory_employer_response: "", case_theory_connection: "", case_theory_outcome: "", case_status: "", open_questions: "" });
   const [savingCaseInfo, setSavingCaseInfo] = useState(false);
   const [showToast, setShowToast] = useState(false);
 
@@ -881,21 +919,25 @@ export default function CaseDetailPage() {
   }, [caseId, supabase]);
 
   const fetchCaseRecords = useCallback(async () => {
-    if (!userId || !caseId) return;
+    console.log("[fetchCaseRecords] called with userId:", userId, "caseId:", caseId);
+    if (!userId || !caseId) { console.log("[fetchCaseRecords] SKIPPED: missing userId or caseId"); return; }
     setLoading(true);
 
-    // Step 1: Get record IDs linked to this case
+    // Step 1: Get record IDs linked to this case via junction table
     const { data: links, error: linksErr } = await supabase
       .from("case_records")
       .select("record_id")
       .eq("case_id", caseId);
 
-    if (linksErr) { console.error("fetchCaseRecords links error:", linksErr); setLoading(false); return; }
+    console.log("[fetchCaseRecords] case_records query result:", { links, linksErr, caseId });
+
+    if (linksErr) { console.error("[fetchCaseRecords] links error:", linksErr); setLoading(false); return; }
 
     const recordIds = (links || []).map((l: { record_id: string }) => l.record_id);
+    console.log("[fetchCaseRecords] recordIds from junction table:", recordIds);
     setCaseRecordIds(new Set(recordIds));
 
-    if (recordIds.length === 0) { setRecords([]); setLoading(false); return; }
+    if (recordIds.length === 0) { console.log("[fetchCaseRecords] No linked records found, setting records to []"); setRecords([]); setLoading(false); return; }
 
     // Step 2: Fetch only linked records
     const { data, error } = await supabase
@@ -905,8 +947,12 @@ export default function CaseDetailPage() {
       .order("date", { ascending: true })
       .order("created_at", { ascending: true });
 
-    if (error) console.error("fetchCaseRecords error:", error);
-    if (!error && data) setRecords(data);
+    console.log("[fetchCaseRecords] records query result:", { count: data?.length, error, recordIds });
+    if (error) console.error("[fetchCaseRecords] records fetch error:", error);
+    if (!error && data) {
+      console.log("[fetchCaseRecords] Setting records state with", data.length, "records:", data.map((r) => ({ id: r.id, title: r.title })));
+      setRecords(data);
+    }
     setLoading(false);
   }, [userId, caseId, supabase]);
 
@@ -923,7 +969,7 @@ export default function CaseDetailPage() {
   const fetchPlans = useCallback(async () => {
     if (!userId) return;
     const { data: plansData, error: plansErr } = await supabase
-      .from("plans").select("*").eq("user_id", userId).order("start_date", { ascending: true });
+      .from("plans").select("*").eq("user_id", userId).eq("case_id", caseId).order("start_date", { ascending: true });
     if (plansErr) { console.error("fetchPlans error:", plansErr); return; }
     if (plansData) {
       setPlans(plansData);
@@ -937,7 +983,7 @@ export default function CaseDetailPage() {
         if (!checkinsRes.error && checkinsRes.data) setPlanCheckins(checkinsRes.data);
       }
     }
-  }, [userId, supabase]);
+  }, [userId, caseId, supabase]);
 
   const fetchAllRecords = useCallback(async () => {
     if (!userId) return;
@@ -950,6 +996,7 @@ export default function CaseDetailPage() {
   useEffect(() => {
     async function init() {
       const { data: { user } } = await supabase.auth.getUser();
+      console.log("[CaseDetail] auth init, user:", user?.id || "null");
       if (user) setUserId(user.id);
     }
     init();
@@ -958,6 +1005,7 @@ export default function CaseDetailPage() {
   // Fetch data when userId is ready
   useEffect(() => {
     if (userId) {
+      console.log("[CaseDetail] userId ready, fetching data for caseId:", caseId);
       fetchCase();
       fetchCaseRecords();
       fetchVaultDocs();
@@ -1001,15 +1049,38 @@ export default function CaseDetailPage() {
   /*  Add/Remove records from case                                     */
   /* ---------------------------------------------------------------- */
 
+  const [linkingRecordId, setLinkingRecordId] = useState<string | null>(null);
+
   async function addRecordToCase(recordId: string) {
-    if (!userId) return;
-    const { error } = await supabase.from("case_records").insert({ case_id: caseId, record_id: recordId, user_id: userId });
-    if (!error) setCaseRecordIds((prev) => new Set([...prev, recordId]));
+    if (!userId || linkingRecordId) return;
+    setLinkingRecordId(recordId);
+    // Optimistically update UI
+    setCaseRecordIds((prev) => new Set([...prev, recordId]));
+    const { error } = await supabase.from("case_records").upsert(
+      { case_id: caseId, record_id: recordId },
+      { onConflict: "case_id,record_id" }
+    );
+    if (error) {
+      console.error("[addRecordToCase] error:", { message: error.message, details: error.details, hint: error.hint, code: error.code, recordId, caseId, userId });
+      // Rollback on failure
+      setCaseRecordIds((prev) => { const next = new Set(prev); next.delete(recordId); return next; });
+    }
+    setLinkingRecordId(null);
   }
 
   async function removeRecordFromCase(recordId: string) {
+    if (linkingRecordId) return;
+    setLinkingRecordId(recordId);
+    // Optimistically update UI
+    const prevIds = new Set(caseRecordIds);
+    setCaseRecordIds((prev) => { const next = new Set(prev); next.delete(recordId); return next; });
     const { error } = await supabase.from("case_records").delete().eq("case_id", caseId).eq("record_id", recordId);
-    if (!error) setCaseRecordIds((prev) => { const next = new Set(prev); next.delete(recordId); return next; });
+    if (error) {
+      console.error("[removeRecordFromCase] error:", { message: error.message, details: error.details, hint: error.hint, code: error.code, recordId, caseId });
+      // Rollback on failure
+      setCaseRecordIds(prevIds);
+    }
+    setLinkingRecordId(null);
   }
 
   function closeAddRecordsModal() {
@@ -1070,6 +1141,7 @@ export default function CaseDetailPage() {
     const typesToSave = editForm.case_types.length > 0 ? editForm.case_types : ["General"];
     const classesToSave = typesToSave.some((t) => DISCRIMINATION_TYPES.includes(t)) ? editForm.protected_classes : [];
     const raw: Record<string, unknown> = {
+      employee_name: editForm.employee_name || null,
       employer: editForm.employer || null,
       role: editForm.role || null,
       department: editForm.department || null,
@@ -1112,6 +1184,7 @@ export default function CaseDetailPage() {
   function startEditCaseInfo() {
     if (!caseData) return;
     setEditForm({
+      employee_name: caseData.employee_name || "",
       employer: caseData.employer || "",
       role: caseData.role || "",
       department: caseData.department || "",
@@ -1163,7 +1236,7 @@ export default function CaseDetailPage() {
 
   const allPeople = useMemo(() => {
     const people: Record<string, number> = {};
-    records.forEach((r) => { if (r.people) { r.people.split(/[,;]/).map((p) => p.trim()).filter(Boolean).forEach((name) => { people[name] = (people[name] || 0) + 1; }); } });
+    records.forEach((r) => { if (r.people) { r.people.split(";").map((p) => p.trim()).filter(Boolean).forEach((name) => { people[name] = (people[name] || 0) + 1; }); } });
     return Object.entries(people).sort((a, b) => b[1] - a[1]);
   }, [records]);
 
@@ -1438,9 +1511,10 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
   function patternIcon(type: string): string {
     switch (type) {
       case "frequency": return "M23 6l-9.5 9.5-5-5L1 18";
-      case "warning": return "M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z M12 9v4 M12 17h.01";
+      case "event_types": return "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4";
       case "people": return "M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2 M9 11a4 4 0 100-8 4 4 0 000 8 M23 21v-2a4 4 0 00-3-3.87 M16 3.13a4 4 0 010 7.75";
       case "gap": return "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z";
+      case "escalation": return "M13 17h8m0 0V9m0 8l-8-8-4 4-6-6";
       case "plan": return "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2";
       default: return "";
     }
@@ -1843,6 +1917,11 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
                     <h3 style={{ fontFamily: "var(--font-sans)", fontSize: 18, fontWeight: 700, color: "#292524" }}>Edit Case Information</h3>
                     <button onClick={() => setEditingCaseInfo(false)} style={{ padding: "6px 14px", borderRadius: 8, border: "1px solid #D6D3D1", background: "#fff", color: "#292524", fontSize: 13, fontWeight: 600, fontFamily: "var(--font-sans)", cursor: "pointer" }}>Cancel</button>
                   </div>
+                  <div style={{ marginBottom: 16 }}>
+                    <label style={labelStyle}>Your name</label>
+                    <input type="text" value={editForm.employee_name} onChange={(e) => setEditForm((prev) => ({ ...prev, employee_name: e.target.value }))} placeholder="Full legal name" style={inputStyle} />
+                    <p style={{ fontSize: 11, color: "#A8A29E", fontFamily: "var(--font-sans)", marginTop: 4 }}>This appears on your case file cover page</p>
+                  </div>
                   <div className="da-case-info-grid da-grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
                     <div>
                       <label style={labelStyle}>Employer</label>
@@ -2056,6 +2135,11 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
                       )}
                     </div>
                   )}
+                  {/* Employee name */}
+                  <div style={{ padding: "16px 0", borderBottom: "1px solid #F5F5F4" }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, fontFamily: "var(--font-mono)", color: "#78716C", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4 }}>Your name</div>
+                    <div style={{ fontSize: 15, fontWeight: 400, fontFamily: "var(--font-sans)", color: caseData?.employee_name ? "#292524" : "#A8A29E", fontStyle: caseData?.employee_name ? "normal" : "italic" }}>{caseData?.employee_name || "Not provided"}</div>
+                  </div>
                   {/* Remaining fields: Employer, Role, etc. */}
                   <div className="da-case-info-grid da-grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0 }}>
                     {[
@@ -2174,7 +2258,13 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
               )}
 
               {/* Interactive View */}
-              {caseFileView === "interactive" && (
+              {caseFileView === "interactive" && (() => {
+                console.log("[Interactive View] rendering with records:", records.length, "loading:", loading, "caseId:", caseId, "userId:", userId);
+                console.log("[Interactive View] caseRecordIds:", [...caseRecordIds]);
+                console.log("[Interactive View] entryTypeCounts:", entryTypeCounts, "allPeople:", allPeople);
+                if (records.length > 0) { console.log("[Interactive View] first record:", { id: records[0].id, title: records[0].title, date: records[0].date }); }
+                return true;
+              })() && (
                 <div style={{ maxWidth: 800, margin: "0 auto" }}>
                   {/* Stats grid */}
                   {records.length > 0 && (
@@ -2255,7 +2345,7 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
                                 {isExpanded && record.follow_up && <div style={{ fontSize: 13, color: "#292524", lineHeight: 1.6, marginTop: 4 }}><strong>Follow-Up:</strong> {renderMarkdown(record.follow_up)}</div>}
                                 {record.people && (
                                   <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 10 }}>
-                                    {record.people.split(/[,;]/).map((p) => p.trim()).filter(Boolean).map((name) => (
+                                    {record.people.split(";").map((p) => p.trim()).filter(Boolean).map((name) => (
                                       <span key={name} style={{ display: "inline-block", padding: "2px 8px", borderRadius: 12, fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", color: "#292524", background: "#F5F5F4", border: "1px solid #D6D3D1" }}>{name}</span>
                                     ))}
                                   </div>
@@ -2294,15 +2384,47 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
                   <h3 style={{ fontFamily: "var(--font-sans)", fontSize: 24, fontWeight: 600, color: "#292524", marginBottom: 6 }}>Patterns</h3>
                   <p style={{ fontSize: 14, color: "#78716C", fontFamily: "var(--font-sans)", fontStyle: "italic", marginBottom: 20 }}>These patterns are observations from your records, not legal analysis.</p>
                   <div className="da-pattern-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 14 }}>
-                    {patterns.map((pattern, idx) => (
-                      <div key={idx} style={{ background: pattern.type === "plan" ? "#FFFBEB" : "#FAFAF9", border: pattern.type === "plan" ? "1px solid #FDE68A" : "1px solid #E7E5E4", borderLeft: pattern.type === "plan" ? "3px solid #F59E0B" : "3px solid #22C55E", borderRadius: 12, padding: "20px 24px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={pattern.type === "warning" ? "#DC2626" : pattern.type === "plan" ? "#92400E" : "#292524"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d={patternIcon(pattern.type)} /></svg>
-                          <span style={{ fontSize: 15, fontWeight: 600, color: "#292524", fontFamily: "var(--font-sans)" }}>{pattern.label}</span>
+                    {patterns.map((pattern, idx) => {
+                      const cardBg = pattern.type === "escalation" ? "#FEF2F2"
+                        : pattern.type === "gap" || pattern.type === "plan" ? "#FFFBEB"
+                        : "#FAFAF9";
+                      const cardBorder = pattern.type === "escalation" ? "1px solid #FECACA"
+                        : pattern.type === "gap" || pattern.type === "plan" ? "1px solid #FDE68A"
+                        : "1px solid #E7E5E4";
+                      const cardLeftBorder = pattern.type === "escalation" ? "3px solid #DC2626"
+                        : pattern.type === "gap" ? "3px solid #F59E0B"
+                        : pattern.type === "plan" ? "3px solid #F59E0B"
+                        : pattern.type === "event_types" ? "3px solid #3B82F6"
+                        : "3px solid #22C55E";
+                      const iconStroke = pattern.type === "escalation" ? "#DC2626"
+                        : pattern.type === "event_types" ? "#3B82F6"
+                        : pattern.type === "gap" || pattern.type === "plan" ? "#92400E"
+                        : "#292524";
+
+                      return (
+                        <div key={idx} style={{ background: cardBg, border: cardBorder, borderLeft: cardLeftBorder, borderRadius: 12, padding: "20px 24px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={iconStroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d={patternIcon(pattern.type)} /></svg>
+                            <span style={{ fontSize: 15, fontWeight: 600, color: "#292524", fontFamily: "var(--font-sans)" }}>{pattern.label}</span>
+                          </div>
+                          {pattern.type === "event_types" ? (
+                            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                              {pattern.detail.split(", ").map((item, i) => (
+                                <span key={i} style={{ fontSize: 14, color: "#57534E", fontFamily: "var(--font-sans)" }}>{item}</span>
+                              ))}
+                            </div>
+                          ) : pattern.type === "gap" ? (
+                            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                              {pattern.detail.split("\n").map((line, i) => (
+                                <span key={i} style={{ fontSize: 14, color: "#57534E", lineHeight: 1.5, fontFamily: "var(--font-sans)" }}>{line}</span>
+                              ))}
+                            </div>
+                          ) : (
+                            <p style={{ fontSize: 14, color: "#57534E", lineHeight: 1.5, fontFamily: "var(--font-sans)" }}>{pattern.detail}</p>
+                          )}
                         </div>
-                        <p style={{ fontSize: 14, color: "#57534E", lineHeight: 1.5, fontFamily: "var(--font-sans)" }}>{pattern.detail}</p>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                   {/* Contradictions Card */}
                   <div style={{ marginTop: 16, background: contradictions.length > 0 ? "#FEF2F2" : "#FAFAF9", border: contradictions.length > 0 ? "1px solid #FECACA" : "1px solid #E7E5E4", borderLeft: contradictions.length > 0 ? "3px solid #DC2626" : "3px solid #22C55E", borderRadius: 12, padding: "20px 24px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
