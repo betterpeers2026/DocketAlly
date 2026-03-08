@@ -218,6 +218,7 @@ export default function RecordPage() {
   const [attachments, setAttachments] = useState<{
     [recordId: string]: RecordAttachment[];
   }>({});
+  const [attachmentCounts, setAttachmentCounts] = useState<{ [recordId: string]: number }>({});
 
   // Cases
   const [cases, setCases] = useState<CaseBasic[]>([]);
@@ -250,6 +251,7 @@ export default function RecordPage() {
   // Search & filter
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState("");
+  const [filterCaseId, setFilterCaseId] = useState("");
 
   // Form
   const [formData, setFormData] = useState<FormData>(EMPTY_FORM);
@@ -356,6 +358,20 @@ export default function RecordPage() {
     setRecordExhibits(map);
   }, [userId, supabase]);
 
+  const fetchAttachmentCounts = useCallback(async () => {
+    if (!userId) return;
+    const { data } = await supabase
+      .from("record_attachments")
+      .select("record_id")
+      .eq("user_id", userId);
+    if (!data) return;
+    const counts: { [recordId: string]: number } = {};
+    data.forEach((row: { record_id: string }) => {
+      counts[row.record_id] = (counts[row.record_id] || 0) + 1;
+    });
+    setAttachmentCounts(counts);
+  }, [userId, supabase]);
+
   useEffect(() => {
     async function init() {
       const {
@@ -373,8 +389,9 @@ export default function RecordPage() {
       fetchRecordCaseMap();
       fetchVaultFiles();
       fetchAllExhibits();
+      fetchAttachmentCounts();
     }
-  }, [userId, fetchRecords, fetchCases, fetchRecordCaseMap, fetchVaultFiles, fetchAllExhibits]);
+  }, [userId, fetchRecords, fetchCases, fetchRecordCaseMap, fetchVaultFiles, fetchAllExhibits, fetchAttachmentCounts]);
 
   // Nudge banner: show if 7+ days since last record and not recently dismissed
   useEffect(() => {
@@ -486,6 +503,19 @@ export default function RecordPage() {
     }
   }, [searchParams, userId]);
 
+  // Handle ?newRecord=true&linkCase=<id> from case detail modal
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (searchParams.get("newRecord") === "true" && userId) {
+      const linkCaseId = searchParams.get("linkCase");
+      openNewForm();
+      if (linkCaseId) {
+        setFormData((prev) => ({ ...prev, case_ids: [linkCaseId] }));
+      }
+      router.replace("/dashboard");
+    }
+  }, [searchParams, userId]);
+
   // Welcome banner after onboarding
   useEffect(() => {
     if (searchParams.get("welcome") === "1" && userId) {
@@ -582,6 +612,7 @@ export default function RecordPage() {
         (a) => a.id !== att.id
       ),
     }));
+    setAttachmentCounts((prev) => ({ ...prev, [att.record_id]: Math.max(0, (prev[att.record_id] || 1) - 1) }));
   }
 
   // Close case dropdowns on outside click
@@ -737,6 +768,7 @@ export default function RecordPage() {
 
     if (newRecord && files.length > 0) {
       await uploadFiles(newRecord.id, userId);
+      setAttachmentCounts((prev) => ({ ...prev, [newRecord.id]: (prev[newRecord.id] || 0) + files.length }));
     }
 
     if (newRecord) {
@@ -793,6 +825,7 @@ export default function RecordPage() {
 
     if (updated && files.length > 0) {
       await uploadFiles(updated.id, userId);
+      setAttachmentCounts((prev) => ({ ...prev, [updated.id]: (prev[updated.id] || 0) + files.length }));
       setAttachments((prev) => {
         const next = { ...prev };
         delete next[updated.id];
@@ -865,6 +898,11 @@ export default function RecordPage() {
         delete next[recordId];
         return next;
       });
+      setAttachmentCounts((prev) => {
+        const next = { ...prev };
+        delete next[recordId];
+        return next;
+      });
     }
   }
 
@@ -880,7 +918,8 @@ export default function RecordPage() {
       r.title.toLowerCase().includes(query) ||
       r.narrative.toLowerCase().includes(query) ||
       (r.people && r.people.toLowerCase().includes(query));
-    return matchesType && matchesSearch;
+    const matchesCase = !filterCaseId || (recordCaseMap[r.id] || []).some((c) => c.id === filterCaseId);
+    return matchesType && matchesSearch && matchesCase;
   });
 
   /* ---------------------------------------------------------------- */
@@ -888,17 +927,23 @@ export default function RecordPage() {
   /* ---------------------------------------------------------------- */
 
   const stats = useMemo(() => {
-    const totalRecords = records.length;
-    const daysDocumented = new Set(records.map((r) => r.date)).size;
+    const source = filteredRecords;
+    const totalRecords = source.length;
+    const dates = source.map((r) => r.date).sort();
+    let daysDocumented = 0;
+    if (dates.length >= 2) {
+      const earliest = new Date(dates[0] + "T00:00:00").getTime();
+      const latest = new Date(dates[dates.length - 1] + "T00:00:00").getTime();
+      daysDocumented = Math.round((latest - earliest) / 86400000);
+    }
     const allPeople = new Set<string>();
-    records.forEach((r) => {
+    source.forEach((r) => {
       parsePeople(r.people).forEach((p) => allPeople.add(p.toLowerCase()));
     });
-    const evidenceFiled = records.filter(
-      (r) => r.facts || r.follow_up
-    ).length;
+    let evidenceFiled = 0;
+    source.forEach((r) => { evidenceFiled += attachmentCounts[r.id] || 0; });
     return { totalRecords, daysDocumented, peopleTracked: allPeople.size, evidenceFiled };
-  }, [records]);
+  }, [filteredRecords, attachmentCounts]);
 
   /* ---------------------------------------------------------------- */
   /*  Format helpers                                                   */
@@ -1823,7 +1868,11 @@ export default function RecordPage() {
               </button>
             </div>
             <p style={{ fontSize: 14, fontFamily: "var(--font-sans)", color: "#78716C", marginBottom: 6, lineHeight: 1.5 }}>
-              Document workplace events as they happen. Each record strengthens your timeline.
+              {filterCaseId
+                ? `Showing records for ${cases.find((c) => c.id === filterCaseId)?.name || "selected case"}${filterType ? ` filtered to ${filterType}` : ""}`
+                : filterType
+                  ? `Showing all records filtered to ${filterType}`
+                  : "Document workplace events as they happen. Each record strengthens your timeline."}
             </p>
             <p style={{ fontSize: 11.5, fontFamily: "var(--font-mono)", color: "#78716C", marginBottom: 0 }}>
               <strong style={{ fontWeight: 700, color: "#44403C" }}>{stats.totalRecords}</strong>{" "}
@@ -1859,6 +1908,18 @@ export default function RecordPage() {
                 style={{ width: "100%", height: 42, padding: "0 14px 0 40px", borderRadius: 10, border: "1px solid #E7E5E4", fontSize: 13.5, fontFamily: "var(--font-sans)", color: "#292524", outline: "none", background: "#fff", boxShadow: "0 1px 2px rgba(0,0,0,0.02)" }}
               />
             </div>
+            {cases.length > 0 && (
+              <select
+                value={filterCaseId}
+                onChange={(e) => setFilterCaseId(e.target.value)}
+                style={{ height: 42, borderRadius: 10, border: "1px solid #E7E5E4", fontSize: 13, fontFamily: "var(--font-sans)", color: filterCaseId ? "#292524" : "#78716C", outline: "none", background: "#fff", cursor: "pointer", boxShadow: "0 1px 2px rgba(0,0,0,0.02)", padding: "0 36px 0 14px" }}
+              >
+                <option value="">All Cases</option>
+                {cases.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            )}
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}

@@ -209,7 +209,10 @@ function getStatusBadge(status: string): React.CSSProperties {
   if (status === "met" || status === "completed") {
     return { ...base, color: "#15803D", background: "#DCFCE7", border: "1px solid #86EFAC" };
   }
-  if (status === "not_met" || status === "expired") {
+  if (status === "active") {
+    return { ...base, color: "#15803D", background: "#F0FDF4", border: "1px solid #BBF7D0" };
+  }
+  if (status === "not_met") {
     return { ...base, color: "#DC2626", background: "#FEF2F2", border: "1px solid #FECACA" };
   }
   if (status === "revised") {
@@ -222,10 +225,10 @@ function getStatusBadge(status: string): React.CSSProperties {
     return { ...base, color: "#B45309", background: "#FFFBEB", border: "1px solid #FDE68A" };
   }
   if (status === "in_progress") {
-    return { ...base, color: "#3B82F6", background: "#EFF6FF", border: "1px solid #BFDBFE" };
+    return { ...base, color: "#B45309", background: "#FFFBEB", border: "1px solid #FDE68A" };
   }
   // not_started / default
-  return { ...base, color: "#44403C", background: "#F5F5F4", border: "1px solid #D6D3D1" };
+  return { ...base, color: "#78716C", background: "#FAFAF9", border: "1px solid #E7E5E4" };
 }
 
 function statusLabel(s: string): string {
@@ -429,17 +432,17 @@ export default function PlansPage() {
     return { daysRemaining, totalDays, pct, elapsedDays: elapsed };
   }
 
-  function getPlanStatus(plan: Plan, goals: PlanGoal[], checkins: PlanCheckin[]) {
+  function getPlanStatus(plan: Plan, goals: PlanGoal[]) {
+    // 1. COMPLETED: manually marked or all goals completed/met
     if (plan.status === "completed") return "completed";
-    if (plan.end_date) {
-      const end = new Date(plan.end_date + "T00:00:00").getTime();
-      if (Date.now() > end) return "expired";
-    }
-    // All goals met → completed
     if (goals.length > 0 && goals.every((g) => g.status === "met" || g.status === "completed")) return "completed";
-    // Has checkins or goals → in progress
-    if (checkins.length > 0 || goals.length > 0) return "in_progress";
-    return "not_started";
+    // 2. NOT STARTED: start date is in the future
+    const start = new Date(plan.start_date + "T00:00:00").getTime();
+    if (Date.now() < start) return "not_started";
+    // 3. IN PROGRESS: has goals and at least one is in_progress or disputed
+    if (goals.length > 0 && goals.some((g) => g.status === "in_progress" || g.status === "disputed")) return "in_progress";
+    // 4. ACTIVE: start date is in the past (no goals, or all goals still not_started)
+    return "active";
   }
 
   function getRevisions(planGoals: PlanGoal[]) {
@@ -1178,7 +1181,7 @@ export default function PlansPage() {
     const planGoals = goalsMap[plan.id] ?? [];
     const planCheckins = checkinsMap[plan.id] ?? [];
     const progress = getPlanProgress(plan);
-    const pStatus = getPlanStatus(plan, planGoals, planCheckins);
+    const pStatus = getPlanStatus(plan, planGoals);
     const revisions = getRevisions(planGoals);
     const typeInfo = getTypeInfo(plan.plan_type);
     const typeBadge = getTypeBadge();
@@ -1289,7 +1292,7 @@ export default function PlansPage() {
             {startStr} &rarr; {endStr}
             {durationDays != null && <> &middot; {durationDays} day{durationDays !== 1 ? "s" : ""}</>}
             {durationDays == null && <> &middot; {progress.elapsedDays} day{progress.elapsedDays !== 1 ? "s" : ""} so far</>}
-            {progress.daysRemaining != null && (pStatus === "in_progress" || pStatus === "not_started") && <> &middot; {progress.daysRemaining} remaining</>}
+            {progress.daysRemaining != null && (pStatus === "in_progress" || pStatus === "not_started" || pStatus === "active") && <> &middot; {progress.daysRemaining} remaining</>}
             {goalCount > 0 && <> &middot; {goalCount} goal{goalCount !== 1 ? "s" : ""}</>}
             {checkinCount > 0 && <> &middot; {checkinCount} check-in{checkinCount !== 1 ? "s" : ""}</>}
             {revisionCount > 0 && <> &middot; {revisionCount} revision{revisionCount !== 1 ? "s" : ""}</>}
@@ -1374,7 +1377,7 @@ export default function PlansPage() {
                       width: `${pStatus === "completed" ? 100 : progress.pct}%`,
                       height: "100%",
                       borderRadius: 3,
-                      background: pStatus === "expired" ? "#EF4444" : "var(--color-green)",
+                      background: "var(--color-green)",
                       transition: "width 0.3s",
                     }}
                   />
@@ -1511,7 +1514,7 @@ export default function PlansPage() {
                 Delete Plan
               </button>
               <div style={{ display: "flex", gap: 10 }}>
-                {(pStatus === "in_progress" || pStatus === "not_started") && (
+                {(pStatus === "in_progress" || pStatus === "not_started" || pStatus === "active") && (
                   <button
                     onClick={() => markPlanComplete(plan.id)}
                     disabled={saving}

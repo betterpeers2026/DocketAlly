@@ -113,6 +113,7 @@ export interface CaseFileDocumentProps {
   patterns: DetectedPattern[];
   contradictions: Contradiction[];
   linkedDocsMap: Record<string, VaultDocument[]>;
+  recordAttachmentsMap?: Record<string, { file_name: string }[]>;
   caseData: CaseData | null;
   starredIds: Set<string>;
   keyDates: DocketRecord[];
@@ -597,7 +598,7 @@ function findSupportingRecordIds(
 
 const dLabel: React.CSSProperties = {
   fontSize: 11,
-  fontWeight: 700,
+  fontWeight: 800,
   fontFamily: "var(--font-mono)",
   color: "#292524",
   textTransform: "uppercase",
@@ -629,6 +630,7 @@ export default function CaseFileDocument({
   patterns,
   contradictions,
   linkedDocsMap,
+  recordAttachmentsMap = {},
   caseData,
   starredIds,
   keyDates,
@@ -1178,7 +1180,7 @@ export default function CaseFileDocument({
 
                 {/* EVIDENCE LINKED - always shown */}
                 <div style={subsectionLabel}>Evidence Linked</div>
-                {docsForRecord.length > 0 ? (
+                {docsForRecord.length > 0 || (recordAttachmentsMap[record.id] || []).length > 0 ? (
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                     {docsForRecord.map((doc) => {
                       const letter = exhibitLetterMap.get(doc.id) || "?";
@@ -1204,6 +1206,26 @@ export default function CaseFileDocument({
                         </span>
                       );
                     })}
+                    {(recordAttachmentsMap[record.id] || []).map((att, i) => (
+                      <span
+                        key={`att-${i}`}
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 6,
+                          padding: "4px 10px",
+                          borderRadius: 6,
+                          background: "#F0FDF4",
+                          border: "1px solid #BBF7D0",
+                          fontSize: 12,
+                          fontFamily: "var(--font-mono)",
+                          fontWeight: 600,
+                          color: "#15803D",
+                        }}
+                      >
+                        <span style={{ color: "#57534E", fontWeight: 500, fontFamily: "var(--font-sans)" }}>{att.file_name}</span>
+                      </span>
+                    ))}
                   </div>
                 ) : (
                   <p style={{ fontSize: 13, color: "#A8A29E", fontStyle: "italic", margin: 0 }}>No files linked to this record.</p>
@@ -1236,7 +1258,9 @@ export default function CaseFileDocument({
           {sortedRecords.map((record) => {
             const rId = recordIdMap.get(record.id) || "";
             const docsForRecord = linkedDocsMap[record.id] || [];
-            const exhibitLabels = docsForRecord.map((d) => `Ex. ${exhibitLetterMap.get(d.id) || "?"}`).join(", ");
+            const vaultExhibits = docsForRecord.map((d) => `Ex. ${exhibitLetterMap.get(d.id) || "?"}`);
+            const attachments = (recordAttachmentsMap[record.id] || []).map((a) => a.file_name);
+            const allExhibits = [...vaultExhibits, ...attachments];
             const people = parsePeopleList(record.people);
             const etLabel = record.event_type ? (EVENT_TYPE_LABELS[record.event_type] || "") : "";
 
@@ -1247,7 +1271,7 @@ export default function CaseFileDocument({
                 <span style={{ fontSize: 12 }}>{record.entry_type}</span>
                 <span style={{ fontSize: 12, color: "#57534E" }}>{etLabel || "-"}</span>
                 <span style={{ fontSize: 12, color: "#57534E" }}>{people.length > 0 ? people.join(", ") : "-"}</span>
-                <span style={{ fontSize: 12, fontFamily: "var(--font-mono)", color: "#15803D" }}>{exhibitLabels || "None"}</span>
+                <span style={{ fontSize: 12, fontFamily: "var(--font-mono)", color: "#15803D" }}>{allExhibits.length > 0 ? allExhibits.join(", ") : "None"}</span>
               </div>
             );
           })}
@@ -1760,13 +1784,13 @@ export default function CaseFileDocument({
             {keyDates.map((record) => {
               const rId = recordIdMap.get(record.id) || "";
               return (
-                <div key={record.id} style={{ display: "flex", padding: "12px 0", borderBottom: "1px solid #F5F5F4", gap: 16, alignItems: "center" }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, fontFamily: "var(--font-mono)", color: "#22C55E", background: "#F0FDF4", padding: "2px 6px", borderRadius: 3, border: "1px solid #BBF7D0" }}>{rId}</span>
-                  <span style={{ fontFamily: "var(--font-mono)", fontSize: 13, fontWeight: 700, color: "#22C55E", whiteSpace: "nowrap", minWidth: 180 }}>
+                <div key={record.id} style={{ display: "flex", padding: "12px 0", borderBottom: "1px solid #F5F5F4", alignItems: "flex-start", overflow: "hidden" }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, fontFamily: "var(--font-mono)", color: "#22C55E", background: "#F0FDF4", padding: "2px 6px", borderRadius: 3, border: "1px solid #BBF7D0", flexShrink: 0, width: 56, textAlign: "center", display: "block" }}>{rId}</span>
+                  <span style={{ fontFamily: "var(--font-mono)", fontSize: 13, fontWeight: 700, color: "#22C55E", whiteSpace: "nowrap", flexShrink: 0, width: 240, minWidth: 240, maxWidth: 240, marginLeft: 12, display: "block", overflow: "visible" }}>
                     {formatLongDate(record.date)}
                     {record.time && ` \u00b7 ${formatTime(record.time)}`}
                   </span>
-                  <span style={{ fontSize: 14 }}>{record.title}</span>
+                  <span style={{ fontSize: 14, flex: 1, marginLeft: 16, lineHeight: 1.5 }}>{record.title}</span>
                 </div>
               );
             })}

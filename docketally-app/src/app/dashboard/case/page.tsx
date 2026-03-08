@@ -23,6 +23,13 @@ interface Case {
   status: string;
   description: string | null;
   start_date: string | null;
+  employee_name: string | null;
+  employer: string | null;
+  role: string | null;
+  department: string | null;
+  location: string | null;
+  key_people: string | null;
+  protected_classes: string[];
   created_at: string;
   updated_at: string;
 }
@@ -31,8 +38,14 @@ interface CaseFormData {
   name: string;
   case_types: string[];
   status: string;
-  description: string;
   start_date: string;
+  employee_name: string;
+  employer: string;
+  role: string;
+  department: string;
+  location: string;
+  key_people: string;
+  protected_classes: string[];
 }
 
 /* ------------------------------------------------------------------ */
@@ -59,6 +72,16 @@ function resolveTypes(c: { case_types?: string[]; case_type?: string }): string[
   return ["General"];
 }
 
+const PROTECTED_CLASSES = [
+  "Race", "Color", "Sex / Gender", "Sexual Orientation", "Gender Identity",
+  "Age (40+)", "Religion", "National Origin", "Disability", "Pregnancy",
+  "Veteran Status", "Genetic Information",
+];
+
+const DISCRIMINATION_TYPES = [
+  "Discrimination", "Harassment", "Hostile Work Environment", "Retaliation",
+];
+
 const STATUS_OPTIONS = ["Active", "Resolved", "Archived"];
 
 function todayStr(): string {
@@ -69,8 +92,14 @@ const EMPTY_FORM: CaseFormData = {
   name: "",
   case_types: [],
   status: "Active",
-  description: "",
   start_date: todayStr(),
+  employee_name: "",
+  employer: "",
+  role: "",
+  department: "",
+  location: "",
+  key_people: "",
+  protected_classes: [],
 };
 
 /* ------------------------------------------------------------------ */
@@ -289,8 +318,14 @@ export default function CaseViewPage() {
       name: c.name,
       case_types: resolveTypes(c),
       status: c.status.charAt(0).toUpperCase() + c.status.slice(1),
-      description: c.description || "",
       start_date: c.start_date || todayStr(),
+      employee_name: c.employee_name || "",
+      employer: c.employer || "",
+      role: c.role || "",
+      department: c.department || "",
+      location: c.location || "",
+      key_people: c.key_people || "",
+      protected_classes: c.protected_classes || [],
     });
     setFormError("");
     setShowForm(true);
@@ -321,8 +356,14 @@ export default function CaseViewPage() {
         case_types: formData.case_types,
         case_type: formData.case_types[0] || "General",
         status: formData.status.toLowerCase(),
-        description: formData.description.trim() || null,
         start_date: formData.start_date || null,
+        employee_name: formData.employee_name.trim() || null,
+        employer: formData.employer.trim() || null,
+        role: formData.role.trim() || null,
+        department: formData.department.trim() || null,
+        location: formData.location.trim() || null,
+        key_people: formData.key_people.trim() || null,
+        protected_classes: formData.case_types.some((t) => DISCRIMINATION_TYPES.includes(t)) ? formData.protected_classes : [],
       })
       .select()
       .single();
@@ -352,8 +393,14 @@ export default function CaseViewPage() {
         case_types: formData.case_types,
         case_type: formData.case_types[0] || "General",
         status: formData.status.toLowerCase(),
-        description: formData.description.trim() || null,
         start_date: formData.start_date || null,
+        employee_name: formData.employee_name.trim() || null,
+        employer: formData.employer.trim() || null,
+        role: formData.role.trim() || null,
+        department: formData.department.trim() || null,
+        location: formData.location.trim() || null,
+        key_people: formData.key_people.trim() || null,
+        protected_classes: formData.case_types.some((t) => DISCRIMINATION_TYPES.includes(t)) ? formData.protected_classes : [],
       })
       .eq("id", editingCase.id)
       .select()
@@ -508,19 +555,91 @@ export default function CaseViewPage() {
             </div>
           </div>
 
-          {/* Case Name */}
+          {/* Your Name */}
           <div style={{ marginBottom: 20 }}>
-            <label style={labelStyle}>Case Name *</label>
+            <label style={labelStyle}>Your Name (full legal name)</label>
             <input
               type="text"
-              value={formData.name}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, name: e.target.value }))
-              }
-              placeholder="Name for this case"
-              required
+              value={formData.employee_name}
+              onChange={(e) => setFormData((prev) => ({ ...prev, employee_name: e.target.value }))}
+              placeholder="Your full legal name"
               style={inputStyle}
             />
+            <p style={{ fontSize: 12, color: "var(--color-stone-400)", fontFamily: "var(--font-sans)", marginTop: 6, marginBottom: 0 }}>
+              Appears on your case file cover page
+            </p>
+          </div>
+
+          {/* Employer + Role row */}
+          <div className="da-date-time-row" style={{ display: "flex", gap: 16, marginBottom: 20 }}>
+            <div style={{ flex: 1 }}>
+              <label style={labelStyle}>Employer / Company Name</label>
+              <input
+                type="text"
+                value={formData.employer}
+                onChange={(e) => setFormData((prev) => ({ ...prev, employer: e.target.value }))}
+                placeholder="Company or organization name"
+                style={inputStyle}
+              />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={labelStyle}>Your Role / Title</label>
+              <input
+                type="text"
+                value={formData.role}
+                onChange={(e) => setFormData((prev) => ({ ...prev, role: e.target.value }))}
+                placeholder="Your job title"
+                style={inputStyle}
+              />
+            </div>
+          </div>
+
+          {/* Department + Location row */}
+          <div className="da-date-time-row" style={{ display: "flex", gap: 16, marginBottom: 20 }}>
+            <div style={{ flex: 1 }}>
+              <label style={labelStyle}>Department <span style={{ fontWeight: 400, color: "var(--color-stone-400)" }}>(optional)</span></label>
+              <input
+                type="text"
+                value={formData.department}
+                onChange={(e) => setFormData((prev) => ({ ...prev, department: e.target.value }))}
+                placeholder="e.g. Engineering, Sales"
+                style={inputStyle}
+              />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={labelStyle}>Location <span style={{ fontWeight: 400, color: "var(--color-stone-400)" }}>(optional)</span></label>
+              <input
+                type="text"
+                value={formData.location}
+                onChange={(e) => setFormData((prev) => ({ ...prev, location: e.target.value }))}
+                placeholder="Office location or city"
+                style={inputStyle}
+              />
+            </div>
+          </div>
+
+          {/* Case Name + Employment Start Date row */}
+          <div className="da-date-time-row" style={{ display: "flex", gap: 16, marginBottom: 20 }}>
+            <div style={{ flex: 1 }}>
+              <label style={labelStyle}>Case Name *</label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
+                placeholder="Name for this case"
+                required
+                style={inputStyle}
+              />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={labelStyle}>Employment Start Date</label>
+              <input
+                type="date"
+                value={formData.start_date}
+                onChange={(e) => setFormData((prev) => ({ ...prev, start_date: e.target.value }))}
+                style={inputStyle}
+              />
+            </div>
           </div>
 
           {/* Case Type */}
@@ -570,57 +689,56 @@ export default function CaseViewPage() {
             </div>
           </div>
 
-          {/* Status & Start Date row */}
-          <div
-            className="da-date-time-row"
-            style={{ display: "flex", gap: 16, marginBottom: 20 }}
-          >
-            <div style={{ flex: 1 }}>
-              <label style={labelStyle}>Status</label>
-              <select
-                value={formData.status}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, status: e.target.value }))
-                }
-                style={{
-                  ...inputStyle,
-                  cursor: "pointer",
-                }}
-              >
-                {STATUS_OPTIONS.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
+          {/* Protected Classes (shown when discrimination-related type selected) */}
+          {formData.case_types.some((t) => DISCRIMINATION_TYPES.includes(t)) && (
+            <div style={{ marginBottom: 20 }}>
+              <label style={labelStyle}>Protected Class <span style={{ fontWeight: 400, color: "var(--color-stone-400)" }}>(optional, select all that apply)</span></label>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {PROTECTED_CLASSES.map((pc) => {
+                  const selected = formData.protected_classes.includes(pc);
+                  return (
+                    <button
+                      key={pc}
+                      type="button"
+                      onClick={() => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          protected_classes: selected
+                            ? prev.protected_classes.filter((p) => p !== pc)
+                            : [...prev.protected_classes, pc],
+                        }));
+                      }}
+                      style={{
+                        padding: "5px 12px",
+                        borderRadius: 20,
+                        fontSize: 12,
+                        fontWeight: 600,
+                        fontFamily: "var(--font-sans)",
+                        cursor: "pointer",
+                        border: selected ? "1px solid #BFDBFE" : "1px solid #E7E5E4",
+                        background: selected ? "#EFF6FF" : "#FAFAF9",
+                        color: selected ? "#1D4ED8" : "#78716C",
+                        transition: "all 0.15s",
+                      }}
+                    >
+                      {selected && <span style={{ marginRight: 4 }}>&#10003;</span>}
+                      {pc}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-            <div style={{ flex: 1 }}>
-              <label style={labelStyle}>Start Date</label>
-              <input
-                type="date"
-                value={formData.start_date}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    start_date: e.target.value,
-                  }))
-                }
-                style={inputStyle}
-              />
-            </div>
-          </div>
+          )}
 
-          {/* Description */}
+          {/* Key People */}
           <div style={{ marginBottom: 20 }}>
-            <label style={labelStyle}>Description</label>
-            <RichTextarea
-              value={formData.description}
-              onChange={(v) =>
-                setFormData((prev) => ({ ...prev, description: v }))
-              }
-              placeholder="Describe the situation and key details of this case"
-              rows={4}
-              style={{ ...inputStyle, resize: "vertical" }}
+            <label style={labelStyle}>Key People <span style={{ fontWeight: 400, color: "var(--color-stone-400)" }}>(optional)</span></label>
+            <input
+              type="text"
+              value={formData.key_people}
+              onChange={(e) => setFormData((prev) => ({ ...prev, key_people: e.target.value }))}
+              placeholder="Managers, HR contacts, witnesses (separate with semicolons)"
+              style={inputStyle}
             />
           </div>
 

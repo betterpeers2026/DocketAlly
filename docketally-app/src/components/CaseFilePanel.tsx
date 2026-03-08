@@ -359,10 +359,12 @@ export default function CaseFilePanel({
   const [plans, setPlans] = useState<Plan[]>([]);
   const [planGoals, setPlanGoals] = useState<PlanGoal[]>([]);
   const [planCheckins, setPlanCheckins] = useState<PlanCheckin[]>([]);
+  const [recordAttachmentsMap, setRecordAttachmentsMap] = useState<Record<string, { file_name: string }[]>>({});
   const [loadingData, setLoadingData] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const [generatingPacket, setGeneratingPacket] = useState(false);
   const [showCaseDropdown, setShowCaseDropdown] = useState(false);
+  const [caseSearch, setCaseSearch] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Auto-select case (restore from localStorage or default to first)
@@ -428,11 +430,32 @@ export default function CaseFilePanel({
         .order("date", { ascending: true })
         .order("created_at", { ascending: true });
       console.log("[CaseFilePanel] records fetched:", { count: recs?.length, error: recsErr });
-      if (recs) setRecords(recs);
-      else setRecords([]);
+      if (recs) {
+        setRecords(recs);
+        // Fetch record attachments for these records
+        const recIds = recs.map((r: DocketRecord) => r.id);
+        const { data: attData } = await supabase
+          .from("record_attachments")
+          .select("record_id, file_name")
+          .in("record_id", recIds);
+        if (attData) {
+          const map: Record<string, { file_name: string }[]> = {};
+          attData.forEach((row: { record_id: string; file_name: string }) => {
+            if (!map[row.record_id]) map[row.record_id] = [];
+            map[row.record_id].push({ file_name: row.file_name });
+          });
+          setRecordAttachmentsMap(map);
+        } else {
+          setRecordAttachmentsMap({});
+        }
+      } else {
+        setRecords([]);
+        setRecordAttachmentsMap({});
+      }
     } else {
       console.log("[CaseFilePanel] No links found in case_records for case:", selectedCaseId);
       setRecords([]);
+      setRecordAttachmentsMap({});
     }
 
     // Fetch plans linked to this case + their goals and check-ins
@@ -738,6 +761,7 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
             plans={plans}
             planGoals={planGoals}
             planCheckins={planCheckins}
+            recordAttachmentsMap={recordAttachmentsMap}
           />
         </div>
       </div>
@@ -1014,7 +1038,7 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
               style={{
                 fontFamily: "var(--font-mono)",
                 fontSize: 9,
-                fontWeight: 700,
+                fontWeight: 800,
                 color: "#78716C",
                 textTransform: "uppercase",
                 letterSpacing: "0.06em",
@@ -1142,137 +1166,122 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
             marginBottom: 8,
           }}
         >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              minWidth: 0,
-              flex: 1,
-            }}
-          >
-            {/* Green dot */}
-            <div
-              style={{
-                width: 8,
-                height: 8,
-                borderRadius: "50%",
-                background: "#22C55E",
-                flexShrink: 0,
-                boxShadow: "0 0 6px rgba(34,197,94,0.4)",
-              }}
-            />
-            {/* Case name / switcher */}
-            {cases.length > 1 ? (
-              <div style={{ position: "relative", minWidth: 0 }} ref={dropdownRef}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, flex: 1 }}>
+            {/* Case switcher */}
+            {cases.length <= 3 ? (
+              /* Pill switcher for 1-3 cases */
+              <div style={{ display: "flex", gap: 4, minWidth: 0, flexWrap: "wrap" }}>
+                {cases.map((c) => {
+                  const isActive = c.id === selectedCaseId;
+                  return (
+                    <button
+                      key={c.id}
+                      onClick={() => { setSelectedCaseId(c.id); setActiveTab("casefile"); }}
+                      style={{
+                        padding: "5px 12px",
+                        borderRadius: 20,
+                        border: isActive ? "1px solid #BBF7D0" : "1px solid #E7E5E4",
+                        background: isActive ? "#F0FDF4" : "#FAFAF9",
+                        color: isActive ? "#15803D" : "#57534E",
+                        fontSize: 12,
+                        fontWeight: isActive ? 700 : 500,
+                        fontFamily: "var(--font-sans)",
+                        cursor: "pointer",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        maxWidth: 160,
+                        transition: "all 0.15s",
+                      }}
+                    >
+                      {c.name}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              /* Labeled dropdown with search for 4+ cases */
+              <div style={{ position: "relative", minWidth: 0, flex: 1 }} ref={dropdownRef}>
                 <button
-                  onClick={() => setShowCaseDropdown(!showCaseDropdown)}
+                  onClick={() => { setShowCaseDropdown(!showCaseDropdown); setCaseSearch(""); }}
                   style={{
-                    background: "none",
-                    border: "none",
+                    background: "#FAFAF9",
+                    border: "1px solid #E7E5E4",
+                    borderRadius: 8,
                     cursor: "pointer",
-                    padding: 0,
+                    padding: "6px 12px",
                     display: "flex",
                     alignItems: "center",
-                    gap: 4,
+                    gap: 8,
                     minWidth: 0,
+                    width: "100%",
                   }}
                 >
-                  <span
-                    style={{
-                      fontFamily: "var(--font-sans)",
-                      fontSize: 15,
-                      fontWeight: 700,
-                      color: "#292524",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
+                  <span style={{ fontSize: 10, fontFamily: "var(--font-mono)", color: "#A8A29E", textTransform: "uppercase", letterSpacing: "0.06em", fontWeight: 700, flexShrink: 0 }}>
+                    Case:
+                  </span>
+                  <span style={{ fontFamily: "var(--font-sans)", fontSize: 13, fontWeight: 600, color: "#292524", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, textAlign: "left" }}>
                     {selectedCase?.name || "Select Case"}
                   </span>
-                  <svg
-                    width="12"
-                    height="12"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#78716C"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    style={{ flexShrink: 0 }}
-                  >
+                  <span style={{ fontSize: 10, fontFamily: "var(--font-mono)", color: "#A8A29E", flexShrink: 0 }}>
+                    {cases.findIndex((c) => c.id === selectedCaseId) + 1}/{cases.length}
+                  </span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#78716C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, transform: showCaseDropdown ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.15s" }}>
                     <polyline points="6 9 12 15 18 9" />
                   </svg>
                 </button>
                 {showCaseDropdown && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: "100%",
-                      left: 0,
-                      marginTop: 4,
-                      background: "#fff",
-                      borderRadius: 10,
-                      border: "1px solid #E7E5E4",
-                      boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
-                      zIndex: 20,
-                      minWidth: 200,
-                      maxHeight: 240,
-                      overflow: "auto",
-                      padding: "4px 0",
-                    }}
-                  >
-                    {cases.map((c) => (
-                      <button
-                        key={c.id}
-                        onClick={() => {
-                          setSelectedCaseId(c.id);
-                          setShowCaseDropdown(false);
-                          setActiveTab("casefile");
-                        }}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 8,
-                          width: "100%",
-                          padding: "8px 14px",
-                          background:
-                            c.id === selectedCaseId
-                              ? "#F0FDF4"
-                              : "none",
-                          border: "none",
-                          fontSize: 13,
-                          fontFamily: "var(--font-sans)",
-                          color:
-                            c.id === selectedCaseId
-                              ? "#15803D"
-                              : "#44403C",
-                          cursor: "pointer",
-                          textAlign: "left",
-                          fontWeight: c.id === selectedCaseId ? 600 : 400,
-                        }}
-                      >
-                        {c.name}
-                      </button>
-                    ))}
+                  <div style={{ position: "absolute", top: "100%", left: 0, right: 0, marginTop: 4, background: "#fff", borderRadius: 10, border: "1px solid #E7E5E4", boxShadow: "0 4px 16px rgba(0,0,0,0.1)", zIndex: 20, overflow: "hidden" }}>
+                    {cases.length > 5 && (
+                      <div style={{ padding: "8px 10px", borderBottom: "1px solid #F5F5F4" }}>
+                        <input
+                          type="text"
+                          value={caseSearch}
+                          onChange={(e) => setCaseSearch(e.target.value)}
+                          placeholder="Search cases..."
+                          autoFocus
+                          style={{ width: "100%", padding: "6px 10px", borderRadius: 6, border: "1px solid #E7E5E4", fontSize: 12, fontFamily: "var(--font-sans)", outline: "none" }}
+                        />
+                      </div>
+                    )}
+                    <div style={{ maxHeight: 220, overflow: "auto", padding: "4px 0" }}>
+                      {cases
+                        .filter((c) => !caseSearch.trim() || c.name.toLowerCase().includes(caseSearch.trim().toLowerCase()))
+                        .map((c) => (
+                          <button
+                            key={c.id}
+                            onClick={() => { setSelectedCaseId(c.id); setShowCaseDropdown(false); setActiveTab("casefile"); }}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 8,
+                              width: "100%",
+                              padding: "8px 14px",
+                              background: c.id === selectedCaseId ? "#F0FDF4" : "none",
+                              border: "none",
+                              fontSize: 13,
+                              fontFamily: "var(--font-sans)",
+                              color: c.id === selectedCaseId ? "#15803D" : "#44403C",
+                              cursor: "pointer",
+                              textAlign: "left",
+                              fontWeight: c.id === selectedCaseId ? 600 : 400,
+                            }}
+                            onMouseEnter={(e) => { if (c.id !== selectedCaseId) e.currentTarget.style.background = "#FAFAF9"; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.background = c.id === selectedCaseId ? "#F0FDF4" : "none"; }}
+                          >
+                            {c.id === selectedCaseId && (
+                              <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#22C55E", flexShrink: 0 }} />
+                            )}
+                            {c.name}
+                          </button>
+                        ))}
+                      {cases.filter((c) => !caseSearch.trim() || c.name.toLowerCase().includes(caseSearch.trim().toLowerCase())).length === 0 && (
+                        <div style={{ padding: "12px 14px", fontSize: 12, color: "#A8A29E", textAlign: "center" }}>No cases match</div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
-            ) : (
-              <span
-                style={{
-                  fontFamily: "var(--font-sans)",
-                  fontSize: 15,
-                  fontWeight: 700,
-                  color: "#292524",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {selectedCase?.name || "Case File"}
-              </span>
             )}
           </div>
 

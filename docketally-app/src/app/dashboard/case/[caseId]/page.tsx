@@ -83,6 +83,7 @@ interface Plan {
   id: string;
   user_id: string;
   name: string;
+  plan_name?: string;
   plan_type?: string;
   start_date: string;
   end_date: string | null;
@@ -396,10 +397,10 @@ function detectPatterns(records: DocketRecord[]): DetectedPattern[] {
 
   // Card 2: Event Types (data-driven, replaces hardcoded Flagged Entries)
   const typeCounts: Record<string, number> = {};
-  records.forEach((r) => { typeCounts[r.entry_type] = (typeCounts[r.entry_type] || 0) + 1; });
+  records.forEach((r) => { const et = r.entry_type || "Other"; typeCounts[et] = (typeCounts[et] || 0) + 1; });
   const typeEntries = Object.entries(typeCounts).sort((a, b) => b[1] - a[1]);
   if (typeEntries.length > 0) {
-    const detail = typeEntries.map(([type, count]) => `${count} ${type}${count !== 1 && !type.endsWith("s") ? "s" : ""}`).join(", ");
+    const detail = typeEntries.map(([type, count]) => `${count} ${type}${count !== 1 && !(type || "").endsWith("s") ? "s" : ""}`).join(", ");
     patterns.push({ type: "event_types", label: "Event Types", detail });
   }
 
@@ -438,16 +439,17 @@ function detectPatterns(records: DocketRecord[]): DetectedPattern[] {
     const higherAfterLower: DocketRecord[] = [];
 
     for (let i = 0; i < chronological.length; i++) {
-      if (LOWER_SEVERITY.has(chronological[i].entry_type)) {
+      const et = chronological[i].entry_type || "";
+      if (LOWER_SEVERITY.has(et)) {
         lastLowerIdx = i;
-      } else if (HIGHER_SEVERITY.has(chronological[i].entry_type) && lastLowerIdx >= 0) {
+      } else if (HIGHER_SEVERITY.has(et) && lastLowerIdx >= 0) {
         higherAfterLower.push(chronological[i]);
       }
     }
 
     if (higherAfterLower.length >= 2) {
-      const higherTypes = [...new Set(higherAfterLower.map((r) => r.entry_type))];
-      const firstLower = chronological.find((r) => LOWER_SEVERITY.has(r.entry_type));
+      const higherTypes = [...new Set(higherAfterLower.map((r) => r.entry_type || ""))];
+      const firstLower = chronological.find((r) => LOWER_SEVERITY.has(r.entry_type || ""));
       const detail = `Record types shifted from lower-severity entries (e.g. ${firstLower?.entry_type || "1:1 Meeting"}) to higher-severity entries (${higherTypes.join(", ")}) across ${higherAfterLower.length + 1}+ records`;
       patterns.push({ type: "escalation", label: "Escalation Pattern", detail });
     }
@@ -514,20 +516,21 @@ function detectPlanPatterns(plans: Plan[], goals: PlanGoal[], checkins: PlanChec
     const pGoals = goals.filter((g) => g.plan_id === plan.id);
     const pCheckins = checkins.filter((c) => c.plan_id === plan.id);
     const revisions = pGoals.filter((g) => g.revised_date);
-    const startDate = new Date(plan.start_date + "T00:00:00");
+    const startDate = plan.start_date ? new Date(plan.start_date + "T00:00:00") : new Date();
     const endDate = plan.end_date ? new Date(plan.end_date + "T00:00:00") : null;
     const totalDays = endDate ? Math.round((endDate.getTime() - startDate.getTime()) / 86400000) : null;
     const daysIn = Math.max(0, Math.round((now.getTime() - startDate.getTime()) / 86400000));
+    const status = plan.status || "unknown";
 
     let detail: string;
-    if (plan.status === "active" && totalDays) {
+    if (status === "active" && totalDays) {
       detail = `Active PIP: ${Math.min(daysIn, totalDays)} of ${totalDays} days completed, ${pGoals.length} goal${pGoals.length !== 1 ? "s" : ""} tracked, ${revisions.length} revision${revisions.length !== 1 ? "s" : ""} flagged`;
-    } else if (plan.status === "active") {
+    } else if (status === "active") {
       detail = `Active PIP: ${daysIn} days in, ${pGoals.length} goal${pGoals.length !== 1 ? "s" : ""} tracked, ${revisions.length} revision${revisions.length !== 1 ? "s" : ""} flagged`;
     } else {
-      detail = `PIP (${plan.status}): ${pGoals.length} goal${pGoals.length !== 1 ? "s" : ""}, ${pCheckins.length} check-in${pCheckins.length !== 1 ? "s" : ""}, ${revisions.length} revision${revisions.length !== 1 ? "s" : ""} flagged`;
+      detail = `PIP (${status}): ${pGoals.length} goal${pGoals.length !== 1 ? "s" : ""}, ${pCheckins.length} check-in${pCheckins.length !== 1 ? "s" : ""}, ${revisions.length} revision${revisions.length !== 1 ? "s" : ""} flagged`;
     }
-    patterns.push({ type: "plan", label: plan.name, detail });
+    patterns.push({ type: "plan", label: plan.plan_name || plan.name || "Untitled Plan", detail });
   }
   return patterns;
 }
@@ -541,7 +544,7 @@ function detectPlanContradictions(plans: Plan[], goals: PlanGoal[], checkins: Pl
       const deadlineDate = new Date(goal.deadline + "T00:00:00");
       if (revisedDate < deadlineDate) {
         const plan = plans.find((p) => p.id === goal.plan_id);
-        contradictions.push({ type: "plan", detail: `Goal revised on ${formatDate(goal.revised_date)} before its deadline of ${formatDate(goal.deadline)}${plan ? ` (${plan.name})` : ""}. Goalposts may have shifted` });
+        contradictions.push({ type: "plan", detail: `Goal revised on ${formatDate(goal.revised_date)} before its deadline of ${formatDate(goal.deadline)}${plan ? ` (${plan.plan_name || plan.name || "Untitled Plan"})` : ""}. Goalposts may have shifted` });
       }
     }
   }
@@ -549,10 +552,10 @@ function detectPlanContradictions(plans: Plan[], goals: PlanGoal[], checkins: Pl
   for (const checkin of checkins) {
     if (checkin.manager_feedback) {
       const plan = plans.find((p) => p.id === checkin.plan_id);
-      if (plan && (plan.status === "expired" || plan.status === "failed")) {
-        const hasPositive = POSITIVE_FEEDBACK_KEYWORDS.some((kw) => checkin.manager_feedback!.toLowerCase().includes(kw));
+      if (plan && plan.status === "failed") {
+        const hasPositive = POSITIVE_FEEDBACK_KEYWORDS.some((kw) => (checkin.manager_feedback || "").toLowerCase().includes(kw));
         if (hasPositive) {
-          contradictions.push({ type: "plan", detail: `Positive feedback in check-in on ${formatDate(checkin.date)} contradicts plan outcome (${plan.status}) (${plan.name})` });
+          contradictions.push({ type: "plan", detail: `Positive feedback in check-in on ${formatDate(checkin.date || "")} contradicts plan outcome (${plan.status || "unknown"}) (${plan.plan_name || plan.name || "Untitled Plan"})` });
         }
       }
     }
@@ -850,6 +853,7 @@ export default function CaseDetailPage() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [planGoals, setPlanGoals] = useState<PlanGoal[]>([]);
   const [planCheckins, setPlanCheckins] = useState<PlanCheckin[]>([]);
+  const [recordAttachmentsMap, setRecordAttachmentsMap] = useState<Record<string, { file_name: string }[]>>({});
 
   // All user records (for Add Records modal)
   const [allRecords, setAllRecords] = useState<DocketRecord[]>([]);
@@ -866,7 +870,7 @@ export default function CaseDetailPage() {
 
   // Case info edit
   const [editingCaseInfo, setEditingCaseInfo] = useState(false);
-  const [editForm, setEditForm] = useState({ employee_name: "", employer: "", role: "", department: "", location: "", key_people: "", description: "", start_date: "", employment_end_date: "", case_types: [] as string[], protected_classes: [] as string[], impact_statement: "", case_theory_protected_activity: "", case_theory_employer_response: "", case_theory_connection: "", case_theory_outcome: "", case_status: "", open_questions: "" });
+  const [editForm, setEditForm] = useState({ employee_name: "", employer: "", role: "", department: "", location: "", key_people: "", start_date: "", employment_end_date: "", case_types: [] as string[], protected_classes: [] as string[], impact_statement: "", case_theory_protected_activity: "", case_theory_employer_response: "", case_theory_connection: "", case_theory_outcome: "", case_status: "", open_questions: "" });
   const [savingCaseInfo, setSavingCaseInfo] = useState(false);
   const [showToast, setShowToast] = useState(false);
 
@@ -893,6 +897,7 @@ export default function CaseDetailPage() {
   const [showAddRecords, setShowAddRecords] = useState(false);
   const [modalSearch, setModalSearch] = useState("");
   const [modalTypeFilter, setModalTypeFilter] = useState("All");
+  const [otherCaseMap, setOtherCaseMap] = useState<Record<string, string>>({}); // record_id -> case name
 
   // Filters
   const [filterType, setFilterType] = useState("All");
@@ -985,12 +990,44 @@ export default function CaseDetailPage() {
     }
   }, [userId, caseId, supabase]);
 
-  const fetchAllRecords = useCallback(async () => {
+  const fetchRecordAttachments = useCallback(async () => {
     if (!userId) return;
     const { data, error } = await supabase
-      .from("records").select("*").eq("user_id", userId).order("date", { ascending: false });
-    if (!error && data) setAllRecords(data);
+      .from("record_attachments")
+      .select("record_id, file_name")
+      .eq("user_id", userId);
+    if (error) { console.error("fetchRecordAttachments error:", error); return; }
+    if (data) {
+      const map: Record<string, { file_name: string }[]> = {};
+      data.forEach((row: { record_id: string; file_name: string }) => {
+        if (!map[row.record_id]) map[row.record_id] = [];
+        map[row.record_id].push({ file_name: row.file_name });
+      });
+      setRecordAttachmentsMap(map);
+    }
   }, [userId, supabase]);
+
+  const fetchAllRecords = useCallback(async () => {
+    if (!userId) return;
+    const [recordsRes, linksRes, casesRes] = await Promise.all([
+      supabase.from("records").select("*").eq("user_id", userId).order("date", { ascending: false }),
+      supabase.from("case_records").select("case_id, record_id"),
+      supabase.from("cases").select("id, name").eq("user_id", userId),
+    ]);
+    if (!recordsRes.error && recordsRes.data) setAllRecords(recordsRes.data);
+    // Build map: record_id -> case name (for records in OTHER cases)
+    if (!linksRes.error && linksRes.data && !casesRes.error && casesRes.data) {
+      const caseNames: Record<string, string> = {};
+      for (const c of casesRes.data) caseNames[c.id] = c.name;
+      const mapping: Record<string, string> = {};
+      for (const link of linksRes.data) {
+        if (link.case_id !== caseId && caseNames[link.case_id]) {
+          mapping[link.record_id] = caseNames[link.case_id];
+        }
+      }
+      setOtherCaseMap(mapping);
+    }
+  }, [userId, caseId, supabase]);
 
   // Init auth
   useEffect(() => {
@@ -1010,8 +1047,9 @@ export default function CaseDetailPage() {
       fetchCaseRecords();
       fetchVaultDocs();
       fetchPlans();
+      fetchRecordAttachments();
     }
-  }, [userId, fetchCase, fetchCaseRecords, fetchVaultDocs, fetchPlans]);
+  }, [userId, fetchCase, fetchCaseRecords, fetchVaultDocs, fetchPlans, fetchRecordAttachments]);
 
   // Load starred records from localStorage (per case)
   useEffect(() => {
@@ -1147,7 +1185,6 @@ export default function CaseDetailPage() {
       department: editForm.department || null,
       location: editForm.location || null,
       key_people: editForm.key_people || null,
-      description: editForm.description || null,
       impact_statement: editForm.impact_statement || null,
       start_date: editForm.start_date || null,
       employment_end_date: editForm.employment_end_date || null,
@@ -1190,7 +1227,6 @@ export default function CaseDetailPage() {
       department: caseData.department || "",
       location: caseData.location || "",
       key_people: caseData.key_people || "",
-      description: caseData.description || "",
       start_date: caseData.start_date || "",
       employment_end_date: caseData.employment_end_date || "",
       case_types: resolveTypes(caseData),
@@ -1656,7 +1692,15 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
               </svg>
             </button>
             {caseMenuOpen && (
-              <div style={{ position: "absolute", top: "100%", right: 0, marginTop: 4, background: "#fff", border: "1px solid var(--color-stone-200)", borderRadius: 10, boxShadow: "0 4px 12px rgba(0,0,0,0.1)", zIndex: 50, overflow: "hidden", minWidth: 160 }}>
+              <div style={{ position: "absolute", top: "100%", right: 0, marginTop: 4, background: "#fff", border: "1px solid var(--color-stone-200)", borderRadius: 10, boxShadow: "0 4px 12px rgba(0,0,0,0.1)", zIndex: 50, overflow: "hidden", minWidth: 180 }}>
+                <button
+                  onClick={() => { setCaseMenuOpen(false); setActiveTab("caseinfo"); }}
+                  style={{ display: "block", width: "100%", padding: "10px 16px", background: "none", border: "none", fontSize: 13, fontWeight: 500, fontFamily: "var(--font-sans)", color: "#292524", cursor: "pointer", textAlign: "left" }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "#FAFAF9"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "none"; }}
+                >
+                  Edit Case Details
+                </button>
                 <button
                   onClick={() => { setCaseMenuOpen(false); setDeleteConfirm(true); }}
                   style={{ display: "block", width: "100%", padding: "10px 16px", background: "none", border: "none", fontSize: 13, fontWeight: 500, fontFamily: "var(--font-sans)", color: "#EF4444", cursor: "pointer", textAlign: "left" }}
@@ -1673,9 +1717,9 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
 
       {/* TAB BAR */}
       <div style={{ display: "flex", gap: 0, marginBottom: 28, borderBottom: "1px solid var(--color-stone-300)" }}>
-        {(["timeline", "caseinfo", "casefile", "patterns", "strength"] as const).map((tab) => (
+        {(["timeline", "casefile", "patterns", "strength"] as const).map((tab) => (
           <button key={tab} onClick={() => setActiveTab(tab)} style={{ padding: "12px 24px", fontSize: 14, fontWeight: activeTab === tab ? 700 : 600, fontFamily: "var(--font-sans)", color: activeTab === tab ? "#292524" : "var(--color-stone-500)", background: "none", border: "none", borderBottom: activeTab === tab ? "2px solid var(--color-green)" : "2px solid transparent", cursor: "pointer", marginBottom: -1 }}>
-            {tab === "timeline" ? "Timeline" : tab === "caseinfo" ? "Case Info" : tab === "casefile" ? "Case File" : tab === "patterns" ? "Patterns" : "Strength"}
+            {tab === "timeline" ? "Timeline" : tab === "casefile" ? "Case File" : tab === "patterns" ? "Patterns" : "Strength"}
           </button>
         ))}
       </div>
@@ -1873,7 +1917,7 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
                     /* Plan event cards */
                     const planEventKey = item.kind === "plan-start" ? `plan-start-${item.plan.id}` : item.kind === "plan-end" ? `plan-end-${item.plan.id}` : item.kind === "checkin" ? `checkin-${item.checkin.id}` : `goal-revised-${item.goal.id}`;
                     const badgeLabel = item.kind === "plan-start" ? "PLAN STARTED" : item.kind === "plan-end" ? "PLAN ENDED" : item.kind === "checkin" ? "CHECK-IN" : "GOAL REVISED";
-                    const title = item.kind === "plan-start" ? item.plan.name : item.kind === "plan-end" ? item.plan.name : item.kind === "checkin" ? `${item.planName}: Check-in` : `${item.planName}: Goal Updated`;
+                    const title = item.kind === "plan-start" ? (item.plan.plan_name || item.plan.name) : item.kind === "plan-end" ? (item.plan.plan_name || item.plan.name) : item.kind === "checkin" ? `${item.planName}: Check-in` : `${item.planName}: Goal Updated`;
                     const subtitle = item.kind === "plan-start" ? `${item.goals.length} goal${item.goals.length !== 1 ? "s" : ""} assigned${item.plan.end_date ? ` \u00b7 Target end: ${formatDate(item.plan.end_date)}` : ""}` : item.kind === "plan-end" ? `Plan ${item.plan.status}` : item.kind === "checkin" ? item.checkin.summary : item.goal.description;
                     const planBadge = getPlanBadgeStyle();
                     const dotBg = "#F0FDF4";
@@ -2025,10 +2069,6 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
                     <textarea value={editForm.key_people} onChange={(e) => setEditForm((prev) => ({ ...prev, key_people: e.target.value }))} placeholder="Managers, HR contacts, witnesses. One per line." rows={3} style={{ ...inputStyle, resize: "vertical" }} />
                   </div>
                   <div style={{ marginBottom: 24 }}>
-                    <label style={labelStyle}>Brief Summary</label>
-                    <textarea value={editForm.description} onChange={(e) => setEditForm((prev) => ({ ...prev, description: e.target.value }))} placeholder="2-3 sentence overview of your situation" rows={3} style={{ ...inputStyle, resize: "vertical" }} />
-                  </div>
-                  <div style={{ marginBottom: 24 }}>
                     <label style={labelStyle}>Impact Statement</label>
                     <p style={{ fontSize: 12.5, color: "#78716C", fontFamily: "var(--font-sans)", lineHeight: 1.5, margin: "0 0 10px" }}>In your own words, describe how these events have affected your work, career, health, or wellbeing.</p>
                     <textarea value={editForm.impact_statement} onChange={(e) => setEditForm((prev) => ({ ...prev, impact_statement: e.target.value }))} placeholder="How has this affected you professionally or personally?" rows={4} style={{ ...inputStyle, resize: "vertical" }} />
@@ -2177,15 +2217,6 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
                       <div style={{ fontSize: 15, fontFamily: "var(--font-sans)", color: "#78716C" }}>-</div>
                     )}
                   </div>
-                  {/* Brief Summary — full width */}
-                  <div style={{ marginTop: 20, paddingTop: 20, borderTop: "1px solid #F5F5F4" }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, fontFamily: "var(--font-mono)", color: "#78716C", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>Brief Summary</div>
-                    {caseData?.description ? (
-                      <p style={{ fontSize: 14, fontFamily: "var(--font-sans)", lineHeight: 1.6, color: "#292524", whiteSpace: "pre-wrap", margin: 0 }}>{caseData.description}</p>
-                    ) : (
-                      <div style={{ fontSize: 15, fontFamily: "var(--font-sans)", color: "#78716C" }}>-</div>
-                    )}
-                  </div>
                   {/* Impact Statement — full width */}
                   {caseData?.impact_statement && (
                     <div style={{ marginTop: 20, paddingTop: 20, borderTop: "1px solid #F5F5F4" }}>
@@ -2193,11 +2224,11 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
                       <p style={{ fontSize: 14, fontFamily: "var(--font-sans)", lineHeight: 1.6, color: "#292524", whiteSpace: "pre-wrap", margin: 0 }}>{caseData.impact_statement}</p>
                     </div>
                   )}
-                  {!caseData?.employer && !caseData?.role && !caseData?.description && (
+                  {!caseData?.employer && !caseData?.role && !caseData?.impact_statement && (
                     <div style={{ marginTop: 20, background: "var(--color-green-soft)", borderRadius: 10, border: "1px solid var(--color-green-border)", padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                       <div>
                         <div style={{ fontSize: 14, fontWeight: 600, color: "var(--color-green-text)", fontFamily: "var(--font-sans)", marginBottom: 4 }}>Add your case details to strengthen your case file</div>
-                        <div style={{ fontSize: 13, color: "var(--color-stone-600)", fontFamily: "var(--font-sans)" }}>Employer, role, and a brief summary of your situation.</div>
+                        <div style={{ fontSize: 13, color: "var(--color-stone-600)", fontFamily: "var(--font-sans)" }}>Employer, role, and impact statement.</div>
                       </div>
                       <button onClick={startEditCaseInfo} style={{ padding: "10px 20px", borderRadius: 10, border: "none", background: "var(--color-green)", color: "#fff", fontSize: 13, fontWeight: 600, fontFamily: "var(--font-sans)", cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}>Add Info</button>
                     </div>
@@ -2253,7 +2284,7 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
               {/* Document Preview (visible when document view) */}
               {caseFileView === "document" && (
                 <div ref={caseFileRef} className="da-print-casefile" style={{ maxWidth: 720, margin: "0 auto", background: "#fff", border: "1px solid #D6D3D1", borderRadius: 3, boxShadow: "0 2px 16px rgba(0,0,0,0.06)", overflow: "hidden" }}>
-                  <CaseFileDocument records={records} vaultDocs={vaultDocs} patterns={patterns} contradictions={contradictions} linkedDocsMap={linkedDocsMap} caseData={caseData} starredIds={starredIds} keyDates={keyDates} plans={plans} planGoals={planGoals} planCheckins={planCheckins} />
+                  <CaseFileDocument records={records} vaultDocs={vaultDocs} patterns={patterns} contradictions={contradictions} linkedDocsMap={linkedDocsMap} caseData={caseData} starredIds={starredIds} keyDates={keyDates} plans={plans} planGoals={planGoals} planCheckins={planCheckins} recordAttachmentsMap={recordAttachmentsMap} />
                 </div>
               )}
 
@@ -2370,86 +2401,310 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
           {/* ============================================================ */}
           {/*  PATTERNS TAB                                                   */}
           {/* ============================================================ */}
-          {activeTab === "patterns" && (
-            <div>
-              {patterns.length === 0 && contradictions.length === 0 ? (
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 300 }}>
-                  <div style={{ textAlign: "center", maxWidth: 420, background: "#fff", borderRadius: 16, border: "1px solid var(--color-stone-300)", padding: "56px 40px" }}>
-                    <h2 style={{ fontFamily: "var(--font-sans)", fontSize: 22, fontWeight: 600, color: "#292524", marginBottom: 10 }}>No patterns detected yet</h2>
-                    <p style={{ fontSize: 14, color: "var(--color-stone-600)", lineHeight: 1.6 }}>Add more records to this case. Patterns become clearer over time.</p>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <h3 style={{ fontFamily: "var(--font-sans)", fontSize: 24, fontWeight: 600, color: "#292524", marginBottom: 6 }}>Patterns</h3>
-                  <p style={{ fontSize: 14, color: "#78716C", fontFamily: "var(--font-sans)", fontStyle: "italic", marginBottom: 20 }}>These patterns are observations from your records, not legal analysis.</p>
-                  <div className="da-pattern-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 14 }}>
-                    {patterns.map((pattern, idx) => {
-                      const cardBg = pattern.type === "escalation" ? "#FEF2F2"
-                        : pattern.type === "gap" || pattern.type === "plan" ? "#FFFBEB"
-                        : "#FAFAF9";
-                      const cardBorder = pattern.type === "escalation" ? "1px solid #FECACA"
-                        : pattern.type === "gap" || pattern.type === "plan" ? "1px solid #FDE68A"
-                        : "1px solid #E7E5E4";
-                      const cardLeftBorder = pattern.type === "escalation" ? "3px solid #DC2626"
-                        : pattern.type === "gap" ? "3px solid #F59E0B"
-                        : pattern.type === "plan" ? "3px solid #F59E0B"
-                        : pattern.type === "event_types" ? "3px solid #3B82F6"
-                        : "3px solid #22C55E";
-                      const iconStroke = pattern.type === "escalation" ? "#DC2626"
-                        : pattern.type === "event_types" ? "#3B82F6"
-                        : pattern.type === "gap" || pattern.type === "plan" ? "#92400E"
-                        : "#292524";
+          {activeTab === "patterns" && (() => {
+            /* ---------- shared section label style ---------- */
+            const sectionLabel = (color: string): React.CSSProperties => ({
+              fontSize: 10, fontFamily: "var(--font-mono)", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color,
+            });
 
-                      return (
-                        <div key={idx} style={{ background: cardBg, border: cardBorder, borderLeft: cardLeftBorder, borderRadius: 12, padding: "20px 24px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={iconStroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d={patternIcon(pattern.type)} /></svg>
-                            <span style={{ fontSize: 15, fontWeight: 600, color: "#292524", fontFamily: "var(--font-sans)" }}>{pattern.label}</span>
-                          </div>
-                          {pattern.type === "event_types" ? (
-                            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                              {pattern.detail.split(", ").map((item, i) => (
-                                <span key={i} style={{ fontSize: 14, color: "#57534E", fontFamily: "var(--font-sans)" }}>{item}</span>
-                              ))}
-                            </div>
-                          ) : pattern.type === "gap" ? (
-                            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                              {pattern.detail.split("\n").map((line, i) => (
-                                <span key={i} style={{ fontSize: 14, color: "#57534E", lineHeight: 1.5, fontFamily: "var(--font-sans)" }}>{line}</span>
-                              ))}
-                            </div>
-                          ) : (
-                            <p style={{ fontSize: 14, color: "#57534E", lineHeight: 1.5, fontFamily: "var(--font-sans)" }}>{pattern.detail}</p>
-                          )}
-                        </div>
-                      );
-                    })}
+            /* ---------- data: escalation detection ---------- */
+            const chronological = [...records].sort((a, b) => new Date(a.date + "T00:00:00").getTime() - new Date(b.date + "T00:00:00").getTime());
+            let escalationDetected = false;
+            let escalationDetail = "";
+            let escalationFirstDate = "";
+            const escalationChain: { type: string; high: boolean }[] = [];
+
+            if (chronological.length >= 3) {
+              let lastLowerIdx = -1;
+              const higherAfterLower: DocketRecord[] = [];
+              for (let i = 0; i < chronological.length; i++) {
+                const et = chronological[i].entry_type || "";
+                if (LOWER_SEVERITY.has(et)) lastLowerIdx = i;
+                else if (HIGHER_SEVERITY.has(et) && lastLowerIdx >= 0) higherAfterLower.push(chronological[i]);
+              }
+              if (higherAfterLower.length >= 2) {
+                escalationDetected = true;
+                const firstLower = chronological.find((r) => LOWER_SEVERITY.has(r.entry_type || ""));
+                const higherTypes = [...new Set(higherAfterLower.map((r) => r.entry_type || ""))];
+                escalationDetail = `Record types shifted from lower-severity entries (e.g. ${firstLower?.entry_type || "1:1 Meeting"}) to higher-severity entries (${higherTypes.join(", ")}) across ${higherAfterLower.length + 1}+ records.`;
+                escalationFirstDate = higherAfterLower[0].date;
+              }
+            }
+            // Build chain: unique ordered progression (each type appears once, in order of first appearance)
+            const seenTypes = new Set<string>();
+            chronological.forEach((r) => {
+              const et = r.entry_type || "Other";
+              if (!seenTypes.has(et)) {
+                seenTypes.add(et);
+                escalationChain.push({ type: et, high: HIGHER_SEVERITY.has(et) });
+              }
+            });
+
+            /* ---------- data: event distribution ---------- */
+            const typeCounts: Record<string, number> = {};
+            records.forEach((r) => { const et = r.entry_type || "Other"; typeCounts[et] = (typeCounts[et] || 0) + 1; });
+            const typeEntries = Object.entries(typeCounts).sort((a, b) => b[1] - a[1]);
+            const maxTypeCount = typeEntries.length > 0 ? typeEntries[0][1] : 1;
+
+            /* ---------- data: key people (deduplicated by name) ---------- */
+            const peopleMap: Record<string, { display: string; count: number }> = {};
+            records.forEach((r) => {
+              if (r.people) r.people.split(";").map((p) => p.trim().replace(/^[;:,.\s]+/, "")).filter(Boolean).forEach((raw) => {
+                const namePart = raw.includes(",") ? raw.split(",")[0].trim() : raw.trim();
+                const key = namePart.toLowerCase();
+                if (!key) return;
+                if (peopleMap[key]) {
+                  peopleMap[key].count += 1;
+                  if (raw.length > peopleMap[key].display.length) peopleMap[key].display = raw;
+                } else {
+                  peopleMap[key] = { display: raw, count: 1 };
+                }
+              });
+            });
+            const topPeople = Object.values(peopleMap).sort((a, b) => b.count - a.count).map((p) => [p.display, p.count] as [string, number]);
+
+            /* ---------- data: timeline gaps (14+ days) ---------- */
+            const gapData: { from: string; to: string; days: number }[] = [];
+            for (let i = 1; i < chronological.length; i++) {
+              const prev = new Date(chronological[i - 1].date + "T00:00:00");
+              const curr = new Date(chronological[i].date + "T00:00:00");
+              const days = Math.round((curr.getTime() - prev.getTime()) / 86400000);
+              if (days >= 14) gapData.push({ from: chronological[i - 1].date, to: chronological[i].date, days });
+            }
+            const maxGapDays = gapData.length > 0 ? Math.max(...gapData.map((g) => g.days)) : 1;
+
+            /* ---------- data: PIP tracking ---------- */
+            const pipPlans = plans.filter((p) => (p.plan_type || "").toLowerCase() === "pip" || (p.plan_name || p.name || "").toLowerCase().includes("pip"));
+
+            /* ---------- card container style ---------- */
+            const cardStyle = (borderColor: string, outerBorderColor?: string): React.CSSProperties => ({
+              background: "#fff", border: `1px solid ${outerBorderColor || "#E7E5E4"}`, borderLeft: `4px solid ${borderColor}`, borderRadius: 12, padding: "24px 28px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+            });
+
+            return (
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <p style={{ fontSize: 13, color: "#78716C", fontFamily: "var(--font-sans)", fontStyle: "italic", marginBottom: 4 }}>These patterns are observations from your records, not legal analysis.</p>
+
+              {/* ============================================================ */}
+              {/*  1. ESCALATION PATTERN — full width hero                      */}
+              {/* ============================================================ */}
+              <div style={{ ...cardStyle("#DC2626", escalationDetected ? "#FECACA" : "#E7E5E4"), background: escalationDetected ? "#FFFBFB" : "#fff" }}>
+                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 12 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={sectionLabel("#DC2626")}>Escalation Pattern</span>
+                    <span style={{
+                      fontSize: 9, fontWeight: 700, fontFamily: "var(--font-mono)", letterSpacing: "0.08em", textTransform: "uppercase",
+                      padding: "2px 8px", borderRadius: 4,
+                      background: escalationDetected ? "#FEE2E2" : "#F5F5F4",
+                      color: escalationDetected ? "#DC2626" : "#78716C",
+                      border: `1px solid ${escalationDetected ? "#FECACA" : "#D6D3D1"}`,
+                    }}>{escalationDetected ? "Detected" : "Not Detected"}</span>
                   </div>
-                  {/* Contradictions Card */}
-                  <div style={{ marginTop: 16, background: contradictions.length > 0 ? "#FEF2F2" : "#FAFAF9", border: contradictions.length > 0 ? "1px solid #FECACA" : "1px solid #E7E5E4", borderLeft: contradictions.length > 0 ? "3px solid #DC2626" : "3px solid #22C55E", borderRadius: 12, padding: "20px 24px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={contradictions.length > 0 ? "#DC2626" : "#292524"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
-                      <span style={{ fontSize: 15, fontWeight: 600, color: contradictions.length > 0 ? "#991B1B" : "#292524", fontFamily: "var(--font-sans)" }}>Potential Contradictions</span>
+                  {escalationDetected && escalationFirstDate && (
+                    <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 16 }}>
+                      <div style={{ fontSize: 9, fontFamily: "var(--font-mono)", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#A8A29E", marginBottom: 2 }}>First Detected</div>
+                      <div style={{ fontSize: 12, fontFamily: "var(--font-mono)", color: "#57534E", fontWeight: 600 }}>{formatDate(escalationFirstDate)}</div>
                     </div>
-                    {contradictions.length > 0 ? (
-                      <>
-                        <p style={{ fontSize: 12, color: "#991B1B", fontFamily: "var(--font-sans)", fontStyle: "italic", marginBottom: 12, lineHeight: 1.5 }}>These patterns may indicate inconsistency in your employer&apos;s actions.</p>
-                        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                          {contradictions.map((c, idx) => (
-                            <div key={idx} style={{ fontSize: 13, color: "#991B1B", lineHeight: 1.6, fontFamily: "var(--font-sans)", paddingLeft: 12, borderLeft: "2px solid #FECACA" }}>{c.detail}</div>
-                          ))}
-                        </div>
-                        <p style={{ fontSize: 11, color: "#B91C1C", fontFamily: "var(--font-sans)", fontStyle: "italic", marginTop: 12, opacity: 0.8 }}>These are automated observations, not legal conclusions.</p>
-                      </>
-                    ) : (
-                      <p style={{ fontSize: 13, color: "var(--color-stone-600)", lineHeight: 1.6, fontFamily: "var(--font-sans)" }}>No contradictions detected yet. Keep documenting. Patterns become clearer over time.</p>
-                    )}
+                  )}
+                </div>
+                <p style={{ fontSize: 14, color: "#57534E", lineHeight: 1.6, fontFamily: "var(--font-sans)", marginBottom: escalationChain.length > 0 ? 16 : 0 }}>
+                  {escalationDetected ? escalationDetail : "No escalation pattern detected across your records. Keep documenting to surface shifts in severity."}
+                </p>
+                {escalationChain.length > 0 && (
+                  <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 6 }}>
+                    {escalationChain.map((item, i) => (
+                      <span key={i} style={{ display: "contents" }}>
+                        {i > 0 && <span style={{ fontSize: 11, color: "#A8A29E", fontFamily: "var(--font-mono)" }}>&rarr;</span>}
+                        <span style={{
+                          fontSize: 11, fontWeight: 600, fontFamily: "var(--font-mono)", padding: "3px 10px", borderRadius: 20,
+                          background: item.high ? "#FEE2E2" : "#F0FDF4",
+                          color: item.high ? "#DC2626" : "#15803D",
+                          border: `1px solid ${item.high ? "#FECACA" : "#BBF7D0"}`,
+                          whiteSpace: "nowrap",
+                        }}>{item.type}</span>
+                      </span>
+                    ))}
                   </div>
-                </>
-              )}
+                )}
+              </div>
+
+              {/* ============================================================ */}
+              {/*  2. EVENT DISTRIBUTION + KEY PEOPLE — two column               */}
+              {/* ============================================================ */}
+              <div className="da-pattern-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                {/* Event Distribution */}
+                <div style={cardStyle("#16A34A")}>
+                  <div style={{ ...sectionLabel("#16A34A"), marginBottom: 16 }}>Event Distribution</div>
+                  {typeEntries.length === 0 ? (
+                    <p style={{ fontSize: 13, color: "#78716C", fontFamily: "var(--font-sans)" }}>No records yet.</p>
+                  ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                      {typeEntries.map(([type, count]) => (
+                        <div key={type} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                          <span style={{ fontSize: 12, fontFamily: "var(--font-sans)", color: "#57534E", width: 160, flexShrink: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{type}</span>
+                          <div style={{ flex: 1, height: 8, background: "#DCFCE7", borderRadius: 4, overflow: "hidden" }}>
+                            <div style={{ width: `${(count / maxTypeCount) * 100}%`, height: "100%", background: "#16A34A", borderRadius: 4, transition: "width 0.3s ease" }} />
+                          </div>
+                          <span style={{ fontSize: 12, fontFamily: "var(--font-mono)", fontWeight: 700, color: "#292524", width: 28, textAlign: "right", flexShrink: 0 }}>{count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Key People */}
+                <div style={cardStyle("#16A34A")}>
+                  <div style={{ ...sectionLabel("#16A34A"), marginBottom: 16 }}>Key People</div>
+                  {topPeople.length === 0 ? (
+                    <p style={{ fontSize: 13, color: "#78716C", fontFamily: "var(--font-sans)" }}>No people mentioned in records.</p>
+                  ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                      {topPeople.map(([name, count]) => {
+                        const commaIdx = name.indexOf(",");
+                        const namePart = commaIdx >= 0 ? name.slice(0, commaIdx).trim() : name.trim();
+                        const rolePart = commaIdx >= 0 ? name.slice(commaIdx + 1).trim() : "";
+                        return (
+                          <div key={name} className="da-people-row" style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 10px", borderRadius: 8, cursor: "default", transition: "background 0.15s ease" }}
+                            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "#F0FDF4"; }}
+                            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+                          >
+                            <span style={{ width: 32, height: 32, borderRadius: "50%", background: AVATAR_COLOR, color: "#22C55E", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, fontFamily: "var(--font-mono)", flexShrink: 0 }}>{getInitials(name)}</span>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: 13, fontWeight: 600, color: "#292524", fontFamily: "var(--font-sans)" }}>{namePart}</div>
+                              {rolePart && <div style={{ fontSize: 11, color: "#78716C", fontFamily: "var(--font-sans)" }}>{rolePart}</div>}
+                            </div>
+                            <span style={{ fontSize: 12, fontFamily: "var(--font-mono)", fontWeight: 700, color: "#57534E", flexShrink: 0 }}>{count}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* ============================================================ */}
+              {/*  3. TIMELINE GAPS + PIP TRACKING — two column                  */}
+              {/* ============================================================ */}
+              <div className="da-pattern-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                {/* Timeline Gaps */}
+                <div style={cardStyle("#16A34A")}>
+                  <div style={{ ...sectionLabel("#16A34A"), marginBottom: 4 }}>Timeline Gaps</div>
+                  <p style={{ fontSize: 12, color: "#78716C", fontFamily: "var(--font-sans)", marginBottom: 14 }}>Periods with no documentation on file.</p>
+                  {gapData.length === 0 ? (
+                    <p style={{ fontSize: 13, color: "#78716C", fontFamily: "var(--font-sans)" }}>No gaps of 14+ days detected.</p>
+                  ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                      {gapData.map((gap, i) => (
+                        <div key={i} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                          <span style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: "#57534E", flexShrink: 0, whiteSpace: "nowrap" }}>{formatDate(gap.from)} -- {formatDate(gap.to)}</span>
+                          <div style={{ flex: 1, height: 8, background: "#DCFCE7", borderRadius: 4, overflow: "hidden" }}>
+                            <div style={{ width: `${(gap.days / maxGapDays) * 100}%`, height: "100%", background: gap.days >= 20 ? "#15803D" : "#16A34A", borderRadius: 4, transition: "width 0.3s ease" }} />
+                          </div>
+                          <span style={{ fontSize: 12, fontFamily: "var(--font-mono)", fontWeight: 700, color: gap.days >= 20 ? "#15803D" : "#16A34A", width: 44, textAlign: "right", flexShrink: 0 }}>{gap.days}d</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* PIP Tracking */}
+                <div style={cardStyle("#16A34A")}>
+                  <div style={{ ...sectionLabel("#16A34A"), marginBottom: 16 }}>PIP Tracking</div>
+                  {pipPlans.length === 0 ? (
+                    <div style={{ textAlign: "center", padding: "24px 0" }}>
+                      <p style={{ fontSize: 13, color: "#78716C", fontFamily: "var(--font-sans)", marginBottom: 4 }}>No PIPs on file.</p>
+                      <p style={{ fontSize: 12, color: "#A8A29E", fontFamily: "var(--font-sans)" }}>Plans with type "PIP" will appear here.</p>
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                      {pipPlans.map((pip) => {
+                        const pGoals = planGoals.filter((g) => g.plan_id === pip.id);
+                        const revisions = pGoals.filter((g) => g.revised_date);
+                        const startDate = pip.start_date ? new Date(pip.start_date + "T00:00:00") : new Date();
+                        const endDate = pip.end_date ? new Date(pip.end_date + "T00:00:00") : null;
+                        const durationDays = endDate ? Math.round((endDate.getTime() - startDate.getTime()) / 86400000) : null;
+                        const flags: string[] = [];
+                        if (revisions.length > 0) flags.push(`${revisions.length} goal${revisions.length !== 1 ? "s were" : " was"} revised after the PIP started. Original expectations may have changed.`);
+                        if (pip.end_date && pip.start_date) {
+                          const originalEnd = new Date(pip.end_date + "T00:00:00");
+                          const originalStart = new Date(pip.start_date + "T00:00:00");
+                          if (originalEnd.getTime() - originalStart.getTime() > 120 * 86400000) {
+                            flags.push("PIP duration exceeds 120 days, which is longer than typical improvement plans.");
+                          }
+                        }
+
+                        return (
+                          <div key={pip.id}>
+                            <div style={{ fontSize: 14, fontWeight: 600, color: "#292524", fontFamily: "var(--font-sans)", marginBottom: 10 }}>{pip.plan_name || pip.name || "Untitled Plan"}</div>
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                              {[
+                                { label: "Duration", value: durationDays !== null ? `${durationDays} days` : "Ongoing" },
+                                { label: "Goals Tracked", value: String(pGoals.length) },
+                                { label: "Start Date", value: pip.start_date ? formatDate(pip.start_date) : "--" },
+                                { label: "End Date", value: pip.end_date ? formatDate(pip.end_date) : "Ongoing" },
+                              ].map((chip) => (
+                                <div key={chip.label} style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: 8, padding: "8px 12px" }}>
+                                  <div style={{ fontSize: 9, fontFamily: "var(--font-mono)", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#16A34A", marginBottom: 2 }}>{chip.label}</div>
+                                  <div style={{ fontSize: 14, fontWeight: 600, color: "#292524", fontFamily: "var(--font-sans)" }}>{chip.value}</div>
+                                </div>
+                              ))}
+                            </div>
+                            {flags.length > 0 && (
+                              <div style={{ marginTop: 10, background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: 8, padding: "10px 14px" }}>
+                                {flags.map((flag, fi) => (
+                                  <div key={fi} style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: fi < flags.length - 1 ? 6 : 0 }}>
+                                    <span style={{ fontSize: 10, fontFamily: "var(--font-mono)", fontWeight: 700, color: "#DC2626", letterSpacing: "0.08em", textTransform: "uppercase", flexShrink: 0, marginTop: 2 }}>Flag</span>
+                                    <span style={{ fontSize: 13, color: "#991B1B", lineHeight: 1.5, fontFamily: "var(--font-sans)" }}>{flag}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* ============================================================ */}
+              {/*  4. INTEGRITY CHECK — full width banner                       */}
+              {/* ============================================================ */}
+              <div style={{
+                ...cardStyle(contradictions.length > 0 ? "#F59E0B" : "#22C55E", contradictions.length > 0 ? "#FDE68A" : "#BBF7D0"),
+                background: contradictions.length > 0 ? "#FFFDF5" : "#F0FDF9",
+                display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 24,
+              }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ ...sectionLabel(contradictions.length > 0 ? "#B45309" : "#15803D"), marginBottom: 12 }}>Integrity Check</div>
+                  {contradictions.length > 0 ? (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      {contradictions.map((c, idx) => (
+                        <div key={idx} style={{ fontSize: 13, color: "#78350F", lineHeight: 1.6, fontFamily: "var(--font-sans)", paddingLeft: 12, borderLeft: "2px solid #FDE68A" }}>{c.detail}</div>
+                      ))}
+                      <p style={{ fontSize: 11, color: "#92400E", fontFamily: "var(--font-sans)", fontStyle: "italic", marginTop: 4, opacity: 0.8 }}>These are automated observations, not legal conclusions.</p>
+                    </div>
+                  ) : (
+                    <p style={{ fontSize: 14, color: "#15803D", lineHeight: 1.6, fontFamily: "var(--font-sans)" }}>No contradictions detected across {records.length} record{records.length !== 1 ? "s" : ""}.</p>
+                  )}
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, flexShrink: 0 }}>
+                  {contradictions.length > 0 ? (
+                    <>
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#B45309" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
+                      <span style={{ fontSize: 9, fontFamily: "var(--font-mono)", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#B45309" }}>Review</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#15803D" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
+                      <span style={{ fontSize: 9, fontFamily: "var(--font-mono)", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#15803D" }}>Clear</span>
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
-          )}
+            );
+          })()}
 
           {/* ============================================================ */}
           {/*  STRENGTH TAB                                                  */}
@@ -2607,72 +2862,120 @@ DocketAlly provides documentation and risk awareness tools. This is not legal ad
       {/* ============================================================ */}
       {/*  ADD RECORDS MODAL                                            */}
       {/* ============================================================ */}
-      {showAddRecords && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={(e) => { if (e.target === e.currentTarget) closeAddRecordsModal(); }}>
-          <div style={{ background: "#fff", borderRadius: 16, width: "90%", maxWidth: 720, maxHeight: "85vh", display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            {/* Modal header */}
-            <div style={{ padding: "20px 24px", borderBottom: "1px solid #E7E5E4", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
-              <div>
-                <h3 style={{ fontFamily: "var(--font-sans)", fontSize: 18, fontWeight: 700, color: "#292524", marginBottom: 4 }}>Add Records to Case</h3>
-                <p style={{ fontSize: 13, color: "var(--color-stone-500)" }}>{caseRecordIds.size} record{caseRecordIds.size !== 1 ? "s" : ""} in this case</p>
+      {showAddRecords && (() => {
+        const filtered = allRecords.filter((r) => {
+          if (modalTypeFilter !== "All" && r.entry_type !== modalTypeFilter) return false;
+          if (modalSearch.trim()) {
+            const q = modalSearch.trim().toLowerCase();
+            if (!r.title.toLowerCase().includes(q) && !r.narrative.toLowerCase().includes(q)) return false;
+          }
+          return true;
+        });
+        const available = filtered.filter((r) => caseRecordIds.has(r.id) || !otherCaseMap[r.id]);
+        const inOtherCase = filtered.filter((r) => !caseRecordIds.has(r.id) && otherCaseMap[r.id]);
+
+        const renderRow = (r: DocketRecord) => {
+          const inCase = caseRecordIds.has(r.id);
+          const otherCase = otherCaseMap[r.id];
+          return (
+            <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 24px", borderBottom: "1px solid #F5F5F4", cursor: "pointer", background: inCase ? "#F0FDF4" : "#fff", transition: "background 0.15s" }}
+              onClick={() => inCase ? removeRecordFromCase(r.id) : addRecordToCase(r.id)}
+              onMouseEnter={(e) => { if (!inCase) e.currentTarget.style.background = "#FAFAF9"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = inCase ? "#F0FDF4" : "#fff"; }}
+            >
+              <div style={{ width: 22, height: 22, borderRadius: 6, border: inCase ? "2px solid #22C55E" : "2px solid #D6D3D1", background: inCase ? "#22C55E" : "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.15s" }}>
+                {inCase && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>}
               </div>
-              <button onClick={closeAddRecordsModal} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-stone-500)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-              </button>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
+                  <span style={{ fontSize: 12, fontFamily: "var(--font-mono)", color: "var(--color-stone-500)" }}>{formatDate(r.date)}</span>
+                  {r.entry_type && <span style={getBadgeStyle(r.entry_type)}>{r.entry_type}</span>}
+                  {otherCase && !inCase && (
+                    <span style={{ fontSize: 10, fontFamily: "var(--font-mono)", color: "#A8A29E", fontWeight: 600 }}>
+                      in {otherCase.length > 20 ? otherCase.slice(0, 20) + "..." : otherCase}
+                    </span>
+                  )}
+                </div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: otherCase && !inCase ? "#A8A29E" : "#292524", fontFamily: "var(--font-sans)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.title}</div>
+                {r.people && <div style={{ fontSize: 12, color: "var(--color-stone-500)", marginTop: 2 }}>{r.people}</div>}
+              </div>
             </div>
-            {/* Search + filter */}
-            <div style={{ padding: "12px 24px", borderBottom: "1px solid #F5F5F4", display: "flex", gap: 10, flexShrink: 0 }}>
-              <input type="text" value={modalSearch} onChange={(e) => setModalSearch(e.target.value)} placeholder="Search records..." style={{ ...filterInputStyle, flex: 1 }} />
-              <select value={modalTypeFilter} onChange={(e) => setModalTypeFilter(e.target.value)} style={{ ...filterInputStyle, minWidth: 140, cursor: "pointer" }}>
-                <option value="All">All Types</option>
-                {ENTRY_TYPES.map((et) => (<option key={et} value={et}>{et}</option>))}
-              </select>
-            </div>
-            {/* Record list */}
-            <div style={{ flex: 1, overflowY: "auto", padding: "0" }}>
-              {allRecords
-                .filter((r) => {
-                  if (modalTypeFilter !== "All" && r.entry_type !== modalTypeFilter) return false;
-                  if (modalSearch.trim()) {
-                    const q = modalSearch.trim().toLowerCase();
-                    if (!r.title.toLowerCase().includes(q) && !r.narrative.toLowerCase().includes(q)) return false;
-                  }
-                  return true;
-                })
-                .map((r) => {
-                  const inCase = caseRecordIds.has(r.id);
-                  return (
-                    <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 24px", borderBottom: "1px solid #F5F5F4", cursor: "pointer", background: inCase ? "#F0FDF4" : "#fff", transition: "background 0.15s" }}
-                      onClick={() => inCase ? removeRecordFromCase(r.id) : addRecordToCase(r.id)}
-                      onMouseEnter={(e) => { if (!inCase) e.currentTarget.style.background = "#FAFAF9"; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = inCase ? "#F0FDF4" : "#fff"; }}
-                    >
-                      {/* Checkbox */}
-                      <div style={{ width: 22, height: 22, borderRadius: 6, border: inCase ? "2px solid #22C55E" : "2px solid #D6D3D1", background: inCase ? "#22C55E" : "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.15s" }}>
-                        {inCase && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>}
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
-                          <span style={{ fontSize: 12, fontFamily: "var(--font-mono)", color: "var(--color-stone-500)" }}>{formatDate(r.date)}</span>
-                          <span style={getBadgeStyle(r.entry_type)}>{r.entry_type}</span>
-                        </div>
-                        <div style={{ fontSize: 14, fontWeight: 600, color: "#292524", fontFamily: "var(--font-sans)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.title}</div>
-                        {r.people && <div style={{ fontSize: 12, color: "var(--color-stone-500)", marginTop: 2 }}>{r.people}</div>}
-                      </div>
+          );
+        };
+
+        return (
+          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={(e) => { if (e.target === e.currentTarget) closeAddRecordsModal(); }}>
+            <div style={{ background: "#fff", borderRadius: 16, width: "90%", maxWidth: 720, maxHeight: "85vh", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+              {/* Modal header */}
+              <div style={{ padding: "20px 24px", borderBottom: "1px solid #E7E5E4", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
+                <div>
+                  <h3 style={{ fontFamily: "var(--font-sans)", fontSize: 18, fontWeight: 700, color: "#292524", marginBottom: 4 }}>Add Records to Case</h3>
+                  <p style={{ fontSize: 13, color: "var(--color-stone-500)" }}>{caseRecordIds.size} record{caseRecordIds.size !== 1 ? "s" : ""} in this case</p>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <button
+                    onClick={() => {
+                      closeAddRecordsModal();
+                      router.push(`/dashboard?newRecord=true&linkCase=${caseId}`);
+                    }}
+                    style={{ padding: "8px 16px", borderRadius: 8, border: "1px solid #22C55E", background: "#fff", color: "#22C55E", fontSize: 13, fontWeight: 600, fontFamily: "var(--font-sans)", cursor: "pointer", whiteSpace: "nowrap" }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = "#F0FDF4"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = "#fff"; }}
+                  >
+                    + New Record
+                  </button>
+                  <button onClick={closeAddRecordsModal} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-stone-500)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                  </button>
+                </div>
+              </div>
+              {/* Search + filter */}
+              <div style={{ padding: "12px 24px", borderBottom: "1px solid #F5F5F4", display: "flex", gap: 10, flexShrink: 0 }}>
+                <input type="text" value={modalSearch} onChange={(e) => setModalSearch(e.target.value)} placeholder="Search records..." style={{ ...filterInputStyle, flex: 1 }} />
+                <select value={modalTypeFilter} onChange={(e) => setModalTypeFilter(e.target.value)} style={{ ...filterInputStyle, minWidth: 140, cursor: "pointer" }}>
+                  <option value="All">All Types</option>
+                  {ENTRY_TYPES.map((et) => (<option key={et} value={et}>{et}</option>))}
+                </select>
+              </div>
+              {/* Record list */}
+              <div style={{ flex: 1, overflowY: "auto", padding: "0" }}>
+                {available.map(renderRow)}
+                {inOtherCase.length > 0 && (
+                  <>
+                    <div style={{ padding: "10px 24px", background: "#FAFAF9", borderBottom: "1px solid #F5F5F4" }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", color: "#A8A29E", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                        Already in another case
+                      </span>
                     </div>
-                  );
-                })}
-              {allRecords.length === 0 && (
-                <div style={{ padding: "40px 24px", textAlign: "center", color: "var(--color-stone-500)", fontSize: 14 }}>No records found. Create records in the Record tab first.</div>
-              )}
-            </div>
-            {/* Modal footer */}
-            <div style={{ padding: "16px 24px", borderTop: "1px solid #E7E5E4", display: "flex", justifyContent: "flex-end", flexShrink: 0 }}>
-              <button onClick={closeAddRecordsModal} style={{ padding: "10px 24px", borderRadius: 10, border: "none", background: "var(--color-green)", color: "#fff", fontSize: 14, fontWeight: 600, fontFamily: "var(--font-sans)", cursor: "pointer" }}>Done</button>
+                    {inOtherCase.map(renderRow)}
+                  </>
+                )}
+                {filtered.length === 0 && allRecords.length > 0 && (
+                  <div style={{ padding: "40px 24px", textAlign: "center", color: "var(--color-stone-500)", fontSize: 14 }}>No records match your search.</div>
+                )}
+                {allRecords.length === 0 && (
+                  <div style={{ padding: "40px 24px", textAlign: "center", color: "var(--color-stone-500)", fontSize: 14 }}>
+                    <p style={{ marginBottom: 12 }}>No records yet.</p>
+                    <button
+                      onClick={() => {
+                        closeAddRecordsModal();
+                        router.push(`/dashboard?newRecord=true&linkCase=${caseId}`);
+                      }}
+                      style={{ padding: "10px 20px", borderRadius: 8, border: "1px solid #22C55E", background: "#fff", color: "#22C55E", fontSize: 14, fontWeight: 600, fontFamily: "var(--font-sans)", cursor: "pointer" }}
+                    >
+                      + Create Your First Record
+                    </button>
+                  </div>
+                )}
+              </div>
+              {/* Modal footer */}
+              <div style={{ padding: "16px 24px", borderTop: "1px solid #E7E5E4", display: "flex", justifyContent: "flex-end", flexShrink: 0 }}>
+                <button onClick={closeAddRecordsModal} style={{ padding: "10px 24px", borderRadius: 10, border: "none", background: "var(--color-green)", color: "#fff", fontSize: 14, fontWeight: 600, fontFamily: "var(--font-sans)", cursor: "pointer" }}>Done</button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Delete confirmation modal */}
       {deleteConfirm && (
